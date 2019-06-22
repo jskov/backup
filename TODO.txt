@@ -17,3 +17,5 @@ Performance
 TESTS TODO:
  o ensure target dir is clean for potential conflicts before starting
  o two backups at different times creates similar archive and crypt checksums
+ 
+ Verify that CI allows PR on successful check
