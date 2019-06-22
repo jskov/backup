@@ -1,0 +1,19 @@
+
+* check that .-file are included
+* check that all sub-dirs (in depth) are included
+* document that links are not included, that empty dirs are removed
+* GNU long names
+* tarInfo of dir names containing "
+
+* verify extraction
+
+
+Performance
+* should performance check the double-write of nested tars
+  maybe compute tar size from writing to nul-sink, then write once into the proper archive
+  
+
+  
+TESTS TODO:
+ o ensure target dir is clean for potential conflicts before starting
+ o two backups at different times creates similar archive and crypt checksums
