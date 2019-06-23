@@ -58,8 +58,8 @@ class BackupVerificationTest {
 			.isEqualTo(0);
 		assertThat(output)
 			.contains(
-					"dir-a.tar 3c32b9dd275cc635ede8534a0ebc97b1c3413622d3e10177ebf06ab564619ca7        2560",
-					"dir-b.tar 88ce90d3172bb3201451e49d8833b75ba12ebe2c947cdc78184b0a8d5c65e75b        2048");
+					"dir-a.tar 095678b2811934c6d70e6f47d47a9d967e2f3b08f496f6e52d456a1c6c88e6af        2560",
+					"dir-b.tar 5840ce59c1b5a415fd30f7ae1d13b26597a6690cc70e5bf64e9005fe5e1b3c45        2048");
 	}
 
 	/**
@@ -75,7 +75,7 @@ class BackupVerificationTest {
 		assertThat(p.waitFor())
 			.isEqualTo(0);
 		assertThat(output)
-			.contains("test.tar 7914e1fbce2294b5fa543a1dba3a85dcbdb0794cbc0426ba80f378be955b87e9        6656");
+			.contains("test.tar 56d10ee345f6f43d04e5d0128ed5c8f3b557298a9af27ad6aadb8dbf994319bc        6656");
 	}
 
 	private Process runRestoreCmd(String... args) throws IOException {
