@@ -57,8 +57,9 @@ class BackupVerificationTest {
 		assertThat(p.waitFor())
 			.isEqualTo(0);
 		assertThat(output)
-			.contains("dir-a.tar 3c32b9dd275cc635ede8534a0ebc97b1c3413622d3e10177ebf06ab564619ca7        2560")
-			.contains("dir-b.tar 88ce90d3172bb3201451e49d8833b75ba12ebe2c947cdc78184b0a8d5c65e75b        2048");
+			.contains(
+					"dir-a.tar 3c32b9dd275cc635ede8534a0ebc97b1c3413622d3e10177ebf06ab564619ca7        2560",
+					"dir-b.tar 88ce90d3172bb3201451e49d8833b75ba12ebe2c947cdc78184b0a8d5c65e75b        2048");
 	}
 
 	/**
