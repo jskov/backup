@@ -24,7 +24,7 @@ class BackupVerificationTest {
 		BackupApi backupApi = new BackupApi();
 		
 		Path targetDir = Paths.get("build/backups");
-		Path sourceDir = Paths.get("src/test/java");
+		Path sourceDir = Paths.get("src/test/data/simple-input-tree");
 		restoreScript = backupApi.makeBackup("test", sourceDir, targetDir);
 	}
 	
