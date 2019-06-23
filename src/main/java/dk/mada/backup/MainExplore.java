@@ -6,17 +6,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
-import java.io.Writer;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.FileTime;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,7 +32,6 @@ public class MainExplore {
 	private Path rootDir;
 	
 	private List<DirInfo> fileElements = new ArrayList<>();
-	
 	
 	private void runCmdLine(List<String> dirs) {
 		if (dirs.size() != 1) {
@@ -111,8 +108,7 @@ public class MainExplore {
 			fileElements.add(dirInfo);
 			
 			String inArchiveName = dir.getFileName().toString() + ".tar";
-			
-			FileInfo res = copyToTar(tempArchiveFile, inArchiveName, tarOs);
+			FileInfo res = copyToTarResettingFileTime(tempArchiveFile, inArchiveName, tarOs);
 			
 			Files.delete(tempArchiveFile);
 			
@@ -142,10 +138,15 @@ public class MainExplore {
 			throw new UncheckedIOException(e);
 		}
 	}
-	
+
 	private FileInfo copyToTar(Path file, TarArchiveOutputStream tos) {
 		String archivePath = rootDir.relativize(file).toString();
 		return copyToTar(file, archivePath, tos);
+	}
+
+	private FileInfo copyToTarResettingFileTime(Path file, String inArchiveName, TarArchiveOutputStream tos) throws IOException {
+		Files.setLastModifiedTime(file, FileTime.fromMillis(0));
+		return copyToTar(file, inArchiveName, tos);
 	}
 	
 	private FileInfo copyToTar(Path file, String inArchiveName, TarArchiveOutputStream tos) {
