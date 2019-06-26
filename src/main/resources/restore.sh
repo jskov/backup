@@ -12,6 +12,7 @@ archives=(
 
 
 files=(
+#BEGIN_FILES#
 #END_FILES#
 )
 
@@ -54,12 +55,16 @@ info_and_exit() {
     echo " created on >>2019.06.11 14:45<<"
     echo " original size >>1.3GB<<"
     echo " encrypted with key id >>CA2DE6A3<<"
-    echo " contains ${#files[@]} files"
+    echo " ${#crypts[@]} crypted archive(s) contains ${#files[@]} files in ${#archives[@]} nested archives"
 
-    if [ "$1" == "-v" ]; then
-	for l in "${files[@]}"; do
+    local name=$1[@]
+    local array=("${!name}")
+    if [ "$1" == "crypts" -o "$1" == "files" -o "$1" == "archives" ]; then
+	for l in "${array[@]}"; do
 	    local file=${l:77}
-	    echo "  $file"
+	    local size=${l:0:11}
+	    local sha2=${l:12:64}
+	    echo "  ${file} ${sha2} ${size}"
 	done
     fi
 
