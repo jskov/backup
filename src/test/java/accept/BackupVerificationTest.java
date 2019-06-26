@@ -4,11 +4,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.examples.Expander;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
@@ -16,20 +22,23 @@ import org.junit.jupiter.api.Test;
 import dk.mada.backup.BackupApi;
 import fixture.DisplayNameCamelCase;
 
+/**
+ * Makes a backup, runs multiple checks on the restore of this backup.
+ */
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class BackupVerificationTest {
-
+	private static final FileTime ARBITRARY_KNOWN_TIME = FileTime.fromMillis(1561574109070L);
 	private static Path restoreScript;
 
 	@BeforeAll
-	static void makeBackup() {
+	static void makeBackup() throws IOException, ArchiveException {
 		BackupApi backupApi = new BackupApi();
 		
-		Path targetDir = Paths.get("build/backups");
-		Path sourceDir = Paths.get("src/test/data/simple-input-tree");
-		restoreScript = backupApi.makeBackup("test", sourceDir, targetDir);
+		Path srcDir = prepareTestInputTree("simple-input-tree");
+		Path targetDir = Paths.get("build/backup-dest");
+		restoreScript = backupApi.makeBackup("test", srcDir, targetDir);
 	}
-	
+
 	/**
 	 * Tests that the verification of the encrypted archive(s) works.
 	 */
@@ -45,7 +54,9 @@ class BackupVerificationTest {
 	}
 
 	/**
-	 * Ensures that archive checksums do not change over time.
+	 * (Middle) archive checksums should be unchanged over time, as long as
+	 * the input (backup) files are not touched. I.e. wall clock time when
+	 * the backup is made should not affect checksums.
 	 * 
 	 * The entire backup checksum should be stable over time.
 	 */
@@ -58,12 +69,14 @@ class BackupVerificationTest {
 			.isEqualTo(0);
 		assertThat(output)
 			.contains(
-					"dir-a.tar 095678b2811934c6d70e6f47d47a9d967e2f3b08f496f6e52d456a1c6c88e6af        2560",
-					"dir-b.tar 5840ce59c1b5a415fd30f7ae1d13b26597a6690cc70e5bf64e9005fe5e1b3c45        2048");
+					"dir-a.tar e42fa7a5806b41d4e1646ec1885e1f43bdbd9488465fa7022c1aa541ead9348f        2560",
+					"dir-b.tar 628b2ef22626e6a2d74c4bf441cf6394d5db0bf149a4a98ee048b51d9ce69374        2048");
 	}
 
 	/**
-	 * Ensures that encrypted archive checksums do not change over time.
+	 * Encrypted archive checksums should be unchanged over time, as long as
+	 * the input (backup) files are not touched. I.e. wall clock time when
+	 * the backup is made should not affect checksums.
 	 * 
 	 * The entire backup checksum should be stable over time.
 	 */
@@ -75,7 +88,7 @@ class BackupVerificationTest {
 		assertThat(p.waitFor())
 			.isEqualTo(0);
 		assertThat(output)
-			.contains("test.tar 56d10ee345f6f43d04e5d0128ed5c8f3b557298a9af27ad6aadb8dbf994319bc        6656");
+			.contains("test.tar debe314578a07d713ffd56bb8cc029cc95622f7a5e821d866ebc118a164ff724        6656");
 	}
 
 	private Process runRestoreCmd(String... args) throws IOException {
@@ -91,5 +104,28 @@ class BackupVerificationTest {
          try (InputStream in = p.getInputStream()) {
                  return new String(in.readAllBytes());
          }
-	 }
+	}
+
+	private static Path prepareTestInputTree(String name) throws IOException, ArchiveException {
+		Path srcDir = Paths.get("build/backup-src");
+		Files.createDirectories(srcDir);
+		
+		Path tar = Paths.get("src/test/data").resolve(name+".tar");
+		new Expander().expand(tar.toFile(), srcDir.toFile());
+		setTimeOfTestFiles(srcDir);
+
+		return srcDir.resolve(name);
+	}
+	
+	private static void setTimeOfTestFiles(Path srcDir) throws IOException {
+		try (Stream<Path> files = Files.walk(srcDir)) {
+			files.forEach(p -> {
+				try {
+					Files.setLastModifiedTime(p, ARBITRARY_KNOWN_TIME);
+				} catch (IOException e) {
+					throw new UncheckedIOException(e);
+				}
+			});
+		}
+	}
 }
