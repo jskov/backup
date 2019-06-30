@@ -17,7 +17,7 @@ Performance
 TESTS TODO:
  o ensure target dir is clean for potential conflicts before starting
  o backup info added to restore script
-
+ o pick up encryption errors for GUI presentation
  
  Test key created:
   $ gpg --homedir src/test/data/gpghome --generate-key 
