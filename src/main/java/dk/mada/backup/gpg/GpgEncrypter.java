@@ -13,14 +13,30 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Encrypts an input stream via an external GPG process.
+ * The output from the GPG process is returned as an inputStream
+ * for the client to consume.
+ */
 public class GpgEncrypter {
 	private static final Logger logger = LoggerFactory.getLogger(GpgEncrypter.class);
+	private final String recipientKeyId;
+	private final Map<String, String> envOverrides;
 
-	public static InputStream encryptFrom(String recipientKeyId, InputStream is) {
-		return encryptFrom(recipientKeyId, Collections.emptyMap(), is);
+	/**
+	 * @param recipientKeyId
+	 * @param envOverrides Environment overrides allows tests to specify the GNUPGHOME variable.
+	 */
+	public GpgEncrypter(String recipientKeyId, Map<String, String> envOverrides) {
+		this.recipientKeyId = recipientKeyId;
+		this.envOverrides = envOverrides;
+	}
+
+	public GpgEncrypter(String recipientKeyId) {
+		this(recipientKeyId, Collections.emptyMap());
 	}
 	
-	public static InputStream encryptFrom(String recipientKeyId, Map<String, String> envOverrides, InputStream is) {
+	public InputStream encryptFrom(InputStream is) {
 		try {
 			List<String> cmd = new ArrayList<>(List.of(
 					"/usr/bin/gpg",

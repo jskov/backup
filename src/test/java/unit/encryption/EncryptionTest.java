@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -28,6 +29,14 @@ class EncryptionTest {
 
 	@TempDir Path dir;
 
+	private GpgEncrypter sut;
+
+	@BeforeEach
+	public void init() {
+		Map<String, String> testEnv = Map.of("GNUPGHOME", ABS_TEST_GNUPG_HOME);
+		sut = new GpgEncrypter(TEST_RECIPIEND_KEY_ID, testEnv);
+	}
+	
 	/**
 	 * Tests that encrypted works by crypting a file,
 	 * and verifying that decrypting it results in file
@@ -51,10 +60,9 @@ class EncryptionTest {
 	}
 
 	private void encryptWithTestCertificate(Path originFile, Path cryptedFile) throws IOException {
-		Map<String, String> testEnv = Map.of("GNUPGHOME", ABS_TEST_GNUPG_HOME);
 		try (InputStream is = Files.newInputStream(originFile);
 				BufferedInputStream bis = new BufferedInputStream(is)) {
-			InputStream cryptedStream = GpgEncrypter.encryptFrom(TEST_RECIPIEND_KEY_ID, testEnv, bis);
+			InputStream cryptedStream = sut.encryptFrom(bis);
 			
 			Files.copy(cryptedStream, cryptedFile, StandardCopyOption.REPLACE_EXISTING);
 		}
