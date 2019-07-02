@@ -27,7 +27,7 @@ test {
     
     doLast {
     	project.fileTree(dir: "build/test-results", include: "**/TEST-*.xml").each {
-    		println it.text
+    		project.logger.lifecycle(it.text)
 		}
     }
     
