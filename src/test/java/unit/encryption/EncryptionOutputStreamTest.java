@@ -45,6 +45,8 @@ class EncryptionOutputStreamTest {
 		Path cryptedFile = dir.resolve("crypted.tar");
 		Path decryptedFile = dir.resolve("decrypted.tar");
 		
+		logger.trace("Trace message is visible");
+		
 		try (OutputStream os = Files.newOutputStream(cryptedFile);
 				BufferedOutputStream bos = new BufferedOutputStream(os);
 				GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(bos, TestCertificateInfo.TEST_RECIPIEND_KEY_ID, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES)) {
