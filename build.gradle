@@ -24,6 +24,13 @@ test {
         excludeTags "accept"
     }  
     ignoreFailures = true
+    
+    doLast {
+    	project.fileTree(dir: "build/test-results", include: "**/TEST-*.xml").each {
+    		println it.text
+		}
+    }
+    
 }
 
 task acceptTest(type: Test) {
