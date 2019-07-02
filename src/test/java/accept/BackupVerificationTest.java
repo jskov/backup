@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import dk.mada.backup.BackupApi;
 import fixture.DisplayNameCamelCase;
+import fixture.TestCertificateInfo;
 
 /**
  * Makes a backup, runs multiple checks on the restore of this backup.
@@ -32,10 +33,13 @@ class BackupVerificationTest {
 
 	@BeforeAll
 	static void makeBackup() throws IOException, ArchiveException {
-		BackupApi backupApi = new BackupApi();
+		BackupApi backupApi = new BackupApi(TestCertificateInfo.TEST_RECIPIEND_KEY_ID, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES);
 		
 		Path srcDir = prepareTestInputTree("simple-input-tree");
 		Path targetDir = Paths.get("build/backup-dest");
+		
+		org.assertj.core.util.Files.delete(targetDir.toFile());
+		
 		restoreScript = backupApi.makeBackup("test", srcDir, targetDir);
 	}
 
@@ -74,30 +78,52 @@ class BackupVerificationTest {
 	}
 
 	/**
-	 * Encrypted archive checksums should be unchanged over time, as long as
-	 * the input (backup) files are not touched. I.e. wall clock time when
-	 * the backup is made should not affect checksums.
-	 * 
-	 * The entire backup checksum should be stable over time.
+	 * Encrypted archive checksums is time-dependent. But size seems to
+	 * be stable.
 	 */
 	@Test
-	void cryptChecksumsStableOverTime() throws IOException, InterruptedException {
+	void cryptSizeStableOverTime() throws IOException, InterruptedException {
 		Process p = runRestoreCmd("info", "crypts");
 		String output = readOutput(p);
 		
 		assertThat(p.waitFor())
 			.isEqualTo(0);
 		assertThat(output)
-			.contains("test.tar debe314578a07d713ffd56bb8cc029cc95622f7a5e821d866ebc118a164ff724        6656");
+			.contains("test.tar", " 6984");
 	}
 
+	/**
+	 * Tests that the contained archives can be decrypted and unpacked.
+	 */
+	@Test
+	void backupCanBeRestored() throws IOException, InterruptedException {
+		Path restoreDir = Paths.get("build/backup-restored");
+		org.assertj.core.util.Files.delete(restoreDir.toFile());
+
+		Process p = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
+		String output = readOutput(p);
+
+		System.out.println(output);
+		
+		assertThat(p.waitFor())
+			.isEqualTo(0);
+		assertThat(output)
+			.contains("(1/1) test.tar... ok");
+	}
+
+
+	
+	
 	private Process runRestoreCmd(String... args) throws IOException {
 		List<String> cmd = new ArrayList<>(List.of("/bin/bash", restoreScript.toAbsolutePath().toString()));
 		cmd.addAll(List.of(args));
-		return new ProcessBuilder(cmd)
+		ProcessBuilder pb = new ProcessBuilder(cmd)
 				.directory(restoreScript.getParent().toFile())
-				.redirectErrorStream(true)
-				.start();
+				.redirectErrorStream(true);
+		
+		pb.environment().putAll(TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES);
+		
+		return pb.start();
 	}
 
 	private String readOutput(Process p) throws IOException {

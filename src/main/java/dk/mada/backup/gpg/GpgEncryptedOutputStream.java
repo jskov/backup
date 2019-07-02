@@ -26,14 +26,12 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 	private OutputStream gpgSink;
 	private CountDownLatch gpgProcessEnding = new CountDownLatch(1);
 
-	public GpgEncryptedOutputStream() {
+	private GpgEncryptedOutputStream() {
 		super(null);
-		throw new UnsupportedOperationException();
 	}
 
-	public GpgEncryptedOutputStream(OutputStream out) {
+	private GpgEncryptedOutputStream(OutputStream out) {
 		super(null);
-		throw new UnsupportedOperationException();
 	}
 
 	public GpgEncryptedOutputStream(OutputStream out, String recipientKeyId, Map<String, String> envOverrides) throws GpgEncrypterException {
