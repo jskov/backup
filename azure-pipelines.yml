@@ -23,7 +23,3 @@ jobs:
      inputs:
        jdkVersionOption: '1.11'
        tasks: 'check'
-   - task: ArchiveFiles@2
-     inputs:
-       rootFolderOrFile: 'build/test-results'  
-       
