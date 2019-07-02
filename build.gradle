@@ -31,6 +31,7 @@ task acceptTest(type: Test) {
     }
 }
 
+acceptTest.shouldRunAfter("test")
 tasks.check.dependsOn(acceptTest)
 
 sourceCompatibility = 11
