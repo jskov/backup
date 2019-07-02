@@ -60,6 +60,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     @Override
     public void write(byte b[], int off, int len) throws IOException {
     	gpgSink.write(b, off, len);
+    	logger.debug("Wrote {} bytes to gpgSink", len);
     }
 
     @Override
@@ -119,7 +120,9 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 	private void copyToUnderlyingStream(InputStream is) {
 		byte[] buffer = new byte[8192];
 
+		logger.trace("Creating buffer for copying");
 		try (BufferedInputStream bis = new BufferedInputStream(is)) {
+			logger.trace("Waiting for first read to return");
 			int read;
 			while ((read = bis.read(buffer)) > 0) {
 				logger.trace("Copying {} bytes from gpg to underlying stream", read);
