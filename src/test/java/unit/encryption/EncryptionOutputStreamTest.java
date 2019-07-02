@@ -21,7 +21,14 @@ import fixture.TestCertificateInfo;
 
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class EncryptionOutputStreamTest {
+	private static final String USR_BIN_GPG = "/usr/bin/gpg";
 	@TempDir Path dir;
+	
+	@Test
+	void gpgExists() {
+		assertThat(Paths.get(USR_BIN_GPG))
+			.exists();
+	}
 	
 	/**
 	 * Tests that encrypted works by encrypting an outputstream
@@ -58,7 +65,7 @@ class EncryptionOutputStreamTest {
 	private Process decryptFile(Path cryptedFile, Path decryptedFile) throws IOException, InterruptedException {
 		Files.deleteIfExists(decryptedFile);
 		List<String> unpackCmd = List.of(
-				"/usr/bin/gpg",
+				USR_BIN_GPG,
 				"--homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME,
 				"-o", decryptedFile.toString(),
 				"-d", cryptedFile.toString());
