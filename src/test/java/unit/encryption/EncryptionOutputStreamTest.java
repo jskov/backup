@@ -51,7 +51,7 @@ class EncryptionOutputStreamTest {
 			Files.copy(originFile, eos);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
-			e.printStackTrace();
+			assertThat(e.getMessage()).isEqualTo("nope");
 			logger.warn("Failed", e);
 		}
 		
