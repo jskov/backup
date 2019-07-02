@@ -50,6 +50,8 @@ class EncryptionOutputStreamTest {
 				GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(bos, TestCertificateInfo.TEST_RECIPIEND_KEY_ID, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES)) {
 			Files.copy(originFile, eos);
 		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
 			logger.warn("Failed", e);
 		}
 		
