@@ -125,9 +125,20 @@ unpack() {
 	fail "Will not unpack to existing target $target"
     fi
 
+    local crypt_files=
+    for l in "${crypts[@]}"; do
+	local size=${l:0:11}
+	local sha2=${l:12:64}
+	local file=${l:77}
+	crypt_files="$crypt_files $file"
+    done
+
+    echo "All crypt files: '$crypt_files'"
+    
     echo "Unpacking directory archives"
-    mkdir "$target"
-    tar -x -C "$target" -f _backup.tar
+    /usr/bin/mkdir "$target"
+    /usr/bin/cat $crypt_files | /usr/bin/gpg -d | /usr/bin/tar -x -C "$target"
+#    tar -x -C "$target"
 
     verify_files "archives" "$target"
 }

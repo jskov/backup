@@ -102,18 +102,14 @@ class BackupVerificationTest {
 
 		Process p = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
 		String output = readOutput(p);
-
-		System.out.println(output);
 		
 		assertThat(p.waitFor())
 			.isEqualTo(0);
 		assertThat(output)
-			.contains("(1/1) test.tar... ok");
+			.contains(" - (1/2) dir-a.tar... ok",
+					  " - (2/2) dir-b.tar... ok");
 	}
 
-
-	
-	
 	private Process runRestoreCmd(String... args) throws IOException {
 		List<String> cmd = new ArrayList<>(List.of("/bin/bash", restoreScript.toAbsolutePath().toString()));
 		cmd.addAll(List.of(args));
