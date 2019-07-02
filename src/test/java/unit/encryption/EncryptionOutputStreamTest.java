@@ -58,12 +58,16 @@ class EncryptionOutputStreamTest {
 		Process p = decryptFile(cryptedFile, decryptedFile);
 		printProcessOutput(p);
 		
-		assertThat(p.exitValue())
-			.isEqualTo(0);
+		assertThat(new String(p.getInputStream().readAllBytes()))
+			.isEqualTo("nope2");
 		
 		assertThat(decryptedFile)
 			.hasSameContentAs(originFile);
-	}
+
+		assertThat(p.exitValue())
+			.isEqualTo(0);
+	
+}
 
 	private void printProcessOutput(Process p) throws IOException {
 		System.out.println(new String(p.getInputStream().readAllBytes()));
