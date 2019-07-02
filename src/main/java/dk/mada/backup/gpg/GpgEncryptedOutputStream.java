@@ -109,7 +109,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 			
 			Process p = pb.start();
 
-			new Thread(() -> copy(p.getInputStream(), this)).start();
+			new Thread(() -> copyToUnderlyingStream(p.getInputStream())).start();
 			
 			return new BufferedOutputStream(p.getOutputStream());
 		} catch (IOException e) {
@@ -117,7 +117,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 		}
 	}
 
-	private void copy(InputStream is, OutputStream outputStream) {
+	private void copyToUnderlyingStream(InputStream is) {
 		byte[] buffer = new byte[8192];
 
 		try (BufferedInputStream bis = new BufferedInputStream(is)) {
