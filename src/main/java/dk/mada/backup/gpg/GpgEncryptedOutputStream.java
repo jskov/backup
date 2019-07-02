@@ -73,6 +73,13 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     @Override
     public void close() throws IOException {
     	flush();
+    	
+    	try {
+			Thread.sleep(10_000);
+		} catch (InterruptedException e1) {
+			throw new IllegalStateException("Interrupt while waiting", e1);
+		}
+    	
     	logger.debug("gpgSink.close()");
     	gpgSink.close();
     	
