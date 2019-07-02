@@ -1,4 +1,11 @@
 
+# Tests
+
+Tests are run using a test certificate (in src/test/data/gpghome) which is unprotected. This means that the tests can decrypt without providing a password.
+
+=========
+
+
 * check that .-file are included
 * check that all sub-dirs (in depth) are included
 * document that links are not included, that empty dirs are removed

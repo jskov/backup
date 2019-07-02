@@ -17,7 +17,6 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import dk.mada.backup.digest.Sha256Digester;
 import dk.mada.backup.gpg.GpgEncrypter;
 import fixture.DisplayNameCamelCase;
 
@@ -30,36 +29,48 @@ class EncryptionTest {
 	@TempDir Path dir;
 
 	/**
-	 * FIXME
-	 * @throws InterruptedException 
+	 * Tests that encrypted works by crypting a file,
+	 * and verifying that decrypting it results in file
+	 * like the input.
 	 */
 	@Test
 	void defaultEncryptionWorks() throws IOException, InterruptedException {
-		Path srcFile = Paths.get("src/test/data/simple-input-tree.tar");
-		Path destFile = Paths.get("build/crypted.tar");
-		Path expandedFile = Paths.get("build/unpacked.tar");
+		Path originFile = Paths.get("src/test/data/simple-input-tree.tar");
+		Path cryptedFile = dir.resolve("crypted.tar");
+		Path decryptedFile = dir.resolve("decrypted.tar");
+		
+		encryptWithTestCertificate(originFile, cryptedFile);
+		
+		Process p = decryptFile(cryptedFile, decryptedFile);
+
+		assertThat(p.exitValue())
+			.isEqualTo(0);
+		
+		assertThat(decryptedFile)
+			.hasSameContentAs(originFile);
+	}
+
+	private void encryptWithTestCertificate(Path originFile, Path cryptedFile) throws IOException {
 		Map<String, String> testEnv = Map.of("GNUPGHOME", ABS_TEST_GNUPG_HOME);
-		try (InputStream is = Files.newInputStream(srcFile);
+		try (InputStream is = Files.newInputStream(originFile);
 				BufferedInputStream bis = new BufferedInputStream(is)) {
 			InputStream cryptedStream = GpgEncrypter.encryptFrom(TEST_RECIPIEND_KEY_ID, testEnv, bis);
 			
-			Files.copy(cryptedStream, destFile, StandardCopyOption.REPLACE_EXISTING);
+			Files.copy(cryptedStream, cryptedFile, StandardCopyOption.REPLACE_EXISTING);
 		}
-		
-		Files.deleteIfExists(expandedFile);
-		
-		List<String> unpackCmd = List.of("/usr/bin/gpg", "--homedir", ABS_TEST_GNUPG_HOME, "-o", expandedFile.toString(), "-d", destFile.toString());
+	}
+
+	private Process decryptFile(Path cryptedFile, Path decryptedFile) throws IOException, InterruptedException {
+		Files.deleteIfExists(decryptedFile);
+		List<String> unpackCmd = List.of(
+				"/usr/bin/gpg",
+				"--homedir", ABS_TEST_GNUPG_HOME,
+				"-o", decryptedFile.toString(),
+				"-d", cryptedFile.toString());
 		Process p = new ProcessBuilder(unpackCmd)
 				.redirectErrorStream(true)
 				.start();
-			String out = new String(p.getInputStream().readAllBytes());
 		p.waitFor(5, TimeUnit.SECONDS);
-		
-		System.out.println(unpackCmd);
-		System.out.println("GOT " + out);
-		
-		assertThat(expandedFile)
-			.hasSameContentAs(srcFile);
-		
+		return p;
 	}
 }
