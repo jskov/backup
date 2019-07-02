@@ -38,7 +38,8 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 		super(out);
 		this.recipientKeyId = recipientKeyId;
 		this.envOverrides = envOverrides;
-		
+
+		logger.trace("Trace logging works");
 		gpgSink = startGpgBackgroundProcess();
 	}
 
