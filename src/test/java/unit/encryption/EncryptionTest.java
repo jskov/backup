@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -20,21 +19,17 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dk.mada.backup.gpg.GpgEncrypter;
 import fixture.DisplayNameCamelCase;
+import fixture.TestCertificateInfo;
 
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class EncryptionTest {
-	private static final String ABS_TEST_GNUPG_HOME = Paths.get("src/test/data/gpghome").toAbsolutePath().toString();
-
-	public static final String TEST_RECIPIEND_KEY_ID = "281DE650E39B5DCA3E9D542092B7BAA1D6B4A52D";
-
 	@TempDir Path dir;
 
 	private GpgEncrypter sut;
 
 	@BeforeEach
 	public void init() {
-		Map<String, String> testEnv = Map.of("GNUPGHOME", ABS_TEST_GNUPG_HOME);
-		sut = new GpgEncrypter(TEST_RECIPIEND_KEY_ID, testEnv);
+		sut = new GpgEncrypter(TestCertificateInfo.TEST_RECIPIEND_KEY_ID, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES);
 	}
 	
 	/**
@@ -72,7 +67,7 @@ class EncryptionTest {
 		Files.deleteIfExists(decryptedFile);
 		List<String> unpackCmd = List.of(
 				"/usr/bin/gpg",
-				"--homedir", ABS_TEST_GNUPG_HOME,
+				"--homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME,
 				"-o", decryptedFile.toString(),
 				"-d", cryptedFile.toString());
 		Process p = new ProcessBuilder(unpackCmd)
