@@ -1,6 +1,8 @@
 package dk.mada.backup.gpg;
 
-public class GpgEncrypterException extends RuntimeException {
+import java.io.IOException;
+
+public class GpgEncrypterException extends IOException {
 	public GpgEncrypterException(String message, Exception cause) {
 		super(message, cause);
 	}

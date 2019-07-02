@@ -36,7 +36,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 		throw new UnsupportedOperationException();
 	}
 
-	public GpgEncryptedOutputStream(OutputStream out, String recipientKeyId, Map<String, String> envOverrides) {
+	public GpgEncryptedOutputStream(OutputStream out, String recipientKeyId, Map<String, String> envOverrides) throws GpgEncrypterException {
 		super(out);
 		this.recipientKeyId = recipientKeyId;
 		this.envOverrides = envOverrides;
@@ -44,7 +44,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 		gpgSink = startGpgBackgroundProcess();
 	}
 
-	public GpgEncryptedOutputStream(OutputStream out, String recipientKeyId) {
+	public GpgEncryptedOutputStream(OutputStream out, String recipientKeyId) throws GpgEncrypterException {
 		this(out, recipientKeyId, Collections.emptyMap());
 	}
 	
@@ -84,7 +84,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     	logger.debug("GPG background process completed");
     }
     
-	private OutputStream startGpgBackgroundProcess() {
+	private OutputStream startGpgBackgroundProcess() throws GpgEncrypterException {
 		try {
 			List<String> cmd = new ArrayList<>(List.of(
 					"/usr/bin/gpg",
