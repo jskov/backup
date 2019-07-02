@@ -61,6 +61,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     public void write(byte b[], int off, int len) throws IOException {
     	gpgSink.write(b, off, len);
     	logger.debug("Wrote {} bytes to gpgSink", len);
+    	gpgSink.flush();
     }
 
     @Override
