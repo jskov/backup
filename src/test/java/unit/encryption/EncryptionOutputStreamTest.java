@@ -14,6 +14,8 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import fixture.DisplayNameCamelCase;
@@ -21,6 +23,7 @@ import fixture.TestCertificateInfo;
 
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class EncryptionOutputStreamTest {
+	private static final Logger logger = LoggerFactory.getLogger(EncryptionOutputStreamTest.class);
 	private static final String USR_BIN_GPG = "/usr/bin/gpg";
 	@TempDir Path dir;
 	
@@ -46,6 +49,8 @@ class EncryptionOutputStreamTest {
 				BufferedOutputStream bos = new BufferedOutputStream(os);
 				GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(bos, TestCertificateInfo.TEST_RECIPIEND_KEY_ID, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES)) {
 			Files.copy(originFile, eos);
+		} catch (Exception e) {
+			logger.warn("Failed", e);
 		}
 		
 		Process p = decryptFile(cryptedFile, decryptedFile);
