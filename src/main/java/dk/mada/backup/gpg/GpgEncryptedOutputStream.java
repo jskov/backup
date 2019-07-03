@@ -75,7 +75,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     	flush();
     	
     	try {
-			Thread.sleep(10_000);
+			Thread.sleep(2_000);
 		} catch (InterruptedException e1) {
 			throw new IllegalStateException("Interrupt while waiting", e1);
 		}

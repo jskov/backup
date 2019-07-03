@@ -11,7 +11,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -22,7 +21,6 @@ import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import fixture.DisplayNameCamelCase;
 import fixture.TestCertificateInfo;
 
-@Disabled("Focus on cat")
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class EncryptionOutputStreamTest {
 	private static final Logger logger = LoggerFactory.getLogger(EncryptionOutputStreamTest.class);
@@ -62,16 +60,12 @@ class EncryptionOutputStreamTest {
 		Process p = decryptFile(cryptedFile, decryptedFile);
 		printProcessOutput(p);
 		
-		assertThat(new String(p.getInputStream().readAllBytes()))
-			.isEqualTo("nope2");
-		
 		assertThat(decryptedFile)
 			.hasSameContentAs(originFile);
 
 		assertThat(p.exitValue())
 			.isEqualTo(0);
-	
-}
+	}
 
 	private void printProcessOutput(Process p) throws IOException {
 		System.out.println(new String(p.getInputStream().readAllBytes()));
