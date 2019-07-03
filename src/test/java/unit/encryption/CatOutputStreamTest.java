@@ -11,23 +11,22 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.mada.backup.gpg.CatOutputStream;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import fixture.DisplayNameCamelCase;
 import fixture.TestCertificateInfo;
 
-@Disabled("Focus on cat")
 @DisplayNameGeneration(DisplayNameCamelCase.class)
-class EncryptionOutputStreamTest {
-	private static final Logger logger = LoggerFactory.getLogger(EncryptionOutputStreamTest.class);
+class CatOutputStreamTest {
+	private static final Logger logger = LoggerFactory.getLogger(CatOutputStreamTest.class);
 	private static final String USR_BIN_GPG = "/usr/bin/gpg";
-	@TempDir Path dir;
+	Path dir = Paths.get("build/cater");
 	
 	@Test
 	void gpgExists() {
@@ -43,15 +42,16 @@ class EncryptionOutputStreamTest {
 	@Test
 	void defaultEncryptionWorks() throws IOException, InterruptedException {
 		Files.createDirectories(dir);
-		Path originFile = Paths.get("src/test/data/simple-input-tree.tar");
+		Path originFile = dir.resolve("input.txt");
 		Path cryptedFile = dir.resolve("crypted.tar");
-		Path decryptedFile = dir.resolve("decrypted.tar");
+		
+		Files.writeString(originFile, "test");
 		
 		logger.trace("Trace message is visible");
 		
 		try (OutputStream os = Files.newOutputStream(cryptedFile);
 				BufferedOutputStream bos = new BufferedOutputStream(os);
-				GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(bos, TestCertificateInfo.TEST_RECIPIEND_KEY_ID, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES)) {
+				CatOutputStream eos = new CatOutputStream(bos)) {
 			Files.copy(originFile, eos);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -59,19 +59,10 @@ class EncryptionOutputStreamTest {
 			logger.warn("Failed", e);
 		}
 		
-		Process p = decryptFile(cryptedFile, decryptedFile);
-		printProcessOutput(p);
 		
-		assertThat(new String(p.getInputStream().readAllBytes()))
-			.isEqualTo("nope2");
-		
-		assertThat(decryptedFile)
-			.hasSameContentAs(originFile);
-
-		assertThat(p.exitValue())
-			.isEqualTo(0);
-	
-}
+		assertThat(cryptedFile)
+			.hasContent("test");
+	}
 
 	private void printProcessOutput(Process p) throws IOException {
 		System.out.println(new String(p.getInputStream().readAllBytes()));

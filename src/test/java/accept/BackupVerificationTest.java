@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.examples.Expander;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 
@@ -26,6 +27,7 @@ import fixture.TestCertificateInfo;
 /**
  * Makes a backup, runs multiple checks on the restore of this backup.
  */
+@Disabled("Focus on cat")
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class BackupVerificationTest {
 	private static final FileTime ARBITRARY_KNOWN_TIME = FileTime.fromMillis(1561574109070L);
