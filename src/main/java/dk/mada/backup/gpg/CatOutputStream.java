@@ -85,7 +85,7 @@ public class CatOutputStream extends FilterOutputStream {
 	private OutputStream startGpgBackgroundProcess() throws GpgEncrypterException {
 		try {
 			List<String> cmd = new ArrayList<>(List.of(
-					"/usr/bin/cat"));
+					"/bin/cat"));
 			ProcessBuilder pb = new ProcessBuilder()
 				.command(cmd)
 				.redirectErrorStream(false);
