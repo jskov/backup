@@ -20,6 +20,12 @@ dependencies {
 }
 
 test {
+	doFirst {
+		println project.exec { 
+			commandLine("gpg", "--version")
+		}
+	}
+
     useJUnitPlatform {
         excludeTags "accept"
     }  
