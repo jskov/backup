@@ -19,13 +19,17 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
 }
 
-test {
+task prepareAzureGpgTestHome() {
 	doFirst {
-		println project.exec { 
-			commandLine("gpg", "--version")
+		project.mkdir("build/azure-gpg-home")
+	 	project.exec {
+			commandLine("gpg", "--homedir", "build/azure-gpg-home", "--import", "src/test/data/gpghome/exported-secret-key.asc")
 		}
 	}
+}
 
+test {
+	dependsOn(prepareAzureGpgTestHome)
     useJUnitPlatform {
         excludeTags "accept"
     }  
@@ -36,10 +40,10 @@ test {
     		project.logger.lifecycle(it.text)
 		}
     }
-    
 }
 
 task acceptTest(type: Test) {
+	dependsOn(prepareAzureGpgTestHome)
     useJUnitPlatform {
   	    includeTags "accept"
     }
