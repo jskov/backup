@@ -19,6 +19,21 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
 }
 
+task makeAzureDockerImage() {
+	doFirst {
+		copy {
+			into "build/azure-docker"
+			from "src/azure"
+			from ("src/test/data/gpghome") {
+				include "*.asc"
+			}
+		}
+	 	project.exec {
+			commandLine("docker", "build", "-t", "azure-backup", "build/azure-docker")
+		}
+	}
+}
+
 task prepareAzureGpgTestHome() {
 	doFirst {
 		project.mkdir("build/azure-gpg-home")
