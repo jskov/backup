@@ -9,14 +9,13 @@ import java.io.UncheckedIOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,6 +24,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import dk.mada.backup.restore.RestoreScriptWriter;
 
 public class MainExplore {
@@ -32,19 +32,12 @@ public class MainExplore {
 	private Path rootDir;
 	
 	private List<DirInfo> fileElements = new ArrayList<>();
+	private final String recipientKeyId;
+	private final Map<String, String> gpgEnvOverrides;
 	
-	private void runCmdLine(List<String> dirs) {
-		if (dirs.size() != 1) {
-			System.out.println("One arg: dir");
-			System.exit(1);
-		}
-		packTestOut(Paths.get(dirs.get(0)));
-	}
-	
-	private void packTestOut(Path dir) {
-		Path archive = Paths.get("/opt/work-photos/_backup.tar");
-		Path restoreScript = Paths.get("/opt/work-photos/_backup_restore.sh");
-		packDir(dir, archive, restoreScript);
+	public MainExplore(String recipientKeyId, Map<String, String> gpgEnvOverrides) {
+		this.recipientKeyId = recipientKeyId;
+		this.gpgEnvOverrides = gpgEnvOverrides;
 	}
 	
 	public void packDir(Path dir, Path archive, Path restoreScript) {
@@ -70,7 +63,8 @@ public class MainExplore {
 		try (Stream<Path> files = Files.list(rootDir);
 				 OutputStream os = Files.newOutputStream(archive);
 				 BufferedOutputStream bos = new BufferedOutputStream(os);
-				TarArchiveOutputStream tarOs = new TarArchiveOutputStream(bos)) {
+				GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(bos, recipientKeyId, gpgEnvOverrides);
+				TarArchiveOutputStream tarOs = new TarArchiveOutputStream(eos)) {
 
 			archiveElements = files
 				.sorted(filenameSorter())
@@ -184,9 +178,5 @@ public class MainExplore {
 		} catch (NoSuchAlgorithmException e) {
 			throw new IllegalStateException("No algo", e);
 		}
-	}
-
-	public static void main(String[] args) {
-		new MainExplore().runCmdLine(Arrays.asList(args));
 	}
 }

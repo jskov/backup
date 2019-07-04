@@ -19,18 +19,50 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
 }
 
+task makeAzureDockerImage() {
+	doFirst {
+		copy {
+			into "build/azure-docker"
+			from "src/azure"
+			from ("src/test/data/gpghome") {
+				include "*.asc"
+			}
+		}
+	 	project.exec {
+			commandLine("docker", "build", "-t", "azure-backup", "build/azure-docker")
+		}
+	}
+}
+
+task prepareAzureGpgTestHome() {
+	doFirst {
+		project.mkdir("build/azure-gpg-home")
+	 	project.exec {
+			commandLine("gpg", "--homedir", "build/azure-gpg-home", "--import", "src/test/data/gpghome/exported-secret-key.asc")
+		}
+	 	project.exec {
+			commandLine("gpg", "--homedir", "build/azure-gpg-home", "--import-ownertrust", "src/test/data/gpghome/exported-owner-trust.asc")
+		}
+	}
+}
+
 test {
+	dependsOn(prepareAzureGpgTestHome)
     useJUnitPlatform {
         excludeTags "accept"
     }  
+    ignoreFailures = false
 }
 
 task acceptTest(type: Test) {
+	dependsOn(prepareAzureGpgTestHome)
     useJUnitPlatform {
   	    includeTags "accept"
     }
+    ignoreFailures = false
 }
 
+acceptTest.shouldRunAfter("test")
 tasks.check.dependsOn(acceptTest)
 
 sourceCompatibility = 11
