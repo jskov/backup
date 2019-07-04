@@ -117,12 +117,24 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 			
 			Process p = pb.start();
 
+			new Thread(() -> copyErrToException(p.getErrorStream())).start();
 			new Thread(() -> copyToUnderlyingStream(p.getInputStream())).start();
 			
 			return new BufferedOutputStream(p.getOutputStream());
 		} catch (IOException e) {
 			throw new GpgEncrypterException("Failed to create background gpg process", e);
 		}
+	}
+
+	private void copyErrToException(InputStream errorStream) {
+		try (BufferedInputStream bis = new BufferedInputStream(errorStream)) {
+			String error = new String(bis.readAllBytes());
+			if (!error.isEmpty()) {
+				throw new GpgEncrypterException("GPG failed: " + error);
+			}
+		} catch (IOException e) {
+			throw new IllegalStateException("Failed to read GPG error out", e);
+		}		
 	}
 
 	private void copyToUnderlyingStream(InputStream is) {
