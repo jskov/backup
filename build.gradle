@@ -40,6 +40,9 @@ task prepareAzureGpgTestHome() {
 	 	project.exec {
 			commandLine("gpg", "--homedir", "build/azure-gpg-home", "--import", "src/test/data/gpghome/exported-secret-key.asc")
 		}
+	 	project.exec {
+			commandLine("gpg", "--homedir", "build/azure-gpg-home", "--import-ownertrust", "src/test/data/gpghome/exported-owner-trust.asc")
+		}
 	}
 }
 
