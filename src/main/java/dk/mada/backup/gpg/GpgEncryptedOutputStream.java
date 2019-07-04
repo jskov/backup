@@ -112,6 +112,8 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 		try {
 			List<String> cmd = new ArrayList<>(List.of(
 					"/usr/bin/gpg",
+					"-q",
+					"--no-permission-warning",
 					"--compress-algo",
 					"none",
 					"--with-colons",

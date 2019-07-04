@@ -52,10 +52,11 @@ class EncryptionOutputStreamTest {
 				GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(bos, TestCertificateInfo.TEST_RECIPIEND_KEY_ID, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES)) {
 			Files.copy(originFile, eos);
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			assertThat(e.getMessage()).isEqualTo("nope");
 			logger.warn("Failed", e);
+			throw e;
 		}
+
+		logger.info("Start on decryption...");
 		
 		Process p = decryptFile(cryptedFile, decryptedFile);
 		printProcessOutput(p);
