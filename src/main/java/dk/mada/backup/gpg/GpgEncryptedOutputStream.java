@@ -24,8 +24,12 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 	private String recipientKeyId;
 	private Map<String, String> envOverrides;
 	private OutputStream gpgSink;
-	private CountDownLatch gpgProcessEnding = new CountDownLatch(1);
-
+	private CountDownLatch stdoutDone = new CountDownLatch(1);
+	private CountDownLatch stderrDone = new CountDownLatch(1);
+	private IOException stdoutException;
+	private IOException stderrException;
+	private String stderrMessage;
+	
 	private GpgEncryptedOutputStream() {
 		super(null);
 	}
@@ -74,21 +78,33 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     public void close() throws IOException {
     	flush();
     	
-    	try {
-			Thread.sleep(2_000);
-		} catch (InterruptedException e1) {
-			throw new IllegalStateException("Interrupt while waiting", e1);
-		}
-    	
     	logger.debug("gpgSink.close()");
     	gpgSink.close();
     	
     	logger.debug("Waiting for GPG background process to complete");
     	try {
-			gpgProcessEnding.await(60, TimeUnit.SECONDS);
+			stdoutDone.await(60, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
-			throw new IOException("Got timeout while waiting for GPG background process to complete", e);
+			throw new IOException("Got timeout while waiting for GPG output to complete", e);
 		}
+    	try {
+			stderrDone.await(1, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			throw new IOException("Got timeout while waiting for GPG error output to complete", e);
+		}
+    	
+    	if (!stderrMessage.isEmpty()) {
+    		logger.warn("GPG error message: {}", stderrMessage);
+    	}
+    	
+    	if (stdoutException != null) {
+    		throw new GpgEncrypterException("GPG IO failed", stdoutException);
+    	}
+    	if (stderrException != null) {
+    		throw new GpgEncrypterException("GPG IO failed", stderrException);
+    	}
+    	
+    	
     	logger.debug("GPG background process completed");
     }
     
@@ -128,13 +144,12 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 
 	private void copyErrToException(InputStream errorStream) {
 		try (BufferedInputStream bis = new BufferedInputStream(errorStream)) {
-			String error = new String(bis.readAllBytes());
-			if (!error.isEmpty()) {
-				throw new GpgEncrypterException("GPG failed: " + error);
-			}
+			stderrMessage = new String(bis.readAllBytes());
 		} catch (IOException e) {
-			throw new IllegalStateException("Failed to read GPG error out", e);
-		}		
+			stderrException = new IOException("Failed to read GPG error output", e);
+		} finally {
+			stderrDone.countDown();
+		}
 	}
 
 	private void copyToUnderlyingStream(InputStream is) {
@@ -150,11 +165,11 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 		            super.write(buffer[i]); // Note, using single-byte method, or loops back to this.write(b)
 		        }
 			}
+			logger.debug("Gpg backend copier ending");
 		} catch (IOException e) {
-			throw new IllegalStateException("Failed to copy data to crypted sink", e);
+			stdoutException = new IOException("Failed to copy data from GPG to output stream", e);
+		} finally {
+			stdoutDone.countDown();
 		}
-		
-		logger.debug("Gpg backend copier ending");
-		gpgProcessEnding.countDown();
 	}
 }
