@@ -43,7 +43,6 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 		this.recipientKeyId = recipientKeyId;
 		this.envOverrides = envOverrides;
 
-		logger.trace("Trace logging works");
 		gpgSink = startGpgBackgroundProcess();
 	}
 
@@ -104,7 +103,6 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     		throw new GpgEncrypterException("GPG IO failed", stderrException);
     	}
     	
-    	
     	logger.debug("GPG background process completed");
     }
     
@@ -135,7 +133,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 			
 			Process p = pb.start();
 
-			new Thread(() -> copyErrToException(p.getErrorStream())).start();
+			new Thread(() -> copyErrMessage(p.getErrorStream())).start();
 			new Thread(() -> copyToUnderlyingStream(p.getInputStream())).start();
 			
 			return new BufferedOutputStream(p.getOutputStream());
@@ -144,7 +142,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 		}
 	}
 
-	private void copyErrToException(InputStream errorStream) {
+	private void copyErrMessage(InputStream errorStream) {
 		try (BufferedInputStream bis = new BufferedInputStream(errorStream)) {
 			stderrMessage = new String(bis.readAllBytes());
 		} catch (IOException e) {
@@ -157,9 +155,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 	private void copyToUnderlyingStream(InputStream is) {
 		byte[] buffer = new byte[8192];
 
-		logger.trace("Creating buffer for copying");
 		try (BufferedInputStream bis = new BufferedInputStream(is)) {
-			logger.trace("Waiting for first read to return");
 			int read;
 			while ((read = bis.read(buffer)) > 0) {
 				logger.trace("Copying {} bytes from gpg to underlying stream", read);

@@ -27,12 +27,6 @@ class EncryptionOutputStreamTest {
 	private static final String USR_BIN_GPG = "/usr/bin/gpg";
 	@TempDir Path dir;
 	
-	@Test
-	void gpgExists() {
-		assertThat(Paths.get(USR_BIN_GPG))
-			.exists();
-	}
-	
 	/**
 	 * Tests that encrypted works by encrypting an outputstream
 	 * and verifying that decrypting again results in file
@@ -45,8 +39,6 @@ class EncryptionOutputStreamTest {
 		Path cryptedFile = dir.resolve("crypted.tar");
 		Path decryptedFile = dir.resolve("decrypted.tar");
 		
-		logger.trace("Trace message is visible");
-		
 		try (OutputStream os = Files.newOutputStream(cryptedFile);
 				BufferedOutputStream bos = new BufferedOutputStream(os);
 				GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(bos, TestCertificateInfo.TEST_RECIPIEND_KEY_ID, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES)) {
@@ -56,8 +48,6 @@ class EncryptionOutputStreamTest {
 			throw e;
 		}
 
-		logger.info("Start on decryption...");
-		
 		Process p = decryptFile(cryptedFile, decryptedFile);
 		printProcessOutput(p);
 		

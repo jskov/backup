@@ -138,7 +138,6 @@ unpack() {
     echo "Unpacking directory archives"
     /bin/mkdir "$target"
     /bin/cat $crypt_files | /usr/bin/gpg -d | /bin/tar -x -C "$target"
-#    tar -x -C "$target"
 
     verify_files "archives" "$target"
 }

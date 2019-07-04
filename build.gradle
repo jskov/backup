@@ -51,13 +51,7 @@ test {
     useJUnitPlatform {
         excludeTags "accept"
     }  
-    ignoreFailures = true
-    
-    doLast {
-    	project.fileTree(dir: "build/test-results", include: "**/TEST-*.xml").each {
-    		project.logger.lifecycle(it.text)
-		}
-    }
+    ignoreFailures = false
 }
 
 task acceptTest(type: Test) {
@@ -65,11 +59,11 @@ task acceptTest(type: Test) {
     useJUnitPlatform {
   	    includeTags "accept"
     }
-    ignoreFailures = true
+    ignoreFailures = false
 }
 
 acceptTest.shouldRunAfter("test")
-//tasks.check.dependsOn(acceptTest) -- disable while figuring out gpg azure problem
+tasks.check.dependsOn(acceptTest)
 
 sourceCompatibility = 11
 targetCompatibility = 11
