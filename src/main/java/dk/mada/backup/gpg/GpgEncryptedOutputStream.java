@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * OutputStream that GPG encrypts the outgoing stream.
+ * OutputStream  filter that GPG-encrypts the outgoing stream.
  */
 public class GpgEncryptedOutputStream extends FilterOutputStream {
 	private static final Logger logger = LoggerFactory.getLogger(GpgEncryptedOutputStream.class);
@@ -63,21 +63,16 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     @Override
     public void write(byte b[], int off, int len) throws IOException {
     	gpgSink.write(b, off, len);
-    	logger.debug("Wrote {} bytes to gpgSink", len);
-    	gpgSink.flush();
     }
 
     @Override
     public void flush() throws IOException {
-    	logger.debug("gpgSink.flush()");
         gpgSink.flush();
     }
 
     @Override
     public void close() throws IOException {
     	flush();
-    	
-    	logger.debug("gpgSink.close()");
     	gpgSink.close();
     	
     	logger.debug("Waiting for GPG background process to complete");
