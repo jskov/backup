@@ -4,14 +4,16 @@
 Tests are run using a test certificate (in src/test/data/gpghome) which is unprotected. This means that the tests can decrypt without providing a password.
 
 =========
-
-
+* cli options, pack from command line
+* built with signing
+* build binary
+* unpack all files and verify them
 * check that .-file are included
 * check that all sub-dirs (in depth) are included
 * document that links are not included, that empty dirs are removed
 * GNU long names
 * tarInfo of dir names containing "
-
+* verify self - include signature of all checksums, verify correctness
 * verify extraction
 
 
