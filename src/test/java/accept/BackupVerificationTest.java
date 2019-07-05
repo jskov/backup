@@ -121,12 +121,13 @@ class BackupVerificationTest {
 		Process p = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
 		String output = readOutput(p);
 		
-		assertThat(p.waitFor())
-			.isEqualTo(0);
 		assertThat(output)
 			.contains(" - (1/3) dir-a/file-a1.bin... ok",
 					  " - (2/3) dir-a/file-a2.bin... ok",
 					  " - (3/3) dir-b/file-b1.bin... ok");
+
+		assertThat(p.exitValue())
+			.isEqualTo(0);
 	}
 
 	private Process runRestoreCmd(String... args) throws IOException {
