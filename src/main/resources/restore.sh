@@ -97,7 +97,7 @@ verify_files() {
 
     local array=("${!name}")
     local len=${#array[@]}
-    echo "Verifying integrity of archives in $files_dir"
+    echo "Verifying integrity of archives in $files_dir..."
 
     local i=1
     for l in "${array[@]}"; do
@@ -142,11 +142,11 @@ unpack() {
     /bin/mkdir "$target"
 
     if $onlyArchives; then
-	echo "Unpacking directory archives"
-	/bin/cat $crypt_files | /usr/bin/gpg -d | /bin/tar -x -C "$target"
+	echo "Unpacking directory archives..."
+	/bin/cat $crypt_files | /usr/bin/gpg -q --no-permission-warning -d | /bin/tar -x -C "$target"
 	verify_files "archives" "$target"
     else
-	echo "Unpacking full backup"
+	echo "Unpacking full backup..."
 	/bin/cat $crypt_files | /usr/bin/gpg -d | /bin/tar -x -C "%target" -f - --to-command '[[ "$TAR_FILENAME" == *.tar ]] && /bin/tar xf - || /bin/cat > $TAR_FILENAME'
     fi
     
