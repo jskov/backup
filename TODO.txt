@@ -38,4 +38,8 @@ TESTS TODO:
  Encrypt
   $ cat file | gpg --homedir src/test/data/gpghome --compress-algo none --with-colons --cipher-algo AES256 --batch --recipient 281DE650E39B5DCA3E9D542092B7BAA1D6B4A52D --encrypt > out.crypted
   $ gpg --homedir src/test/data/gpghome --no-symkey-cache -o out -d out.crypted
-  
+
+
+Unpack nested
+ $ tar xv --to-command '[[ "$TAR_FILENAME" == *.tar ]] && tar xf - || cat > $TAR_FILENAME' -f ../input.tar
+   

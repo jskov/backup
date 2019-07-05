@@ -116,6 +116,12 @@ verify_files() {
 }
 
 unpack() {
+    local onlyArchives=false
+    if [ "$1" == "-a" ]; then
+	onlyArchives=true
+	shift
+    fi
+    
     if [ $# -ne 1 ]; then
 	fail "Unpack expects one argument, the destination directory"
     fi
@@ -133,13 +139,17 @@ unpack() {
 	crypt_files="$crypt_files $file"
     done
 
-    echo "All crypt files: '$crypt_files'"
-    
-    echo "Unpacking directory archives"
     /bin/mkdir "$target"
-    /bin/cat $crypt_files | /usr/bin/gpg -d | /bin/tar -x -C "$target"
 
-    verify_files "archives" "$target"
+    if $onlyArchives; then
+	echo "Unpacking directory archives"
+	/bin/cat $crypt_files | /usr/bin/gpg -d | /bin/tar -x -C "$target"
+	verify_files "archives" "$target"
+    else
+	echo "Unpacking full backup"
+	/bin/cat $crypt_files | /usr/bin/gpg -d | /bin/tar -x -C "%target" -f - --to-command '[[ "$TAR_FILENAME" == *.tar ]] && /bin/tar xf - || /bin/cat > $TAR_FILENAME'
+    fi
+    
 }
 
 

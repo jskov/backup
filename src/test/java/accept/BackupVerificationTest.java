@@ -100,7 +100,7 @@ class BackupVerificationTest {
 		Path restoreDir = Paths.get("build/backup-restored");
 		org.assertj.core.util.Files.delete(restoreDir.toFile());
 
-		Process p = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
+		Process p = runRestoreCmd("unpack", "-a", restoreDir.toAbsolutePath().toString());
 		String output = readOutput(p);
 		
 		assertThat(p.waitFor())
