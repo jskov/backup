@@ -97,7 +97,7 @@ verify_files() {
 
     local array=("${!name}")
     local len=${#array[@]}
-    echo "Verifying integrity of archives in $files_dir"
+    echo "Verifying integrity of archives in $files_dir..."
 
     local i=1
     for l in "${array[@]}"; do
@@ -116,6 +116,12 @@ verify_files() {
 }
 
 unpack() {
+    local onlyArchives=false
+    if [ "$1" == "-a" ]; then
+	onlyArchives=true
+	shift
+    fi
+    
     if [ $# -ne 1 ]; then
 	fail "Unpack expects one argument, the destination directory"
     fi
@@ -133,13 +139,19 @@ unpack() {
 	crypt_files="$crypt_files $file"
     done
 
-    echo "All crypt files: '$crypt_files'"
-    
-    echo "Unpacking directory archives"
     /bin/mkdir "$target"
-    /bin/cat $crypt_files | /usr/bin/gpg -d | /bin/tar -x -C "$target"
 
-    verify_files "archives" "$target"
+    local gpg_cmd="/usr/bin/gpg -q --no-permission-warning -d"
+    if $onlyArchives; then
+	echo "Unpacking directory archives..."
+	/bin/cat $crypt_files | $gpg_cmd | (cd "$target" && /bin/tar -x -f -)
+	verify_files "archives" "$target"
+    else
+	echo "Unpacking full backup..."
+	/bin/cat $crypt_files | $gpg_cmd | (cd "$target" && /bin/tar -x -f - --to-command='/bin/bash -c "[[ "$TAR_FILENAME" == *.tar ]] && /bin/tar -x -f - || /bin/cat > "$TAR_FILENAME""')
+	verify_files "files" "$target"
+    fi
+    
 }
 
 

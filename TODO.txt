@@ -4,15 +4,18 @@
 Tests are run using a test certificate (in src/test/data/gpghome) which is unprotected. This means that the tests can decrypt without providing a password.
 
 =========
-
-
+* fail on input of .tars in backup folder
+* name nested archives as .btar to allow tars in backup dir
+* cli options, pack from command line
+* built with signing
+* build binary
+* unpack all files and verify them
 * check that .-file are included
 * check that all sub-dirs (in depth) are included
 * document that links are not included, that empty dirs are removed
 * GNU long names
 * tarInfo of dir names containing "
-
-* verify extraction
+* verify self - include signature of all checksums, verify correctness
 
 
 Performance
@@ -22,7 +25,7 @@ Performance
 
   
 TESTS TODO:
- o ensure target dir is clean for potential conflicts before starting
+ o ensure target dir is clean for potential conflicts before starting backup (do not require empty target dir)
  o backup info added to restore script
  o pick up encryption errors for GUI presentation
  
@@ -36,4 +39,7 @@ TESTS TODO:
  Encrypt
   $ cat file | gpg --homedir src/test/data/gpghome --compress-algo none --with-colons --cipher-algo AES256 --batch --recipient 281DE650E39B5DCA3E9D542092B7BAA1D6B4A52D --encrypt > out.crypted
   $ gpg --homedir src/test/data/gpghome --no-symkey-cache -o out -d out.crypted
-  
+
+
+Unpack nested
+ $ tar xv --to-command '[[ "$TAR_FILENAME" == *.tar ]] && tar xf - || cat > $TAR_FILENAME' -f ../input.tar
