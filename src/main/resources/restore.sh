@@ -141,13 +141,15 @@ unpack() {
 
     /bin/mkdir "$target"
 
+    local gpg_cmd="/usr/bin/gpg -q --no-permission-warning -d"
     if $onlyArchives; then
 	echo "Unpacking directory archives..."
-	/bin/cat $crypt_files | /usr/bin/gpg -q --no-permission-warning -d | /bin/tar -x -C "$target"
+	/bin/cat $crypt_files | $gpg_cmd | /bin/tar -x -f - -C "$target"
 	verify_files "archives" "$target"
     else
 	echo "Unpacking full backup..."
-	/bin/cat $crypt_files | /usr/bin/gpg -d | /bin/tar -x -C "%target" -f - --to-command '[[ "$TAR_FILENAME" == *.tar ]] && /bin/tar xf - || /bin/cat > $TAR_FILENAME'
+	/bin/cat $crypt_files | $gpg_cmd | (cd "$target" && /bin/tar -x -v -f - --to-command 'set -x ; echo do $TAR_FILENAME in $(pwd); [[ "$TAR_FILENAME" == *.tar ]] && /bin/tar xvf - || /bin/cat > $TAR_FILENAME')
+	verify_files "files" "$target"
     fi
     
 }

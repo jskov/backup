@@ -93,10 +93,10 @@ class BackupVerificationTest {
 	}
 
 	/**
-	 * Tests that the contained archives can be decrypted and unpacked.
+	 * Tests that the contained archives can be decrypted and verified.
 	 */
 	@Test
-	void backupCanBeRestored() throws IOException, InterruptedException {
+	void backupArchivesCanBeRestored() throws IOException, InterruptedException {
 		Path restoreDir = Paths.get("build/backup-restored");
 		org.assertj.core.util.Files.delete(restoreDir.toFile());
 
@@ -108,6 +108,25 @@ class BackupVerificationTest {
 		assertThat(output)
 			.contains(" - (1/2) dir-a.tar... ok",
 					  " - (2/2) dir-b.tar... ok");
+	}
+
+	/**
+	 * Tests that the full backup can be decrypted and verified.
+	 */
+	@Test
+	void backupFilesCanBeRestored() throws IOException, InterruptedException {
+		Path restoreDir = Paths.get("build/backup-restored");
+		org.assertj.core.util.Files.delete(restoreDir.toFile());
+
+		Process p = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
+		String output = readOutput(p);
+		
+		assertThat(p.waitFor())
+			.isEqualTo(0);
+		assertThat(output)
+			.contains(" - (1/3) dir-a/file-a1.bin... ok",
+					  " - (2/3) dir-a/file-a2.bin... ok",
+					  " - (3/3) dir-b/file-b1.bin... ok");
 	}
 
 	private Process runRestoreCmd(String... args) throws IOException {
