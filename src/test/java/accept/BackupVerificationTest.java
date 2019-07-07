@@ -19,7 +19,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 
-import dk.mada.backup.BackupApi;
+import dk.mada.backup.cli.Main;
 import fixture.DisplayNameCamelCase;
 import fixture.TestCertificateInfo;
 
@@ -33,14 +33,19 @@ class BackupVerificationTest {
 
 	@BeforeAll
 	static void makeBackup() throws IOException, ArchiveException {
-		BackupApi backupApi = new BackupApi(TestCertificateInfo.TEST_RECIPIEND_KEY_ID, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES);
-		
 		Path srcDir = prepareTestInputTree("simple-input-tree");
 		Path targetDir = Paths.get("build/backup-dest");
 		
 		org.assertj.core.util.Files.delete(targetDir.toFile());
-		
-		restoreScript = backupApi.makeBackup("test", srcDir, targetDir);
+
+		restoreScript = targetDir.resolve("test.sh");
+		Main.main(new String[] {
+					"-n", "test", 
+					"-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID,
+					"--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME,
+					srcDir.toAbsolutePath().toString(),
+					targetDir.toAbsolutePath().toString()
+				});
 	}
 
 	/**
@@ -78,18 +83,17 @@ class BackupVerificationTest {
 	}
 
 	/**
-	 * Encrypted archive checksums is time-dependent. But size seems to
-	 * be stable.
+	 * Encrypted archive checksums is time-dependent. But content is constant.
 	 */
 	@Test
-	void cryptSizeStableOverTime() throws IOException, InterruptedException {
+	void cryptContentStableOverTime() throws IOException, InterruptedException {
 		Process p = runRestoreCmd("info", "crypts");
 		String output = readOutput(p);
 		
 		assertThat(p.waitFor())
 			.isEqualTo(0);
 		assertThat(output)
-			.contains("test.tar", " 6984");
+			.contains("test.tar");
 	}
 
 	/**
