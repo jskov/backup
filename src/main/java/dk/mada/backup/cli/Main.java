@@ -6,7 +6,6 @@ import java.util.Map;
 import com.beust.jcommander.JCommander;
 
 import dk.mada.backup.BackupApi;
-import fixture.TestCertificateInfo;
 
 /**
  * Main method for CLI invocation.
@@ -30,7 +29,7 @@ public class Main {
 
 	private void run() {
 		Map<String, String> envOverrides = cliArgs.getAlternativeGpgHome()
-			.map(TestCertificateInfo::makeEnvOverrideForGnuPgpHome)
+			.map(home -> Map.of("GNUPGHOME", home.toAbsolutePath().toString()))
 			.orElse(Collections.emptyMap());
 		
 		BackupApi backupApi = new BackupApi(cliArgs.getGpgRecipientId(), envOverrides);
