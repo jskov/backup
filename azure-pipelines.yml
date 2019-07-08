@@ -1,9 +1,5 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/java
 # with inspiration from https://github.com/quarkusio/quarkus/blob/master/azure-pipelines.yml
-variables:
-  Build_SourceVersion: ${Build.SourceVersion}
-
-
 trigger:
   batch: true
   branches:
