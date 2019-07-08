@@ -30,4 +30,12 @@ jobs:
    - publish: $(System.DefaultWorkingDirectory)/dist
      artifact: Backup
      condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+     
+   - task: GitHubRelease@0
+     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+     inputs:
+       gitHubConnection: 'GitHub Release'
+       action: 'edit'
+       assets: $(System.DefaultWorkingDirectory)/dist
+       
   
