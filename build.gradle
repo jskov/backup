@@ -78,7 +78,7 @@ jar {
 
 task release(dependsOn: ["check", "jar"]) {
 	doLast {
-		println "See vars " + System.getenv('Build_SourceVersion')
+		println "See vars " + System.getenv()
 	}
 }
 
