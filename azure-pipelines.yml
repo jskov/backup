@@ -28,12 +28,6 @@ jobs:
        jdkVersionOption: '1.11'
        tasks: 'release'
        
- - job: Release
-   dependsOn: Check
-   pool:
-     vmImage: 'ubuntu-16.04'
-
-   steps:
    - publish: $(System.DefaultWorkingDirectory)/dist
      artifact: App
    
