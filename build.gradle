@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "dk.mada.backup"
-version = "1-SNAPSHOT"
+version = "1.0"
 
 repositories {
      mavenCentral()
@@ -65,6 +65,22 @@ task acceptTest(type: Test) {
 
 acceptTest.shouldRunAfter("test")
 tasks.check.dependsOn(acceptTest)
+
+jar {
+	manifest {
+		attributes(
+			'Git-Hash' : System.getenv('BUILD_SOURCEVERSION') ?: "no-version"
+		)
+	}
+	destinationDir = file("dist")
+	archiveBaseName = "backup"
+}
+
+task release(dependsOn: ["check", "jar"]) {
+	doLast {
+		println "See vars " + System.getenv()
+	}
+}
 
 sourceCompatibility = 11
 targetCompatibility = 11

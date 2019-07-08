@@ -5,6 +5,9 @@ trigger:
   branches:
     include:
     - master
+  tags:
+    include:
+      - 1.*
 
 pr:
   branches:
@@ -12,15 +15,18 @@ pr:
     - master
 
 jobs:
- - job: Build_Linux_jar
+ - job: Check
    timeoutInMinutes: 10
    pool:
      vmImage: 'ubuntu-16.04'
    
    steps:
    - task: Gradle@2
-     displayName: 'Run tests'
+     displayName: 'Run tests and build release'
      inputs:
        jdkVersionOption: '1.11'
-       tasks: 'check'
- 
+       tasks: 'release'
+       
+   - publish: $(System.DefaultWorkingDirectory)/dist
+     artifact: App
+   
