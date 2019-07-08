@@ -7,7 +7,7 @@ trigger:
     - master
   tags:
     include:
-      - 1.*
+      - 0.*
 
 pr:
   branches:
