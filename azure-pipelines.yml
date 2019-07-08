@@ -29,4 +29,5 @@ jobs:
        
    - publish: $(System.DefaultWorkingDirectory)/dist
      artifact: Backup
-   
+     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+  
