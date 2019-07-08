@@ -1,6 +1,7 @@
 plugins {
     id 'eclipse'
     id 'java'
+    id 'com.github.johnrengelman.shadow' version '5.1.0'
 }
 
 def declaredVersion = System.getenv("BUILD_SOURCEBRANCH")
@@ -78,17 +79,21 @@ jar {
 	manifest {
 		attributes(
 			'Git-Hash' : (System.getenv('BUILD_SOURCEVERSION') ?: "no-version"),
-			'Version' : version			
+			'Implementation-Version' : version,
+			'Main-Class' : "dk.mada.backup.cli.Main"
 		)
 	}
-	destinationDir = file("dist")
 	archiveBaseName = "backup"
 }
 
-task release(dependsOn: ["check", "jar"]) {
+shadowJar {
+	classifier = null
+	destinationDir = file("dist")
+}
+
+task release(dependsOn: ["check", "shadowJar"]) {
 	doLast {
 		println "Release $version"
-//		println "See vars " + System.getenv()
 	}
 }
 
