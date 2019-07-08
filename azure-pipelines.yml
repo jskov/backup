@@ -28,5 +28,6 @@ jobs:
        tasks: 'release'
        
    - publish: $(System.DefaultWorkingDirectory)/dist
-     artifact: App
-   
+     artifact: Backup
+     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+  

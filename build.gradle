@@ -3,8 +3,16 @@ plugins {
     id 'java'
 }
 
+def declaredVersion = System.getenv("BUILD_SOURCEBRANCH")
+if (declaredVersion != null && declaredVersion.startsWith("refs/tags/")) {
+	rootProject.version = declaredVersion.substring(10)
+} else {
+	version = "1-SNAPSHOT"
+}
+println "Builds version $version"
+
+
 group = "dk.mada.backup"
-version = "1.0"
 
 repositories {
      mavenCentral()
@@ -69,7 +77,8 @@ tasks.check.dependsOn(acceptTest)
 jar {
 	manifest {
 		attributes(
-			'Git-Hash' : System.getenv('BUILD_SOURCEVERSION') ?: "no-version"
+			'Git-Hash' : (System.getenv('BUILD_SOURCEVERSION') ?: "no-version"),
+			'Version' : version			
 		)
 	}
 	destinationDir = file("dist")
@@ -78,11 +87,14 @@ jar {
 
 task release(dependsOn: ["check", "jar"]) {
 	doLast {
-		println "See vars " + System.getenv()
+		println "Release $version"
+//		println "See vars " + System.getenv()
 	}
 }
 
 sourceCompatibility = 11
 targetCompatibility = 11
+
+tasks.clean { delete("dist") }
 
 tasks.eclipseClasspath.dependsOn("cleanEclipseClasspath")
