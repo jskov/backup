@@ -2,12 +2,10 @@
 # with inspiration from https://github.com/quarkusio/quarkus/blob/master/azure-pipelines.yml
 trigger:
   batch: true
- # branches:
- #   include:
- #   - master
   tags:
     include:
       - 0.*
+      - 1.*
 
 pr:
   branches:
@@ -27,16 +25,12 @@ jobs:
        jdkVersionOption: '1.11'
        tasks: 'release'
        
-#   - publish: $(System.DefaultWorkingDirectory)/dist
-#     artifact: Backup
-#     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-     
    - task: GitHubRelease@0
      condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
      inputs:
        gitHubConnection: 'GitHub Release'
        action: 'edit'
-       assets: $(System.DefaultWorkingDirectory)/dist
+       assets: $(System.DefaultWorkingDirectory)/dist/*
        tag: $(Build.SourceBranchName)
        
   
