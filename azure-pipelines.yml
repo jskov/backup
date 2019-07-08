@@ -1,5 +1,9 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/java
 # with inspiration from https://github.com/quarkusio/quarkus/blob/master/azure-pipelines.yml
+variables:
+  Build_SourceVersion: ${Build.SourceVersion}
+
+
 trigger:
   batch: true
   branches:
@@ -12,15 +16,24 @@ pr:
     - master
 
 jobs:
- - job: Build_Linux_jar
+ - job: Check
    timeoutInMinutes: 10
    pool:
      vmImage: 'ubuntu-16.04'
    
    steps:
    - task: Gradle@2
-     displayName: 'Run tests'
+     displayName: 'Run tests and build release'
      inputs:
        jdkVersionOption: '1.11'
-       tasks: 'check'
- 
+       tasks: 'release'
+       
+ - job: Release
+   dependsOn: Check
+   pool:
+     vmImage: 'ubuntu-16.04'
+
+   steps:
+   - publish: $(System.DefaultWorkingDirectory)/dist
+     artifact: App
+   
