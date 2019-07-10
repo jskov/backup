@@ -25,6 +25,18 @@ Performance
 
   
 TESTS TODO:
+ o handle dirs with spaces
+ /bin/tar: 7581: Child returned status 1
+  Robert: -c: line 0: unexpected token `newline', conditional binary operator expected
+  Robert: -c: line 0: syntax error near `Wilson,'
+  Robert: -c: line 0: `[[ Wilson,'
+  /bin/tar: 7588: Child returned status 1
+  Jane.tar == *.tar ]] && /bin/tar -x -f - || /bin/cat > Yolen,: -c: line 0: unexpected token `newline', conditional binary operator expected
+ 
+o handle long names
+
+ 
+ 
  o ensure target dir is clean for potential conflicts before starting backup (do not require empty target dir)
  o backup info added to restore script
  o pick up encryption errors for GUI presentation
