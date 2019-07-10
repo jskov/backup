@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 	private CountDownLatch stderrDone = new CountDownLatch(1);
 	private IOException stdoutException;
 	private IOException stderrException;
-	private String stderrMessage;
+	private AtomicReference<String> stderrMessageRef = new AtomicReference<>();
 	
 	private GpgEncryptedOutputStream() {
 		super(null);
@@ -87,6 +88,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 			throw new IOException("Got timeout while waiting for GPG error output to complete", e);
 		}
     	
+    	String stderrMessage = stderrMessageRef.get();
     	if (!stderrMessage.isEmpty()) {
     		logger.warn("GPG error message: {}", stderrMessage);
     	}
@@ -139,7 +141,11 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 
 	private void copyErrMessage(InputStream errorStream) {
 		try (BufferedInputStream bis = new BufferedInputStream(errorStream)) {
-			stderrMessage = new String(bis.readAllBytes());
+			String msg = new String(bis.readAllBytes());
+			stderrMessageRef.set(msg);
+			if (!msg.isEmpty()) {
+				logger.warn("GPG error:\n{}", msg);
+			}
 		} catch (IOException e) {
 			stderrException = new IOException("Failed to read GPG error output", e);
 		} finally {
@@ -152,8 +158,8 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 
 		try (BufferedInputStream bis = new BufferedInputStream(is)) {
 			int read;
-			while ((read = bis.read(buffer)) > 0) {
-				logger.trace("Copying {} bytes from gpg to underlying stream", read);
+			while ((read = bis.read(buffer)) >= 0) {
+				logger.debug("Copying {} bytes from gpg to underlying stream", read);
 		        for (int i = 0 ; i < read ; i++) {
 		            super.write(buffer[i]); // Note, using single-byte method, or loops back to this.write(b)
 		        }
