@@ -159,7 +159,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 		try (BufferedInputStream bis = new BufferedInputStream(is)) {
 			int read;
 			while ((read = bis.read(buffer)) >= 0) {
-				logger.debug("Copying {} bytes from gpg to underlying stream", read);
+				logger.trace("Copying {} bytes from gpg to underlying stream", read);
 		        for (int i = 0 ; i < read ; i++) {
 		            super.write(buffer[i]); // Note, using single-byte method, or loops back to this.write(b)
 		        }
