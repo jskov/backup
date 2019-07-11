@@ -76,6 +76,9 @@ usage_and_exit() {
     echo "Usage:"
     echo " restore [cmd]"
     echo "With cmd being one of:"
+    echo "  unpack dir         unpacks all files to dir"
+    echo "  unpack -a dir      unpacks (only) archives to dir"
+    echo
     echo "  verify             verifies crypted backup files"
     echo "  verify -a dir      verifies decrypted archive files in dir"
     echo "  verify -f dir      verifies decrypted and unpacked files in dir"
