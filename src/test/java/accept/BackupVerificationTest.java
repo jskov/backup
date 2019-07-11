@@ -110,8 +110,15 @@ class BackupVerificationTest {
 		assertThat(p.waitFor())
 			.isEqualTo(0);
 		assertThat(output)
-			.contains(" - (1/2) dir-a.tar... ok",
-					  " - (2/2) dir-b.tar... ok");
+			.contains(" - (1/8) dir-a.tar... ok",
+					" - (2/8) dir-b.tar... ok",
+					" - (3/8) dir-c.tar... ok",
+					" - (4/8) dir-d with space.tar... ok",
+					" - (5/8) dir-e.tar... ok",
+					" - (6/8) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.tar... ok",
+					" - (7/8) file-root1.bin... ok",
+					" - (8/8) file-root2 with space.bin... ok",
+					"Success!");
 	}
 
 	/**
@@ -126,9 +133,14 @@ class BackupVerificationTest {
 		String output = readOutput(p);
 		
 		assertThat(output)
-			.contains(" - (1/3) dir-a/file-a1.bin... ok",
-					  " - (2/3) dir-a/file-a2.bin... ok",
-					  " - (3/3) dir-b/file-b1.bin... ok");
+			.contains(" - (1/7) dir-a/file-a1.bin... ok",
+					" - (2/7) dir-a/file-a2.bin... ok",
+					" - (3/7) dir-b/file-b1.bin... ok",
+					" - (4/7) dir-c/file-c-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.bin... ok",
+					" - (5/7) dir-d with space/file-d1.bin... ok",
+					" - (6/7) dir-e/file-e with space.bin... ok",
+					" - (7/7) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890/file-long1.bin... ok",
+					"Success!");
 
 		assertThat(p.exitValue())
 			.isEqualTo(0);
