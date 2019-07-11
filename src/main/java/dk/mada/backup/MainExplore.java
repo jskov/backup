@@ -64,7 +64,7 @@ public class MainExplore {
 				 OutputStream os = Files.newOutputStream(archive);
 				 BufferedOutputStream bos = new BufferedOutputStream(os);
 				GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(bos, recipientKeyId, gpgEnvOverrides);
-				TarArchiveOutputStream tarOs = new TarArchiveOutputStream(eos)) {
+				TarArchiveOutputStream tarOs = makeTarOutputStream(eos)) {
 
 			archiveElements = files
 				.sorted(filenameSorter())
@@ -115,7 +115,7 @@ public class MainExplore {
 	private DirInfo createArchiveFromDir(Path dir, Path archive) {
 		try (OutputStream os = Files.newOutputStream(archive);
 				BufferedOutputStream bos = new BufferedOutputStream(os);
-				TarArchiveOutputStream tarForDirOs = new TarArchiveOutputStream(bos)) {
+				TarArchiveOutputStream tarForDirOs = makeTarOutputStream(bos)) {
 			
 			logger.info("Creating nested archive for {}", dir);
 			
@@ -133,6 +133,12 @@ public class MainExplore {
 		}
 	}
 
+	private static TarArchiveOutputStream makeTarOutputStream(OutputStream sink) {
+		TarArchiveOutputStream taos = new TarArchiveOutputStream(sink);
+		taos.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
+		return taos;
+	}
+	
 	private FileInfo copyToTar(Path file, TarArchiveOutputStream tos) {
 		String archivePath = rootDir.relativize(file).toString();
 		return copyToTar(file, archivePath, tos);
