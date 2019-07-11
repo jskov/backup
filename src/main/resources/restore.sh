@@ -148,7 +148,7 @@ unpack() {
 	verify_files "archives" "$target"
     else
 	echo "Unpacking full backup..."
-	/bin/cat $crypt_files | $gpg_cmd | (cd "$target" && /bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - || /bin/cat > "$TAR_FILENAME""')
+	/bin/cat $crypt_files | $gpg_cmd | (cd "$target" && /bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - || /bin/cat > \"$TAR_FILENAME\""')
 	verify_files "files" "$target"
     fi
     
