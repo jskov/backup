@@ -24,6 +24,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.mada.backup.cli.HumanByteCount;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import dk.mada.backup.restore.RestoreScriptWriter;
 
@@ -117,7 +118,7 @@ public class MainExplore {
 				BufferedOutputStream bos = new BufferedOutputStream(os);
 				TarArchiveOutputStream tarForDirOs = makeTarOutputStream(bos)) {
 			
-			logger.info("Creating nested archive for {}", dir);
+			logger.debug("Creating nested archive for {}", dir);
 			
 			try (Stream<Path> files = Files.walk(dir)) {
 				List<FileInfo> containedFiles = files
@@ -155,7 +156,8 @@ public class MainExplore {
 		try (InputStream is = Files.newInputStream(file); BufferedInputStream bis = new BufferedInputStream(is)) {
 			long size = Files.size(file);
 			
-			logger.info("Adding entry - {} {} bytes", inArchiveName, size);
+			String humanSize = HumanByteCount.humanReadableByteCount(size);
+			logger.info(" - {} {}", inArchiveName, humanSize);
 			ArchiveEntry archiveEntry = tos.createArchiveEntry(file.toFile(), inArchiveName);
 			tos.putArchiveEntry(archiveEntry);
 			
