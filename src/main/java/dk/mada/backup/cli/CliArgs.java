@@ -24,6 +24,8 @@ public class CliArgs {
 	private String name;
 	@Parameter(names = "--gpg-homedir", description = "Alternative GPG home dir", converter = PathConverter.class)
 	private Path gpgHomeDir;
+	@Parameter(names = "--skip-verify")
+	private boolean skipVerify;
 
 	public boolean isInputOutputValid() {
 		return isSourceDirValid() && isTargetValid();
@@ -58,5 +60,9 @@ public class CliArgs {
 	
 	public String getGpgRecipientId() {
 		return gpgRecipientId;
+	}
+	
+	public boolean isSkipVerify() {
+		return skipVerify;
 	}
 }
