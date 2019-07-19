@@ -82,6 +82,7 @@ usage_and_exit() {
     echo "  verify             verifies crypted backup files"
     echo "  verify -a dir      verifies decrypted archive files in dir"
     echo "  verify -f dir      verifies decrypted and unpacked files in dir"
+    echo "  verify -s          decrypts and verifies files via streaming - prompts password"
 
     exit 1
 }
@@ -205,14 +206,19 @@ EOF
     local gpg_cmd="/usr/bin/gpg -q --no-permission-warning -d"
 
     /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "set -e && [[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - --to-command=\"/bin/bash /tmp/verify.sh \\\"\\\$TAR_FILENAME\\\"\" || /bin/bash /tmp/verify.sh \"$TAR_FILENAME\""')
+
+    local res=$?
+    if [ $res -eq 0 ]; then
+	echo "All files verified ok."
+    fi
+    
+    return $res
 }
 
 if [ "$1" == "verify" ]; then
     shift
 
     if [ "$1" == "-s" ]; then
-	shift
-
 	verify_stream
 	exit $?
     fi

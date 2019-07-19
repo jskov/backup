@@ -148,6 +148,21 @@ class BackupVerificationTest {
 	}
 
 	/**
+	 * Tests that the files in the archive can be verified by streaming.
+	 */
+	@Test
+	void backupFilesCanBeVerifiedByStream() throws IOException, InterruptedException {
+		Process p = runRestoreCmd("verify", "-s");
+		String output = readOutput(p);
+		
+		assertThat(output)
+			.contains("All files verified ok.");
+		
+		assertThat(p.exitValue())
+			.isEqualTo(0);
+	}
+
+	/**
 	 * Tests that the a faulty file in the backup set
 	 * can be found by the streaming verifier.
 	 * 
@@ -157,12 +172,13 @@ class BackupVerificationTest {
 	@Test
 	void brokenBackupFilesCanBeFoundByStreamVerifier() throws IOException, InterruptedException {
 		// replace last 4 chars of checksum with "dead"
+		Path badRestoreScript = restoreScript.getParent().resolve("bad.sh");
 		String withBrokenChecksum = Files.readAllLines(restoreScript).stream()
 			.map(s -> s.replaceAll("....,dir-b/file-b1.bin", "dead,dir-b/file-b1.bin"))
 			.collect(Collectors.joining("\n"));
-		Files.writeString(restoreScript, withBrokenChecksum);
+		Files.writeString(badRestoreScript, withBrokenChecksum);
 		
-		Process p = runRestoreCmd("verify", "-s");
+		Process p = runRestoreCmd(badRestoreScript, "verify", "-s");
 		String output = readOutput(p);
 		
 		assertThat(output)
@@ -173,7 +189,11 @@ class BackupVerificationTest {
 	}
 
 	private Process runRestoreCmd(String... args) throws IOException {
-		List<String> cmd = new ArrayList<>(List.of("/bin/bash", restoreScript.toAbsolutePath().toString()));
+		return runRestoreCmd(restoreScript, args);
+	}
+	
+	private Process runRestoreCmd(Path script, String... args) throws IOException {
+		List<String> cmd = new ArrayList<>(List.of("/bin/bash", script.toAbsolutePath().toString()));
 		cmd.addAll(List.of(args));
 		ProcessBuilder pb = new ProcessBuilder(cmd)
 				.directory(restoreScript.getParent().toFile())
