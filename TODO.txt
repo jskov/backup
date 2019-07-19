@@ -6,14 +6,10 @@ Tests are run using a test certificate (in src/test/data/gpghome) which is unpro
 =========
 * fail on input of .tars in backup folder
 * name nested archives as .btar to allow tars in backup dir
-* cli options, pack from command line
 * built with signing
-* build binary
-* unpack all files and verify them
 * check that .-file are included
 * check that all sub-dirs (in depth) are included
 * document that links are not included, that empty dirs are removed
-* GNU long names
 * tarInfo of dir names containing "
 * verify self - include signature of all checksums, verify correctness
 
@@ -25,21 +21,11 @@ Performance
 
   
 TESTS TODO:
- o handle dirs with spaces
- /bin/tar: 7581: Child returned status 1
-  Robert: -c: line 0: unexpected token `newline', conditional binary operator expected
-  Robert: -c: line 0: syntax error near `Wilson,'
-  Robert: -c: line 0: `[[ Wilson,'
-  /bin/tar: 7588: Child returned status 1
-  Jane.tar == *.tar ]] && /bin/tar -x -f - || /bin/cat > Yolen,: -c: line 0: unexpected token `newline', conditional binary operator expected
- 
-o handle long names
-
- 
- 
  o ensure target dir is clean for potential conflicts before starting backup (do not require empty target dir)
  o backup info added to restore script
+ o split in specified file sizes
  o pick up encryption errors for GUI presentation
+ o option to disable post-backup stream verification
  
  Test key created:
   $ gpg --homedir src/test/data/gpghome --generate-key 
