@@ -178,22 +178,23 @@ verify_stream() {
     done
     echo -e "$file_checksums" > /tmp/valid-input.txt
 
-    cat >/tmp/verify.sh <<EOF
-#!/bin/bash
+    # Make script to test each stream's checksum
+    # Called with filename as argument, stream via stdin
+    /bin/cat >/tmp/verify.sh <<EOF
+#!/bin/bash -e
 filename="\$1"
 
-a=\$(sha256sum -b - | echo "\$(sed -e "s/ \*-/,/;")\$filename")
+a=\$(/usr/bin/sha256sum -b - | echo "\$(/bin/sed -e "s/ \*-/,/;")\$filename")
 
-grep -q "\$a" /tmp/valid-input.txt
+/bin/grep -q "\$a" /tmp/valid-input.txt
 
 res=\$?
 if [ \$res -ne 0 ]; then
   echo "Did not find matching checksum for file '\$filename'"
   exit 1
 fi
-#echo "Got \$a : \$res"
 EOF
-    
+
     local crypt_files=
     for l in "${crypts[@]}"; do
 	local size=${l:0:11}
@@ -203,7 +204,7 @@ EOF
     done
     local gpg_cmd="/usr/bin/gpg -q --no-permission-warning -d"
 
-    /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - --to-command=\"/bin/bash /tmp/verify.sh \\\"\\\$TAR_FILENAME\\\"\" || /bin/bash /tmp/verify.sh \"$TAR_FILENAME\""')
+    /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "set -e && [[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - --to-command=\"/bin/bash /tmp/verify.sh \\\"\\\$TAR_FILENAME\\\"\" || /bin/bash /tmp/verify.sh \"$TAR_FILENAME\""')
 }
 
 if [ "$1" == "verify" ]; then
@@ -213,7 +214,7 @@ if [ "$1" == "verify" ]; then
 	shift
 
 	verify_stream
-	exit 0
+	exit $?
     fi
 
     if [ "$1" == "-a" ]; then

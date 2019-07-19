@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -144,6 +145,31 @@ class BackupVerificationTest {
 
 		assertThat(p.exitValue())
 			.isEqualTo(0);
+	}
+
+	/**
+	 * Tests that the a faulty file in the backup set
+	 * can be found by the streaming verifier.
+	 * 
+	 * Done by breaking the checksum in the restore script before running
+	 * verify.
+	 */
+	@Test
+	void brokenBackupFilesCanBeFoundByStreamVerifier() throws IOException, InterruptedException {
+		// replace last 4 chars of checksum with "dead"
+		String withBrokenChecksum = Files.readAllLines(restoreScript).stream()
+			.map(s -> s.replaceAll("....,dir-b/file-b1.bin", "dead,dir-b/file-b1.bin"))
+			.collect(Collectors.joining("\n"));
+		Files.writeString(restoreScript, withBrokenChecksum);
+		
+		Process p = runRestoreCmd("verify", "-s");
+		String output = readOutput(p);
+		
+		assertThat(output)
+			.contains("Did not find matching checksum for file 'dir-b/file-b1.bin'");
+
+		assertThat(p.exitValue())
+			.isNotEqualTo(0);
 	}
 
 	private Process runRestoreCmd(String... args) throws IOException {
