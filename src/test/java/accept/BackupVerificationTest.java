@@ -4,18 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.archivers.examples.Expander;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
@@ -23,18 +19,18 @@ import org.junit.jupiter.api.Test;
 import dk.mada.backup.cli.Main;
 import fixture.DisplayNameCamelCase;
 import fixture.TestCertificateInfo;
+import fixture.TestDataPrepper;
 
 /**
  * Makes a backup, runs multiple checks on the restore of this backup.
  */
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class BackupVerificationTest {
-	private static final FileTime ARBITRARY_KNOWN_TIME = FileTime.fromMillis(1561574109070L);
 	private static Path restoreScript;
 
 	@BeforeAll
 	static void makeBackup() throws IOException, ArchiveException {
-		Path srcDir = prepareTestInputTree("simple-input-tree");
+		Path srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree");
 		Path targetDir = Paths.get("build/backup-dest");
 		
 		org.assertj.core.util.Files.delete(targetDir.toFile());
@@ -208,28 +204,5 @@ class BackupVerificationTest {
          try (InputStream in = p.getInputStream()) {
                  return new String(in.readAllBytes());
          }
-	}
-
-	private static Path prepareTestInputTree(String name) throws IOException, ArchiveException {
-		Path srcDir = Paths.get("build/backup-src");
-		Files.createDirectories(srcDir);
-		
-		Path tar = Paths.get("src/test/data").resolve(name+".tar");
-		new Expander().expand(tar.toFile(), srcDir.toFile());
-		setTimeOfTestFiles(srcDir);
-
-		return srcDir.resolve(name);
-	}
-	
-	private static void setTimeOfTestFiles(Path srcDir) throws IOException {
-		try (Stream<Path> files = Files.walk(srcDir)) {
-			files.forEach(p -> {
-				try {
-					Files.setLastModifiedTime(p, ARBITRARY_KNOWN_TIME);
-				} catch (IOException e) {
-					throw new UncheckedIOException(e);
-				}
-			});
-		}
 	}
 }
