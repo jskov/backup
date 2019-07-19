@@ -196,7 +196,7 @@ class BackupVerificationTest {
 		List<String> cmd = new ArrayList<>(List.of("/bin/bash", script.toAbsolutePath().toString()));
 		cmd.addAll(List.of(args));
 		ProcessBuilder pb = new ProcessBuilder(cmd)
-				.directory(restoreScript.getParent().toFile())
+				.directory(script.getParent().toFile())
 				.redirectErrorStream(true);
 		
 		pb.environment().putAll(TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES);
