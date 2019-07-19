@@ -71,6 +71,8 @@ public class MainExplore {
 				.sorted(filenameSorter())
 				.map(p -> processRootElement(tarOs, p))
 				.collect(Collectors.toList());
+			
+			logger.info("Waiting for backup streaming to complete...");
 		} catch (IOException e) {
 			throw new IllegalStateException("Failed processing", e);
 		}
@@ -84,7 +86,7 @@ public class MainExplore {
 	}
 	
 	private BackupElement processRootElement(TarArchiveOutputStream tarOs, Path p) {
-		logger.info("Process {}", p);
+		logger.debug("Process {}", p);
 		if (Files.isDirectory(p)) {
 			return processDir(tarOs, p);
 		} else {
@@ -156,8 +158,9 @@ public class MainExplore {
 		try (InputStream is = Files.newInputStream(file); BufferedInputStream bis = new BufferedInputStream(is)) {
 			long size = Files.size(file);
 			
+			String type = inArchiveName.endsWith(".tar") ? "=>" : "-";
 			String humanSize = HumanByteCount.humanReadableByteCount(size);
-			logger.info(" - {} {}", inArchiveName, humanSize);
+			logger.info(" {} {} {}", type, inArchiveName, humanSize);
 			ArchiveEntry archiveEntry = tos.createArchiveEntry(file.toFile(), inArchiveName);
 			tos.putArchiveEntry(archiveEntry);
 			
