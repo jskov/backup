@@ -157,6 +157,170 @@ unpack() {
     
 }
 
+# --to-command='sha256sum -b - | echo "$(sed -e "s/ \*-/,/;")$TAR_FILENAME"'
+
+verify_stream() {
+    local crypt_files=
+    for l in "${crypts[@]}"; do
+	local size=${l:0:11}
+	local sha2=${l:12:64}
+	local file=${l:77}
+	crypt_files="$crypt_files $file"
+    done
+    echo "Input: $crypt_files"
+    local gpg_cmd="/usr/bin/gpg -q --no-permission-warning -d"
+
+    rm -f /tmp/a
+    #    /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='sha256sum -b - | echo "$(sed -e "s/ \*-/,/;")$TAR_FILENAME" >> /tmp/a')
+    /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='sha256sum -b - | echo "$(sed -e "s/ \*-/,/;")$TAR_FILENAME" >> /tmp/a')
+
+    echo "output:"
+    /bin/cat /tmp/a
+    
+}
+
+verify_stream() {
+    local file_checksums=
+    for l in "${files[@]}"; do
+	local size=${l:0:11}
+	local sha2=${l:12:64}
+	local file=${l:77}
+	file_checksums="$file_checksums$sha2,$file\n"
+    done
+    echo -e "$file_checksums" > /tmp/valid-input.txt
+
+    echo "Look in"
+    echo ">$file_checksums<"
+    echo "-"
+
+    local crypt_files=
+    for l in "${crypts[@]}"; do
+	local size=${l:0:11}
+	local sha2=${l:12:64}
+	local file=${l:77}
+	crypt_files="$crypt_files $file"
+    done
+    echo "Input: $crypt_files"
+    local gpg_cmd="/usr/bin/gpg -q --no-permission-warning -d"
+
+    rm -f /tmp/a
+    #    /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='sha256sum -b - | echo "$(sed -e "s/ \*-/,/;")$TAR_FILENAME" >> /tmp/a')
+    /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='a=$(sha256sum -b - | echo "$(sed -e "s/ \*-/,/;")$TAR_FILENAME") && echo grep -F \"$a\" /tmp/valid-input.txt')
+
+    echo "output:"
+    /bin/cat /tmp/a
+# but only level 1    
+}
+
+
+verify_stream() {
+    local file_checksums=
+    for l in "${files[@]}"; do
+	local size=${l:0:11}
+	local sha2=${l:12:64}
+	local file=${l:77}
+	file_checksums="$file_checksums$sha2,$file\n"
+    done
+    echo -e "$file_checksums" > /tmp/valid-input.txt
+
+    cat >/tmp/verify.sh <<EOF
+#!/bin/bash
+filename="\$1"
+
+a=\$(sha256sum -b - | echo "\$(sed -e "s/ \*-/,/;")\$filename")
+
+grep "\$a" /tmp/valid-input.txt
+
+res=\$?
+if [ \$res -ne 0 ]; then
+  echo "Did not find matching checksum for file \$filename"
+  exit 1
+fi
+#echo "Got \$a : \$res"
+EOF
+    
+    local crypt_files=
+    for l in "${crypts[@]}"; do
+	local size=${l:0:11}
+	local sha2=${l:12:64}
+	local file=${l:77}
+	crypt_files="$crypt_files $file"
+    done
+    echo "Input: $crypt_files"
+    local gpg_cmd="/usr/bin/gpg -q --no-permission-warning -d"
+
+    rm -f /tmp/a
+    #    /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='sha256sum -b - | echo "$(sed -e "s/ \*-/,/;")$TAR_FILENAME" >> /tmp/a')
+#    /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - --to-command=\"echo Inner file \\\$TAR_FILENAME\" || echo \"Root file: $TAR_FILENAME\""')
+
+    /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - --to-command=\"/bin/bash /tmp/verify.sh \\\"\\\$TAR_FILENAME\\\"\" || echo \"Root file: $TAR_FILENAME\""')
+
+#okish        /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - --to-command=\"/bin/bash /tmp/verify.sh \\\$TAR_FILENAME\" || echo \"Root file: $TAR_FILENAME\""')
+
+
+#broekn    /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - --to-command=\"a=\\\$(sha256sum -b - | echo "\\\$\(sed -e "s/ \*-/,/;"\)\\\$TAR_FILENAME") && echo \\$a\" || echo \"Root file: $TAR_FILENAME\""')
+
+
+
+
+#a=$(sha256sum -b - | echo "$(sed -e "s/ \*-/,/;")$TAR_FILENAME") && echo grep -F \"$a\" /tmp/valid-input.txt')
+
+    echo "output:"
+    /bin/cat /tmp/a
+
+    #Seems to work
+}
+
+
+verify_stream() {
+    local file_checksums=
+    for l in "${files[@]}"; do
+	local size=${l:0:11}
+	local sha2=${l:12:64}
+	local file=${l:77}
+	file_checksums="$file_checksums$sha2,$file\n"
+    done
+    echo -e "$file_checksums" > /tmp/valid-input.txt
+
+    cat >/tmp/verify.sh <<EOF
+#!/bin/bash
+filename="\$1"
+
+a=\$(sha256sum -b - | echo "\$(sed -e "s/ \*-/,/;")\$filename")
+
+grep -q "\$a" /tmp/valid-input.txt
+
+res=\$?
+if [ \$res -ne 0 ]; then
+  echo "Did not find matching checksum for file \$filename"
+  exit 1
+fi
+#echo "Got \$a : \$res"
+EOF
+    
+    local crypt_files=
+    for l in "${crypts[@]}"; do
+	local size=${l:0:11}
+	local sha2=${l:12:64}
+	local file=${l:77}
+	crypt_files="$crypt_files $file"
+    done
+    local gpg_cmd="/usr/bin/gpg -q --no-permission-warning -d"
+
+    /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - --to-command=\"/bin/bash /tmp/verify.sh \\\"\\\$TAR_FILENAME\\\"\" || echo \"Root file: $TAR_FILENAME\""')
+
+#okish        /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - --to-command=\"/bin/bash /tmp/verify.sh \\\$TAR_FILENAME\" || echo \"Root file: $TAR_FILENAME\""')
+
+
+#broekn    /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - --to-command=\"a=\\\$(sha256sum -b - | echo "\\\$\(sed -e "s/ \*-/,/;"\)\\\$TAR_FILENAME") && echo \\$a\" || echo \"Root file: $TAR_FILENAME\""')
+
+
+
+
+#a=$(sha256sum -b - | echo "$(sed -e "s/ \*-/,/;")$TAR_FILENAME") && echo grep -F \"$a\" /tmp/valid-input.txt')
+    
+}
+
 
 if [ "$1" == "verify" ]; then
     shift
