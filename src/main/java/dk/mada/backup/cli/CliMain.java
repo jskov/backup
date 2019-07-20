@@ -16,12 +16,12 @@ import dk.mada.backup.restore.RestoreExecutor;
 /**
  * Main method for CLI invocation.
  */
-public class Main {
-	private static final Logger logger = LoggerFactory.getLogger(Main.class);
+public class CliMain {
+	private static final Logger logger = LoggerFactory.getLogger(CliMain.class);
 	private CliArgs cliArgs;
 	private Map<String, String> envOverrides;
 
-	public Main(String[] args) {
+	public CliMain(String[] args) {
 		cliArgs = new CliArgs();
 		JCommander jc = JCommander.newBuilder()
 			.addObject(cliArgs)
@@ -73,6 +73,6 @@ public class Main {
 	}
 
 	public static void main(String[] args) {
-		new Main(args).run();
+		new CliMain(args).run();
 	}
 }

@@ -13,7 +13,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 
-import dk.mada.backup.cli.Main;
+import dk.mada.backup.cli.CliMain;
 import dk.mada.backup.restore.RestoreExecutor;
 import dk.mada.backup.restore.RestoreExecutor.Result;
 import fixture.DisplayNameCamelCase;
@@ -35,7 +35,7 @@ class BackupVerificationTest {
 		org.assertj.core.util.Files.delete(targetDir.toFile());
 
 		restoreScript = targetDir.resolve("test.sh");
-		Main.main(new String[] {
+		CliMain.main(new String[] {
 					"-n", "test", 
 					"-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID,
 					"--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME,
