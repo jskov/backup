@@ -61,6 +61,15 @@ class NondestructionTest {
 			.isInstanceOf(BackupTargetExistsException.class);
 	}
 	
+	@Test
+	void shouldFailATarFileExits() throws IOException {
+		Path tarFile = targetDir.resolve("test.tar");
+		Files.createFile(tarFile);
+		
+		assertThatThrownBy(() -> runBackup("test"))
+			.isInstanceOf(BackupTargetExistsException.class);
+	}
+	
 	private void runBackup(String name) {
 		api.makeBackup(name, srcDir, targetDir);
 	}

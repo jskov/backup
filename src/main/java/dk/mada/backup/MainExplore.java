@@ -9,6 +9,7 @@ import java.io.UncheckedIOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileTime;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -24,6 +25,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.mada.backup.api.BackupTargetExistsException;
 import dk.mada.backup.cli.HumanByteCount;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import dk.mada.backup.restore.RestoreScriptWriter;
@@ -51,6 +53,9 @@ public class MainExplore {
 	}
 	
 	private void pack(Path archive, Path restoreScript) {
+		if (Files.exists(archive)) {
+			throw new BackupTargetExistsException("Archive file " + archive + " already exists!");
+		}
 		logger.info("Create archive {}", archive);
 		
 		try {
@@ -62,7 +67,7 @@ public class MainExplore {
 		
 		List<BackupElement> archiveElements;
 		try (Stream<Path> files = Files.list(rootDir);
-				 OutputStream os = Files.newOutputStream(archive);
+				 OutputStream os = Files.newOutputStream(archive, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
 				 BufferedOutputStream bos = new BufferedOutputStream(os);
 				GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(bos, recipientKeyId, gpgEnvOverrides);
 				TarArchiveOutputStream tarOs = makeTarOutputStream(eos)) {
@@ -116,7 +121,11 @@ public class MainExplore {
 	}
 		
 	private DirInfo createArchiveFromDir(Path dir, Path archive) {
-		try (OutputStream os = Files.newOutputStream(archive);
+		if (Files.exists(archive)) {
+			throw new BackupTargetExistsException("Archive file " + archive + " already exists!");
+		}
+
+		try (OutputStream os = Files.newOutputStream(archive, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
 				BufferedOutputStream bos = new BufferedOutputStream(os);
 				TarArchiveOutputStream tarForDirOs = makeTarOutputStream(bos)) {
 			
