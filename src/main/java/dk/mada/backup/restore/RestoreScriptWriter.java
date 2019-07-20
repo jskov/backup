@@ -7,12 +7,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import dk.mada.backup.BackupElement;
+import dk.mada.backup.api.BackupTargetExistsException;
 
 /**
  * Copies out the restore script, replacing backup information as it goes.
@@ -20,10 +22,14 @@ import dk.mada.backup.BackupElement;
 public class RestoreScriptWriter {
 
 	public void write(Path script, List<? extends BackupElement> crypts, List<? extends BackupElement> tars, List<? extends BackupElement> files) {
+		if (Files.exists(script)) {
+			throw new BackupTargetExistsException("Restore script file " + script + " already exists!");
+		}
+
 		try (InputStream is = getClass().getResourceAsStream("/restore.sh");
 				InputStreamReader isr = new InputStreamReader(is);
 				BufferedReader br = new BufferedReader(isr);
-				BufferedWriter bw = Files.newBufferedWriter(script)) {
+				BufferedWriter bw = Files.newBufferedWriter(script, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
 			String line;
 			boolean ignoringSection = false;
 			while ((line = br.readLine()) != null) {

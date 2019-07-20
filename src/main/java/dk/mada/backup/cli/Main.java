@@ -6,7 +6,7 @@ import java.util.Map;
 
 import com.beust.jcommander.JCommander;
 
-import dk.mada.backup.BackupApi;
+import dk.mada.backup.api.BackupApi;
 import dk.mada.backup.restore.RestoreExecutor;
 
 /**

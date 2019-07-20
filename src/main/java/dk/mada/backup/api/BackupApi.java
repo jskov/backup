@@ -1,8 +1,10 @@
-package dk.mada.backup;
+package dk.mada.backup.api;
 
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
+
+import dk.mada.backup.MainExplore;
 
 public class BackupApi {
 	private final MainExplore spikeCode;
