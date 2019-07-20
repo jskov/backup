@@ -3,44 +3,39 @@ package accept;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.archivers.examples.Expander;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 
-import dk.mada.backup.cli.Main;
+import dk.mada.backup.cli.CliMain;
+import dk.mada.backup.restore.RestoreExecutor;
+import dk.mada.backup.restore.RestoreExecutor.Result;
 import fixture.DisplayNameCamelCase;
 import fixture.TestCertificateInfo;
+import fixture.TestDataPrepper;
 
 /**
  * Makes a backup, runs multiple checks on the restore of this backup.
  */
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class BackupVerificationTest {
-	private static final FileTime ARBITRARY_KNOWN_TIME = FileTime.fromMillis(1561574109070L);
 	private static Path restoreScript;
 
 	@BeforeAll
 	static void makeBackup() throws IOException, ArchiveException {
-		Path srcDir = prepareTestInputTree("simple-input-tree");
+		Path srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree");
 		Path targetDir = Paths.get("build/backup-dest");
 		
 		org.assertj.core.util.Files.delete(targetDir.toFile());
 
 		restoreScript = targetDir.resolve("test.sh");
-		Main.main(new String[] {
+		CliMain.main(new String[] {
 					"-n", "test", 
 					"-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID,
 					"--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME,
@@ -54,12 +49,11 @@ class BackupVerificationTest {
 	 */
 	@Test
 	void backupCryptFilesCanBeVerified() throws IOException, InterruptedException {
-		Process p = runRestoreCmd("verify");
-		String output = readOutput(p);
+		Result res = runRestoreCmd("verify");
 		
-		assertThat(p.waitFor())
+		assertThat(res.exitValue)
 			.isEqualTo(0);
-		assertThat(output)
+		assertThat(res.output)
 			.contains("(1/1) test.tar... ok");
 	}
 
@@ -72,12 +66,11 @@ class BackupVerificationTest {
 	 */
 	@Test
 	void archiveChecksumsStableOverTime() throws IOException, InterruptedException {
-		Process p = runRestoreCmd("info", "archives");
-		String output = readOutput(p);
+		Result res = runRestoreCmd("info", "archives");
 		
-		assertThat(p.waitFor())
+		assertThat(res.exitValue)
 			.isEqualTo(0);
-		assertThat(output)
+		assertThat(res.output)
 			.contains(
 					"dir-a.tar e42fa7a5806b41d4e1646ec1885e1f43bdbd9488465fa7022c1aa541ead9348f        2560",
 					"dir-b.tar 628b2ef22626e6a2d74c4bf441cf6394d5db0bf149a4a98ee048b51d9ce69374        2048");
@@ -88,12 +81,11 @@ class BackupVerificationTest {
 	 */
 	@Test
 	void cryptContentStableOverTime() throws IOException, InterruptedException {
-		Process p = runRestoreCmd("info", "crypts");
-		String output = readOutput(p);
+		Result res = runRestoreCmd("info", "crypts");
 		
-		assertThat(p.waitFor())
+		assertThat(res.exitValue)
 			.isEqualTo(0);
-		assertThat(output)
+		assertThat(res.output)
 			.contains("test.tar");
 	}
 
@@ -105,12 +97,11 @@ class BackupVerificationTest {
 		Path restoreDir = Paths.get("build/backup-restored");
 		org.assertj.core.util.Files.delete(restoreDir.toFile());
 
-		Process p = runRestoreCmd("unpack", "-a", restoreDir.toAbsolutePath().toString());
-		String output = readOutput(p);
+		Result res = runRestoreCmd("unpack", "-a", restoreDir.toAbsolutePath().toString());
 		
-		assertThat(p.waitFor())
+		assertThat(res.exitValue)
 			.isEqualTo(0);
-		assertThat(output)
+		assertThat(res.output)
 			.contains(" - (1/8) dir-a.tar... ok",
 					" - (2/8) dir-b.tar... ok",
 					" - (3/8) dir-c.tar... ok",
@@ -130,10 +121,9 @@ class BackupVerificationTest {
 		Path restoreDir = Paths.get("build/backup-restored");
 		org.assertj.core.util.Files.delete(restoreDir.toFile());
 
-		Process p = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
-		String output = readOutput(p);
+		Result res = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
 		
-		assertThat(output)
+		assertThat(res.output)
 			.contains(" - (1/7) dir-a/file-a1.bin... ok",
 					" - (2/7) dir-a/file-a2.bin... ok",
 					" - (3/7) dir-b/file-b1.bin... ok",
@@ -143,7 +133,7 @@ class BackupVerificationTest {
 					" - (7/7) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890/file-long1.bin... ok",
 					"Success!");
 
-		assertThat(p.exitValue())
+		assertThat(res.exitValue)
 			.isEqualTo(0);
 	}
 
@@ -152,13 +142,12 @@ class BackupVerificationTest {
 	 */
 	@Test
 	void backupFilesCanBeVerifiedByStream() throws IOException, InterruptedException {
-		Process p = runRestoreCmd("verify", "-s");
-		String output = readOutput(p);
+		Result res = runRestoreCmd("verify", "-s");
 		
-		assertThat(output)
+		assertThat(res.output)
 			.contains("All files verified ok.");
 		
-		assertThat(p.exitValue())
+		assertThat(res.exitValue)
 			.isEqualTo(0);
 	}
 
@@ -178,58 +167,20 @@ class BackupVerificationTest {
 			.collect(Collectors.joining("\n"));
 		Files.writeString(badRestoreScript, withBrokenChecksum);
 		
-		Process p = runRestoreCmd(badRestoreScript, "verify", "-s");
-		String output = readOutput(p);
+		Result res = runRestoreCmd(badRestoreScript, "verify", "-s");
 		
-		assertThat(output)
+		assertThat(res.output)
 			.contains("Did not find matching checksum for file 'dir-b/file-b1.bin'");
 
-		assertThat(p.exitValue())
+		assertThat(res.exitValue)
 			.isNotEqualTo(0);
 	}
 
-	private Process runRestoreCmd(String... args) throws IOException {
+	private Result runRestoreCmd(String... args) throws IOException {
 		return runRestoreCmd(restoreScript, args);
 	}
 	
-	private Process runRestoreCmd(Path script, String... args) throws IOException {
-		List<String> cmd = new ArrayList<>(List.of("/bin/bash", script.toAbsolutePath().toString()));
-		cmd.addAll(List.of(args));
-		ProcessBuilder pb = new ProcessBuilder(cmd)
-				.directory(script.getParent().toFile())
-				.redirectErrorStream(true);
-		
-		pb.environment().putAll(TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES);
-		
-		return pb.start();
-	}
-
-	private String readOutput(Process p) throws IOException {
-         try (InputStream in = p.getInputStream()) {
-                 return new String(in.readAllBytes());
-         }
-	}
-
-	private static Path prepareTestInputTree(String name) throws IOException, ArchiveException {
-		Path srcDir = Paths.get("build/backup-src");
-		Files.createDirectories(srcDir);
-		
-		Path tar = Paths.get("src/test/data").resolve(name+".tar");
-		new Expander().expand(tar.toFile(), srcDir.toFile());
-		setTimeOfTestFiles(srcDir);
-
-		return srcDir.resolve(name);
-	}
-	
-	private static void setTimeOfTestFiles(Path srcDir) throws IOException {
-		try (Stream<Path> files = Files.walk(srcDir)) {
-			files.forEach(p -> {
-				try {
-					Files.setLastModifiedTime(p, ARBITRARY_KNOWN_TIME);
-				} catch (IOException e) {
-					throw new UncheckedIOException(e);
-				}
-			});
-		}
+	private Result runRestoreCmd(Path script, String... args) throws IOException {
+		return RestoreExecutor.runRestoreScript(script, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES, args);
 	}
 }

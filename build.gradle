@@ -80,7 +80,7 @@ jar {
 		attributes(
 			'Git-Hash' : (System.getenv('BUILD_SOURCEVERSION') ?: "no-version"),
 			'Implementation-Version' : version,
-			'Main-Class' : "dk.mada.backup.cli.Main"
+			'Main-Class' : "dk.mada.backup.cli.CliMain"
 		)
 	}
 	archiveBaseName = "backup"
