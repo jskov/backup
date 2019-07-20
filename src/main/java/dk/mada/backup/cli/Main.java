@@ -4,15 +4,20 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.beust.jcommander.JCommander;
 
 import dk.mada.backup.api.BackupApi;
+import dk.mada.backup.api.BackupTargetExistsException;
 import dk.mada.backup.restore.RestoreExecutor;
 
 /**
  * Main method for CLI invocation.
  */
 public class Main {
+	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 	private CliArgs cliArgs;
 	private Map<String, String> envOverrides;
 
@@ -35,22 +40,33 @@ public class Main {
 	}
 
 	private void run() {
-		BackupApi backupApi = new BackupApi(cliArgs.getGpgRecipientId(), envOverrides);
-		Path restoreScript = backupApi.makeBackup(cliArgs.getBackupName(), cliArgs.getSourceDir(), cliArgs.getTargetDir());
+		Path restoreScript = makeBackup();
 		
 		if (cliArgs.isSkipVerify()) {
-			System.out.println("Backup *not* verified!");
+			logger.info("Backup *not* verified!");
 		} else {
 			verifyBackup(restoreScript);
 		}
 	}
 
+	private Path makeBackup() {
+		try {
+			BackupApi backupApi = new BackupApi(cliArgs.getGpgRecipientId(), envOverrides);
+			return backupApi.makeBackup(cliArgs.getBackupName(), cliArgs.getSourceDir(), cliArgs.getTargetDir());
+		} catch (BackupTargetExistsException e) {
+			logger.info("Failed to create backup: {}", e.getMessage());
+			logger.debug("Failure", e);
+			System.exit(1);
+			return null; // WTF?
+		}
+	}
+
 	private void verifyBackup(Path script) {
 		try {
-			System.out.println("Verifying backup...");
+			logger.info("Verifying backup...");
 			RestoreExecutor.runRestoreScriptExitOnFail(script, envOverrides, "verify");
 			RestoreExecutor.runRestoreScriptExitOnFail(script, envOverrides, "verify", "-s");
-			System.out.println("Backup verified.");
+			logger.info("Backup verified.");
 		} catch (Exception e) {
 			throw new IllegalStateException("Failed to run verify script " + script, e);
 		}

@@ -113,19 +113,15 @@ public class MainExplore {
 			FileInfo res = copyToTarResettingFileTime(tempArchiveFile, inArchiveName, tarOs);
 			
 			Files.delete(tempArchiveFile);
-			
 			return res;
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
 	}
-		
-	private DirInfo createArchiveFromDir(Path dir, Path archive) {
-		if (Files.exists(archive)) {
-			throw new BackupTargetExistsException("Archive file " + archive + " already exists!");
-		}
 
-		try (OutputStream os = Files.newOutputStream(archive, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+	// Note: destructs target - which is a temp file, so is OK
+	private DirInfo createArchiveFromDir(Path dir, Path archive) {
+		try (OutputStream os = Files.newOutputStream(archive, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
 				BufferedOutputStream bos = new BufferedOutputStream(os);
 				TarArchiveOutputStream tarForDirOs = makeTarOutputStream(bos)) {
 			
