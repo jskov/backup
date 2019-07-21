@@ -17,6 +17,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.mada.backup.api.BackupException;
+
 /**
  * OutputStream  filter that GPG-encrypts the outgoing stream.
  */
@@ -27,7 +29,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 	private OutputStream gpgSink;
 	private CountDownLatch stdoutDone = new CountDownLatch(1);
 	private CountDownLatch stderrDone = new CountDownLatch(1);
-	private IOException stdoutException;
+	private Exception stdoutException;
 	private IOException stderrException;
 	private AtomicReference<String> stderrMessageRef = new AtomicReference<>();
 	
@@ -94,6 +96,9 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     	}
     	
     	if (stdoutException != null) {
+    		if (stdoutException instanceof BackupException) {
+    			throw (BackupException)stdoutException;
+    		}
     		throw new GpgEncrypterException("GPG IO failed", stdoutException);
     	}
     	if (stderrException != null) {
@@ -165,8 +170,10 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 		        }
 			}
 			logger.debug("Gpg backend copier ending");
-		} catch (IOException e) {
-			stdoutException = new IOException("Failed to copy data from GPG to output stream", e);
+		} catch (BackupException e) {
+			stdoutException = e;
+		} catch (Exception e) {
+			stdoutException = new GpgEncrypterException("Failed to copy data from GPG to output stream", e);
 		} finally {
 			stdoutDone.countDown();
 		}

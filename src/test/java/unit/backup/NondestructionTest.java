@@ -62,15 +62,18 @@ class NondestructionTest {
 	}
 	
 	@Test
-	void shouldFailATarFileExits() throws IOException {
-		Path tarFile = targetDir.resolve("test.tar");
+	void shouldFailIfCryptFileExits() throws IOException {
+		Path tarFile = targetDir.resolve("test-01.crypt");
 		Files.createFile(tarFile);
 		
 		assertThatThrownBy(() -> runBackup("test"))
 			.isInstanceOf(BackupTargetExistsException.class);
 	}
 	
-	private void runBackup(String name) {
+	private void runBackup(String name) throws IOException {
 		api.makeBackup(name, srcDir, targetDir);
+		
+		Files.list(targetDir).forEach(p -> System.out.println("SEE " + p));
+		
 	}
 }
