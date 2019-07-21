@@ -14,7 +14,7 @@ import dk.mada.backup.MainExplore;
  */
 public class BackupApi {
 	private static final Logger logger = LoggerFactory.getLogger(BackupApi.class);
-	private static final long DEFAULT_TAR_SIZE = 1*1024*1024*1024;
+	public static final long DEFAULT_MAX_FILE_SIZE = 1*1024*1024*1024;
 	private final MainExplore spikeCode;
 
 	/**
@@ -35,7 +35,7 @@ public class BackupApi {
 	 * @param gpgEnvOverrides Environment overrides (for testing).
 	 */
 	public BackupApi(String gpgRecipientKeyId, Map<String, String> gpgEnvOverrides) {
-		this(gpgRecipientKeyId, gpgEnvOverrides, DEFAULT_TAR_SIZE);
+		this(gpgRecipientKeyId, gpgEnvOverrides, DEFAULT_MAX_FILE_SIZE);
 	}
 
 	/**

@@ -51,7 +51,7 @@ public class CliMain {
 
 	private Path makeBackup() {
 		try {
-			BackupApi backupApi = new BackupApi(cliArgs.getGpgRecipientId(), envOverrides);
+			BackupApi backupApi = new BackupApi(cliArgs.getGpgRecipientId(), envOverrides, cliArgs.getMaxFileSize());
 			return backupApi.makeBackup(cliArgs.getBackupName(), cliArgs.getSourceDir(), cliArgs.getTargetDir());
 		} catch (BackupTargetExistsException e) {
 			logger.info("Failed to create backup: {}", e.getMessage());
