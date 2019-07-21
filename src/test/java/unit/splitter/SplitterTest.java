@@ -1,6 +1,6 @@
 package unit.splitter;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,16 +15,27 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import dk.mada.backup.api.BackupTargetExistsException;
 import dk.mada.backup.splitter.SplitterOutputStream;
 import fixture.DisplayNameCamelCase;
 
 /**
- * It should be possible to size limit the output files.
+ * Splitter splits stream into several files.
  */
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class SplitterTest {
 	@TempDir Path targetDir;
 
+	@Test
+	void shouldAvoidOverwritingFiles() throws IOException {
+		assertThatThrownBy(() -> {
+			Files.createFile(targetDir.resolve("basename-01.tar"));
+			try (OutputStream os = new SplitterOutputStream(targetDir, "basename", ".tar", 2)) {
+				os.write("test".getBytes());
+			}
+		}).isInstanceOf(BackupTargetExistsException.class);
+	}
+	
 	@Test
 	void shouldSplitStreamOverSeveralFiles() throws IOException {
 		String text = "Test text to be split";
