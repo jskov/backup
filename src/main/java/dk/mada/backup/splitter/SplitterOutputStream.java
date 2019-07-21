@@ -1,11 +1,21 @@
 package dk.mada.backup.splitter;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import dk.mada.backup.api.BackupTargetExistsException;
 
@@ -14,14 +24,17 @@ import dk.mada.backup.api.BackupTargetExistsException;
  * files of a given size.
  */
 public class SplitterOutputStream extends OutputStream {
+	private static final Logger logger = LoggerFactory.getLogger(SplitterOutputStream.class);
 	private final Path targetDir;
 	private final String basename;
 	private final String suffix;
 	private final long openNextFileAtOffset;
+	private final Set<Path> outputFiles = new HashSet<>();
 	private int counter = 1;
 	private long writtenToCurrentFile = 0;
 	private OutputStream currentOutputStream = null;
-
+	private CompletableFuture<Collection<Path>> outputFilesFuture = new CompletableFuture<>();
+	
 	public SplitterOutputStream(Path targetDir, String basename, String suffix, long sizeLimit) {
 		this.targetDir = Objects.requireNonNull(targetDir);
 		this.basename = Objects.requireNonNull(basename);
@@ -33,6 +46,10 @@ public class SplitterOutputStream extends OutputStream {
 		}
 	}
 
+	public Future<Collection<Path>> getOutputFiles() {
+		return outputFilesFuture;
+	}
+	
 	@Override
 	public void write(int b) throws IOException {
 		if (writtenToCurrentFile >= openNextFileAtOffset
@@ -44,23 +61,33 @@ public class SplitterOutputStream extends OutputStream {
 	}
 	
 	private void openNextFile() throws IOException {
-		close();
+		closeCurrentFile();
 		String name = basename + "-" + String.format("%02d", counter++) + suffix;
-		Path tarFile = targetDir.resolve(name);
+		Path outputFile = targetDir.resolve(name);
 		
-		if (Files.exists(tarFile)) {
-			throw new BackupTargetExistsException("Target file " + tarFile + " already exists");
+		if (Files.exists(outputFile)) {
+			throw new BackupTargetExistsException("Target file " + outputFile + " already exists");
 		}
+
+		outputFiles.add(outputFile);
 		
-		currentOutputStream = Files.newOutputStream(tarFile, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+		logger.debug("OPENING {}", outputFile);
+		
+		OutputStream fileOutput = Files.newOutputStream(outputFile, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+		currentOutputStream = new BufferedOutputStream(fileOutput);
 		writtenToCurrentFile = 0;
 	}
 
-	@Override
-	public void close() throws IOException {
+	public void closeCurrentFile() throws IOException {
 		if (currentOutputStream != null) {
 			currentOutputStream.close();
 			currentOutputStream = null;
 		}
+	}
+
+	@Override
+	public void close() throws IOException {
+		closeCurrentFile();
+		outputFilesFuture.complete(Collections.unmodifiableCollection(outputFiles));
 	}
 }
