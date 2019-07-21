@@ -14,9 +14,11 @@ import java.nio.file.attribute.FileTime;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,10 +27,10 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import dk.mada.backup.api.BackupTargetExistsException;
 import dk.mada.backup.cli.HumanByteCount;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import dk.mada.backup.restore.RestoreScriptWriter;
+import dk.mada.backup.splitter.SplitterOutputStream;
 
 public class MainExplore {
 	private static final Logger logger = LoggerFactory.getLogger(MainExplore.class);
@@ -37,54 +39,59 @@ public class MainExplore {
 	private List<DirInfo> fileElements = new ArrayList<>();
 	private final String recipientKeyId;
 	private final Map<String, String> gpgEnvOverrides;
+	private final long maxTarSize;
 	
-	public MainExplore(String recipientKeyId, Map<String, String> gpgEnvOverrides) {
+	public MainExplore(String recipientKeyId, Map<String, String> gpgEnvOverrides, long maxTarSize) {
 		this.recipientKeyId = recipientKeyId;
 		this.gpgEnvOverrides = gpgEnvOverrides;
+		this.maxTarSize = maxTarSize;
 	}
 	
-	public void packDir(Path dir, Path archive, Path restoreScript) {
-		rootDir = dir;
+	public Path packDir(Path srcDir, Path targetDir, String name) {
+		rootDir = srcDir;
 		if (!Files.isDirectory(rootDir)) {
 			throw new IllegalArgumentException("Must be dir, was " + rootDir);
 		}
-		
-		pack(archive, restoreScript);
-	}
-	
-	private void pack(Path archive, Path restoreScript) {
-		if (Files.exists(archive)) {
-			throw new BackupTargetExistsException("Archive file " + archive + " already exists!");
-		}
-		logger.info("Create archive {}", archive);
+		logger.info("Create backup from {}", srcDir);
 		
 		try {
-			Files.createDirectories(archive.getParent());
-			Files.createDirectories(restoreScript.getParent());
+			Files.createDirectories(targetDir);
 		} catch (IOException e1) {
 			throw new IllegalStateException("Failed to create target dir", e1);
 		}
 		
 		List<BackupElement> archiveElements;
+		Future<Collection<Path>> outputFilesFuture;
 		try (Stream<Path> files = Files.list(rootDir);
-				 OutputStream os = Files.newOutputStream(archive, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
-				 BufferedOutputStream bos = new BufferedOutputStream(os);
-				GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(bos, recipientKeyId, gpgEnvOverrides);
-				TarArchiveOutputStream tarOs = makeTarOutputStream(eos)) {
+			 SplitterOutputStream sos = new SplitterOutputStream(targetDir, name, ".crypt", maxTarSize);
+			 GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(sos, recipientKeyId, gpgEnvOverrides);
+			 TarArchiveOutputStream tarOs = makeTarOutputStream(eos)) {
 
 			archiveElements = files
 				.sorted(filenameSorter())
 				.map(p -> processRootElement(tarOs, p))
 				.collect(Collectors.toList());
+
+			outputFilesFuture = sos.getOutputFiles();
 			
 			logger.info("Waiting for backup streaming to complete...");
 		} catch (IOException e) {
 			throw new IllegalStateException("Failed processing", e);
 		}
 
-		List<FileInfo> cryptElements = List.of(FileInfo.from(archive.getParent(), archive));
-				
+		List<FileInfo> cryptElements;
+		try {
+			cryptElements = outputFilesFuture.get().stream()
+				.map(archiveFile -> FileInfo.from(targetDir, archiveFile))
+				.collect(Collectors.toList());
+		} catch (Exception e) {
+			throw new IllegalStateException("Failed to lazy get output files", e);
+		}
+		
+		Path restoreScript = targetDir.resolve(name + ".sh");
 		new RestoreScriptWriter().write(restoreScript, cryptElements, archiveElements, fileElements);
+	
+		return restoreScript;
 	}
 	private Comparator<? super Path> filenameSorter() {
 		return (a, b) -> a.getFileName().toString().compareToIgnoreCase(b.getFileName().toString());

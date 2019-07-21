@@ -4,12 +4,16 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import dk.mada.backup.MainExplore;
 
 /**
  * API for the backup operation.
  */
 public class BackupApi {
+	private static final Logger logger = LoggerFactory.getLogger(BackupApi.class);
 	private static final long DEFAULT_TAR_SIZE = 1*1024*1024*1024;
 	private final MainExplore spikeCode;
 
@@ -54,11 +58,11 @@ public class BackupApi {
 	 * @throws BackupException, or any of its subclasses, on failure
 	 */
 	public Path makeBackup(String backupName, Path sourceDir, Path targetDir) {
-		Path restoreScript = targetDir.resolve(backupName + ".sh");
-		Path archive = targetDir.resolve(backupName + ".tar");
-		
-		spikeCode.packDir(sourceDir, archive, restoreScript);
-		
-		return restoreScript;
+		try {
+			return spikeCode.packDir(sourceDir, targetDir, backupName);
+		} catch (Exception e) {
+			logger.warn("Backup failed!", e);
+			throw e;
+		}
 	}
 }
