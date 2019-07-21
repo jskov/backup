@@ -74,6 +74,5 @@ class NondestructionTest {
 		api.makeBackup(name, srcDir, targetDir);
 		
 		Files.list(targetDir).forEach(p -> System.out.println("SEE " + p));
-		
 	}
 }

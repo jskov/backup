@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.mada.backup.api.BackupException;
+import dk.mada.backup.api.BackupTargetExistsException;
 
 /**
  * OutputStream  filter that GPG-encrypts the outgoing stream.
@@ -30,7 +31,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 	private CountDownLatch stdoutDone = new CountDownLatch(1);
 	private CountDownLatch stderrDone = new CountDownLatch(1);
 	private Exception stdoutException;
-	private IOException stderrException;
+	private Exception stderrException;
 	private AtomicReference<String> stderrMessageRef = new AtomicReference<>();
 	
 	private GpgEncryptedOutputStream() {
@@ -96,12 +97,17 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     	}
     	
     	if (stdoutException != null) {
-    		if (stdoutException instanceof BackupException) {
-    			throw (BackupException)stdoutException;
+    		// Let specific exception through - but do not rethrow, as this causes problem with JDK
+    		if (stdoutException instanceof BackupTargetExistsException) {
+    			throw new BackupTargetExistsException(stdoutException.getMessage(), stdoutException);
     		}
     		throw new GpgEncrypterException("GPG IO failed", stdoutException);
     	}
     	if (stderrException != null) {
+    		// Let specific exception through - but do not rethrow, as this causes problem with JDK
+    		if (stdoutException instanceof BackupTargetExistsException) {
+    			throw new BackupTargetExistsException(stdoutException.getMessage(), stdoutException);
+    		}
     		throw new GpgEncrypterException("GPG IO failed", stderrException);
     	}
     	
@@ -151,6 +157,8 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 			if (!msg.isEmpty()) {
 				logger.warn("GPG error:\n{}", msg);
 			}
+		} catch (BackupException e) {
+			stderrException = e;
 		} catch (IOException e) {
 			stderrException = new IOException("Failed to read GPG error output", e);
 		} finally {
