@@ -14,7 +14,6 @@ import java.nio.file.attribute.FileTime;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +60,7 @@ public class MainExplore {
 		}
 		
 		List<BackupElement> archiveElements;
-		Future<Collection<Path>> outputFilesFuture;
+		Future<List<Path>> outputFilesFuture;
 		try (Stream<Path> files = Files.list(rootDir);
 			 SplitterOutputStream sos = new SplitterOutputStream(targetDir, name, ".crypt", maxTarSize);
 			 GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(sos, recipientKeyId, gpgEnvOverrides);

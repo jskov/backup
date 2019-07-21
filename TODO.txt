@@ -1,5 +1,3 @@
-: unit5 stuff for prepping testdata
-
 
 # Tests
 
@@ -23,12 +21,10 @@ Performance
 
   
 TESTS TODO:
- o ensure target dir is clean for potential conflicts before starting backup (do not require empty target dir)
  o backup info added to restore script
- o split in specified file sizes
  o pick up encryption errors for GUI presentation
- o option to disable post-backup stream verification
- 
+ o (CLI) output on top of existing backup causes output that is not helpful (no existing file cause)
+  
  Test key created:
   $ gpg --homedir src/test/data/gpghome --generate-key 
      Real name: Backup Test Key

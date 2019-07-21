@@ -6,11 +6,10 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
@@ -29,11 +28,11 @@ public class SplitterOutputStream extends OutputStream {
 	private final String basename;
 	private final String suffix;
 	private final long openNextFileAtOffset;
-	private final Set<Path> outputFiles = new HashSet<>();
+	private final List<Path> outputFiles = new ArrayList<>();
 	private int counter = 1;
 	private long writtenToCurrentFile = 0;
 	private OutputStream currentOutputStream = null;
-	private CompletableFuture<Collection<Path>> outputFilesFuture = new CompletableFuture<>();
+	private CompletableFuture<List<Path>> outputFilesFuture = new CompletableFuture<>();
 	
 	public SplitterOutputStream(Path targetDir, String basename, String suffix, long sizeLimit) {
 		this.targetDir = Objects.requireNonNull(targetDir);
@@ -46,7 +45,7 @@ public class SplitterOutputStream extends OutputStream {
 		}
 	}
 
-	public Future<Collection<Path>> getOutputFiles() {
+	public Future<List<Path>> getOutputFiles() {
 		return outputFilesFuture;
 	}
 	
@@ -88,6 +87,6 @@ public class SplitterOutputStream extends OutputStream {
 	@Override
 	public void close() throws IOException {
 		closeCurrentFile();
-		outputFilesFuture.complete(Collections.unmodifiableCollection(outputFiles));
+		outputFilesFuture.complete(Collections.unmodifiableList(outputFiles));
 	}
 }
