@@ -61,7 +61,6 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     		gpgSink.write(b);
     	} catch (IOException e) {
     		sinkException.set(e);
-    		logger.warn("Sink tank", e);
     		throw e;
     	}
     }
@@ -72,7 +71,6 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 	        gpgSink.write(b, 0, b.length);
 		} catch (IOException e) {
 			sinkException.set(e);
-			logger.warn("Sink tank", e);
 			throw e;
 		}
     }
@@ -83,7 +81,6 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     		gpgSink.write(b, off, len);
     	} catch (IOException e) {
     		sinkException.set(e);
-    		logger.warn("Sink tank", e);
     		throw e;
     	}
     }
@@ -94,13 +91,13 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     		gpgSink.flush();
     	} catch (IOException e) {
     		sinkException.set(e);
-    		logger.warn("Sink tank", e);
     		throw e;
     	}
     }
 
     @Override
     public void close() throws IOException {
+    	// Do not close sink if it already failed
     	if (sinkException.get() == null) {
     		gpgSink.close();
     	}

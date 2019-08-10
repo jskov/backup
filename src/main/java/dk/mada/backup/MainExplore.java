@@ -62,10 +62,9 @@ public class MainExplore {
 		List<BackupElement> archiveElements;
 		Future<List<Path>> outputFilesFuture;
 		try (Stream<Path> files = Files.list(rootDir);
-			 SplitterOutputStream sos = new SplitterOutputStream(targetDir, name, ".crypt", maxTarSize)) {
-
-			GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(sos, recipientKeyId, gpgEnvOverrides);
-			TarArchiveOutputStream tarOs = makeTarOutputStream(eos);
+			 SplitterOutputStream sos = new SplitterOutputStream(targetDir, name, ".crypt", maxTarSize);
+			 GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(sos, recipientKeyId, gpgEnvOverrides);
+			 TarArchiveOutputStream tarOs = makeTarOutputStream(eos)) {
 
 			archiveElements = files
 				.sorted(filenameSorter())
@@ -73,16 +72,6 @@ public class MainExplore {
 				.collect(Collectors.toList());
 
 			outputFilesFuture = sos.getOutputFiles();
-			
-			logger.info("Waiting for failure...");
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				logger.warn("Failed sleeping");
-			}
-			
-			tarOs.close();
-			eos.close();
 			
 			logger.info("Waiting for backup streaming to complete...");
 		} catch (IOException e) {
