@@ -75,6 +75,7 @@ public class MainExplore {
 			
 			logger.info("Waiting for backup streaming to complete...");
 		} catch (IOException e) {
+			logger.warn("BAD", e);
 			throw new IllegalStateException("Failed processing", e);
 		}
 
