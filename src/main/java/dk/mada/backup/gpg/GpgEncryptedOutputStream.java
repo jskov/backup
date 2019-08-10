@@ -76,7 +76,6 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 
     @Override
     public void close() throws IOException {
-    	flush();
     	gpgSink.close();
     	
     	logger.debug("Waiting for GPG background process to complete");
