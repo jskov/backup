@@ -71,6 +71,10 @@ task zipReports(type: Zip, dependsOn: "test") {
 	
 	doLast {
 		println "##vso[build.uploadlog]" + file("build").absolutePath + "/test-reports.zip"
+		
+		println "---LOG---"
+		println file("build/test-results/test/TEST-unit.backup.NondestructionTest.xml").text
+		println "---LOG---"
 	}
 }
 
