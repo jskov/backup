@@ -70,7 +70,9 @@ task zipReports(type: Zip, dependsOn: "test") {
 	from "build/reports"
 	
 	doLast {
-		println "##vso[build.uploadlog]" + file("build").absolutePath + "/test-reports.zip"
+// This replaces the log from build step on the Logs pane of the build
+//		println "##vso[build.uploadlog]" + file("build").absolutePath + "/test-reports.zip"
+
 		
 		println "---LOG---"
 		println file("build/test-results/test/TEST-unit.backup.NondestructionTest.xml").text
@@ -105,7 +107,7 @@ shadowJar {
 	destinationDir = file("dist")
 }
 
-task release(dependsOn: ["check", "shadowJar", "zipReports"]) {
+task release(dependsOn: ["check", "shadowJar"]) {
 	doLast {
 		println "Release $version"
 	}
