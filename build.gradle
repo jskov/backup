@@ -61,7 +61,23 @@ test {
     useJUnitPlatform {
         excludeTags "accept"
     }  
-    ignoreFailures = false
+    ignoreFailures = true
+}
+
+task zipReports(type: Zip, dependsOn: "test") {
+	archiveFileName = "test-reports.zip"
+	destinationDirectory = file("build")
+	from "build/reports"
+	
+	doLast {
+// This replaces the log from build step on the Logs pane of the build
+//		println "##vso[build.uploadlog]" + file("build").absolutePath + "/test-reports.zip"
+
+		
+		println "---LOG---"
+		println file("build/test-results/test/TEST-unit.backup.NondestructionTest.xml").text
+		println "---LOG---"
+	}
 }
 
 task acceptTest(type: Test) {
@@ -69,7 +85,7 @@ task acceptTest(type: Test) {
     useJUnitPlatform {
   	    includeTags "accept"
     }
-    ignoreFailures = false
+    ignoreFailures = true
 }
 
 acceptTest.shouldRunAfter("test")

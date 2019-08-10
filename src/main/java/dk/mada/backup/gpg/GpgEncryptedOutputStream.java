@@ -17,6 +17,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.mada.backup.api.BackupException;
+import dk.mada.backup.api.BackupTargetExistsException;
+
 /**
  * OutputStream  filter that GPG-encrypts the outgoing stream.
  */
@@ -27,9 +30,10 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 	private OutputStream gpgSink;
 	private CountDownLatch stdoutDone = new CountDownLatch(1);
 	private CountDownLatch stderrDone = new CountDownLatch(1);
-	private IOException stdoutException;
-	private IOException stderrException;
+	private Exception stdoutException;
+	private Exception stderrException;
 	private AtomicReference<String> stderrMessageRef = new AtomicReference<>();
+	private AtomicReference<IOException> sinkException = new AtomicReference<>();
 	
 	private GpgEncryptedOutputStream() {
 		super(null);
@@ -53,28 +57,50 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 	
     @Override
     public void write(int b) throws IOException {
-    	gpgSink.write(b);
+    	try {
+    		gpgSink.write(b);
+    	} catch (IOException e) {
+    		sinkException.set(e);
+    		throw e;
+    	}
     }
 
     @Override
     public void write(byte b[]) throws IOException {
-        gpgSink.write(b, 0, b.length);
+    	try {
+	        gpgSink.write(b, 0, b.length);
+		} catch (IOException e) {
+			sinkException.set(e);
+			throw e;
+		}
     }
 
     @Override
     public void write(byte b[], int off, int len) throws IOException {
-    	gpgSink.write(b, off, len);
+    	try {
+    		gpgSink.write(b, off, len);
+    	} catch (IOException e) {
+    		sinkException.set(e);
+    		throw e;
+    	}
     }
 
     @Override
     public void flush() throws IOException {
-        gpgSink.flush();
+    	try {
+    		gpgSink.flush();
+    	} catch (IOException e) {
+    		sinkException.set(e);
+    		throw e;
+    	}
     }
 
     @Override
     public void close() throws IOException {
-    	flush();
-    	gpgSink.close();
+    	// Do not close sink if it already failed
+    	if (sinkException.get() == null) {
+    		gpgSink.close();
+    	}
     	
     	logger.debug("Waiting for GPG background process to complete");
     	try {
@@ -94,9 +120,17 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     	}
     	
     	if (stdoutException != null) {
+    		// Let specific exception through - but do not rethrow, as this causes problem with JDK
+    		if (stdoutException instanceof BackupTargetExistsException) {
+    			throw new BackupTargetExistsException(stdoutException.getMessage(), stdoutException);
+    		}
     		throw new GpgEncrypterException("GPG IO failed", stdoutException);
     	}
     	if (stderrException != null) {
+    		// Let specific exception through - but do not rethrow, as this causes problem with JDK
+    		if (stdoutException instanceof BackupTargetExistsException) {
+    			throw new BackupTargetExistsException(stdoutException.getMessage(), stdoutException);
+    		}
     		throw new GpgEncrypterException("GPG IO failed", stderrException);
     	}
     	
@@ -146,6 +180,8 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 			if (!msg.isEmpty()) {
 				logger.warn("GPG error:\n{}", msg);
 			}
+		} catch (BackupException e) {
+			stderrException = e;
 		} catch (IOException e) {
 			stderrException = new IOException("Failed to read GPG error output", e);
 		} finally {
@@ -165,8 +201,10 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 		        }
 			}
 			logger.debug("Gpg backend copier ending");
-		} catch (IOException e) {
-			stdoutException = new IOException("Failed to copy data from GPG to output stream", e);
+		} catch (BackupException e) {
+			stdoutException = e;
+		} catch (Exception e) {
+			stdoutException = new GpgEncrypterException("Failed to copy data from GPG to output stream", e);
 		} finally {
 			stdoutDone.countDown();
 		}

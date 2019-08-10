@@ -54,7 +54,7 @@ class BackupVerificationTest {
 		assertThat(res.exitValue)
 			.isEqualTo(0);
 		assertThat(res.output)
-			.contains("(1/1) test.tar... ok");
+			.contains("(1/1) test-01.crypt... ok");
 	}
 
 	/**
@@ -86,7 +86,7 @@ class BackupVerificationTest {
 		assertThat(res.exitValue)
 			.isEqualTo(0);
 		assertThat(res.output)
-			.contains("test.tar");
+			.contains("test-01.crypt");
 	}
 
 	/**

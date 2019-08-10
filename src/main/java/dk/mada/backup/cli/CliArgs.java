@@ -10,6 +10,8 @@ import java.util.Optional;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.converters.PathConverter;
 
+import dk.mada.backup.api.BackupApi;
+
 /**
  * Argument definition for CLI invocation.
  */
@@ -24,8 +26,10 @@ public class CliArgs {
 	private String name;
 	@Parameter(names = "--gpg-homedir", description = "Alternative GPG home dir", converter = PathConverter.class)
 	private Path gpgHomeDir;
-	@Parameter(names = "--skip-verify")
+	@Parameter(names = "--skip-verify", description = "Skip verification after creating backup")
 	private boolean skipVerify;
+	@Parameter(names = "--max-size", description = "Max file size", converter = HumanSizeInputConverter.class)
+	private long maxFileSize = BackupApi.DEFAULT_MAX_FILE_SIZE;
 
 	public boolean isInputOutputValid() {
 		return isSourceDirValid() && isTargetValid();
@@ -64,5 +68,9 @@ public class CliArgs {
 	
 	public boolean isSkipVerify() {
 		return skipVerify;
+	}
+	
+	public long getMaxFileSize() {
+		return maxFileSize;
 	}
 }
