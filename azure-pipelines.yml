@@ -24,6 +24,7 @@ jobs:
      inputs:
        jdkVersionOption: '1.11'
        tasks: 'release'
+       publishJUnitResults: true
        
    - task: GitHubRelease@0
      condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
