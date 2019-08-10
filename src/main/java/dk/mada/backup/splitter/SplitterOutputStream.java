@@ -65,6 +65,8 @@ public class SplitterOutputStream extends OutputStream {
 		Path outputFile = targetDir.resolve(name);
 		
 		if (Files.exists(outputFile)) {
+			// close before failing - or wrapping streams will fail when they try to flush to this stream
+			close();
 			throw new BackupTargetExistsException("Target file " + outputFile + " already exists");
 		}
 
