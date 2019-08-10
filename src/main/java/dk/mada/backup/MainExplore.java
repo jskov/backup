@@ -74,6 +74,13 @@ public class MainExplore {
 
 			outputFilesFuture = sos.getOutputFiles();
 			
+			logger.info("Waiting for failure...");
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				logger.warn("Failed sleeping");
+			}
+			
 			tarOs.close();
 			eos.close();
 			
