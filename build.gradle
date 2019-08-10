@@ -64,6 +64,16 @@ test {
     ignoreFailures = true
 }
 
+task zipReports(type: Zip, dependsOn: "test") {
+	archiveFileName = "test-reports.zip"
+	destinationDirectory = file("build")
+	from "build/reports"
+	
+	doLast {
+		println "##vso[task.uploadfile]" + file("build").absolutePath + "/test-reports.zip"
+	}
+}
+
 task acceptTest(type: Test) {
 	dependsOn(prepareAzureGpgTestHome)
     useJUnitPlatform {
@@ -91,7 +101,7 @@ shadowJar {
 	destinationDir = file("dist")
 }
 
-task release(dependsOn: ["check", "shadowJar"]) {
+task release(dependsOn: ["check", "shadowJar", "zipReports"]) {
 	doLast {
 		println "Release $version"
 	}
