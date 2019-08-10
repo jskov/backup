@@ -101,15 +101,9 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 
     @Override
     public void close() throws IOException {
-
-    	IOException sinkEx = sinkException.get();
-    	if (sinkEx == null) {
-    		logger.info("Sink OK");
-    	} else {
-    		logger.info("Sink died", sinkEx);
+    	if (sinkException.get() == null) {
+    		gpgSink.close();
     	}
-    	
-    	gpgSink.close();
     	
     	logger.debug("Waiting for GPG background process to complete");
     	try {
