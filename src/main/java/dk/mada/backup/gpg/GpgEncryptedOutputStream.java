@@ -33,6 +33,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 	private Exception stdoutException;
 	private Exception stderrException;
 	private AtomicReference<String> stderrMessageRef = new AtomicReference<>();
+	private AtomicReference<IOException> sinkException = new AtomicReference<>();
 	
 	private GpgEncryptedOutputStream() {
 		super(null);
@@ -56,28 +57,57 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
 	
     @Override
     public void write(int b) throws IOException {
-    	gpgSink.write(b);
+    	try {
+    		gpgSink.write(b);
+    	} catch (IOException e) {
+    		sinkException.set(e);
+    		logger.warn("Sink tank", e);
+    		throw e;
+    	}
     }
 
     @Override
     public void write(byte b[]) throws IOException {
-        gpgSink.write(b, 0, b.length);
+    	try {
+	        gpgSink.write(b, 0, b.length);
+		} catch (IOException e) {
+			sinkException.set(e);
+			logger.warn("Sink tank", e);
+			throw e;
+		}
     }
 
     @Override
     public void write(byte b[], int off, int len) throws IOException {
-    	gpgSink.write(b, off, len);
+    	try {
+    		gpgSink.write(b, off, len);
+    	} catch (IOException e) {
+    		sinkException.set(e);
+    		logger.warn("Sink tank", e);
+    		throw e;
+    	}
     }
 
     @Override
     public void flush() throws IOException {
-        gpgSink.flush();
+    	try {
+    		gpgSink.flush();
+    	} catch (IOException e) {
+    		sinkException.set(e);
+    		logger.warn("Sink tank", e);
+    		throw e;
+    	}
     }
 
     @Override
     public void close() throws IOException {
-    	
-    	logger.info("Close GPG with stdout done: {}", stdoutDone.getCount());
+
+    	IOException sinkEx = sinkException.get();
+    	if (sinkEx == null) {
+    		logger.info("Sink OK");
+    	} else {
+    		logger.info("Sink died", sinkEx);
+    	}
     	
     	gpgSink.close();
     	
