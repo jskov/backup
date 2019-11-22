@@ -4,16 +4,14 @@
 
 Application that makes a secure backup of photo/music files.
 
-The output is crypted with GPG and includes a restore script that can verify backup integrity.
+The output is encrypted with GPG and includes a restore script that can verify backup integrity.
 
 
-# Azure Build Pipeline
+# Actions Build Pipeline
 
-The hosted Azure build pipeline uses an ancient Ubuntu 16.04.
+The hosted Actions build pipeline uses an Ubuntu 18.04.
 
-To reproduce the pain locally:
+To reproduce the Actions environment locally:
 
-````
-./gradlew makeAzureDockerImage
-docker run -i -t azure-backup
-````
+	$ ./gradlew makeActionsDockerImage
+	$ podman run -i -t actions-backup
