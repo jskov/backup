@@ -33,29 +33,29 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
 }
 
-task makeAzureDockerImage() {
+task makeActionsDockerImage() {
 	doFirst {
 		copy {
-			into "build/azure-docker"
-			from "src/azure"
+			into "build/actions-docker"
+			from "src/actions"
 			from ("src/test/data/gpghome") {
 				include "*.asc"
 			}
 		}
 	 	project.exec {
-			commandLine("docker", "build", "-t", "azure-backup", "build/azure-docker")
+			commandLine("podman", "build", "-t", "actions-backup", "build/actions-docker")
 		}
 	}
 }
 
-task prepareAzureGpgTestHome() {
+task prepareActionsGpgTestHome() {
 	doFirst {
-		project.mkdir("build/azure-gpg-home")
+		project.mkdir("build/actions-gpg-home")
 	 	project.exec {
-			commandLine("gpg", "--homedir", "build/azure-gpg-home", "--import", "src/test/data/gpghome/exported-secret-key.asc")
+			commandLine("gpg", "--homedir", "build/actions-gpg-home", "--import", "src/test/data/gpghome/exported-secret-key.asc")
 		}
 	 	project.exec {
-			commandLine("gpg", "--homedir", "build/azure-gpg-home", "--import-ownertrust", "src/test/data/gpghome/exported-owner-trust.asc")
+			commandLine("gpg", "--homedir", "build/actions-gpg-home", "--import-ownertrust", "src/test/data/gpghome/exported-owner-trust.asc")
 		}
 	}
 }
@@ -86,7 +86,7 @@ task makeSuccessMarker() {
 
 task acceptTest(type: Test) {
 	dependsOn(makeSuccessMarker)
-	dependsOn(prepareAzureGpgTestHome)
+	dependsOn(prepareActionsGpgTestHome)
     useJUnitPlatform {
   	    includeTags "accept"
     }
@@ -101,7 +101,7 @@ task acceptTest(type: Test) {
 
 test {
 	dependsOn(makeSuccessMarker)
-	dependsOn(prepareAzureGpgTestHome)
+	dependsOn(prepareActionsGpgTestHome)
     useJUnitPlatform {
         excludeTags "accept"
     }  
