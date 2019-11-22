@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.JCommander;
 
+import dk.mada.backup.Version;
 import dk.mada.backup.api.BackupApi;
 import dk.mada.backup.api.BackupTargetExistsException;
 import dk.mada.backup.restore.RestoreExecutor;
@@ -22,12 +23,18 @@ public class CliMain {
 	private Map<String, String> envOverrides;
 
 	public CliMain(String[] args) {
+		for (String a : args) {
+			if ("--version".equals(a)) {
+				System.out.println("Backup version " + Version.getBackupVersion());
+				System.exit(0);
+			}
+		}
+
 		cliArgs = new CliArgs();
 		JCommander jc = JCommander.newBuilder()
 			.addObject(cliArgs)
 			.build();
 		jc.setProgramName("backup");
-		jc.parse(args);
 		
 		if (!cliArgs.isInputOutputValid()) {
 			jc.usage();

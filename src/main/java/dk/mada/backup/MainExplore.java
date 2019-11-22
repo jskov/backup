@@ -91,12 +91,13 @@ public class MainExplore {
 		
 		Path restoreScript = targetDir.resolve(name + ".sh");
 		Map<VariableName, String> vars = Map.of(
-				VariableName.VERSION, getClass().getPackage().getImplementationVersion()
+				VariableName.VERSION, Version.getBackupVersion()
 		);
 		new RestoreScriptWriter().write(restoreScript, vars, cryptElements, archiveElements, fileElements);
 	
 		return restoreScript;
 	}
+
 	private Comparator<? super Path> filenameSorter() {
 		return (a, b) -> a.getFileName().toString().compareToIgnoreCase(b.getFileName().toString());
 	}
