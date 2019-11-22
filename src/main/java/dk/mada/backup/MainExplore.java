@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import dk.mada.backup.cli.HumanByteCount;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import dk.mada.backup.restore.RestoreScriptWriter;
+import dk.mada.backup.restore.VariableName;
 import dk.mada.backup.splitter.SplitterOutputStream;
 
 public class MainExplore {
@@ -89,7 +90,10 @@ public class MainExplore {
 		}
 		
 		Path restoreScript = targetDir.resolve(name + ".sh");
-		new RestoreScriptWriter().write(restoreScript, cryptElements, archiveElements, fileElements);
+		Map<VariableName, String> vars = Map.of(
+				VariableName.VERSION, getClass().getPackage().getImplementationVersion()
+		);
+		new RestoreScriptWriter().write(restoreScript, vars, cryptElements, archiveElements, fileElements);
 	
 		return restoreScript;
 	}

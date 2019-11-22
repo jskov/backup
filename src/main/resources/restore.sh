@@ -52,6 +52,7 @@ expect_file() {
 
 info_and_exit() {
     echo "Backup of directory >>2004<<"
+    echo " made with backup version @@VERSION@@"
     echo " created on >>2019.06.11 14:45<<"
     echo " original size >>1.3GB<<"
     echo " encrypted with key id >>CA2DE6A3<<"
@@ -75,7 +76,11 @@ usage_and_exit() {
     # usage
     echo "Usage:"
     echo " restore [cmd]"
+    echo
     echo "With cmd being one of:"
+    echo
+    echo "  info               information about backup"
+    echo
     echo "  unpack dir         unpacks all files to dir"
     echo "  unpack -a dir      unpacks (only) archives to dir"
     echo
