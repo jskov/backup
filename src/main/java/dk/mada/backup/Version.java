@@ -5,6 +5,10 @@ package dk.mada.backup;
  */
 public class Version {
 	public static String getBackupVersion() {
-		return Version.class.getPackage().getImplementationVersion();
+		String v = Version.class.getPackage().getImplementationVersion();
+		if (v == null) {
+			v = "undef";
+		}
+		return v;
 	}
 }
