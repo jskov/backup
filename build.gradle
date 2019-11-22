@@ -4,6 +4,10 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '5.1.0'
 }
 
+ext {
+	successMarker = project.file("build/all-tests-passed")
+}
+
 def declaredVersion = System.getenv("BUILD_SOURCEBRANCH")
 if (declaredVersion != null && declaredVersion.startsWith("refs/tags/")) {
 	rootProject.version = declaredVersion.substring(10)
@@ -56,14 +60,6 @@ task prepareAzureGpgTestHome() {
 	}
 }
 
-test {
-	dependsOn(prepareAzureGpgTestHome)
-    useJUnitPlatform {
-        excludeTags "accept"
-    }  
-    ignoreFailures = true
-}
-
 task zipReports(type: Zip, dependsOn: "test") {
 	archiveFileName = "test-reports.zip"
 	destinationDirectory = file("build")
@@ -80,12 +76,42 @@ task zipReports(type: Zip, dependsOn: "test") {
 	}
 }
 
+task makeSuccessMarker() {
+	doFirst {
+		project.mkdir("build")
+		successMarker.createNewFile()
+	}
+}
+
+
 task acceptTest(type: Test) {
+	dependsOn(makeSuccessMarker)
 	dependsOn(prepareAzureGpgTestHome)
     useJUnitPlatform {
   	    includeTags "accept"
     }
     ignoreFailures = true
+
+    afterTest { td, tr ->
+		if (tr.resultType == org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE) {
+			successMarker.delete()
+		}
+    }
+}
+
+test {
+	dependsOn(makeSuccessMarker)
+	dependsOn(prepareAzureGpgTestHome)
+    useJUnitPlatform {
+        excludeTags "accept"
+    }  
+    ignoreFailures = true
+
+    afterTest { td, tr ->
+		if (tr.resultType == org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE) {
+			successMarker.delete()
+		}
+    }
 }
 
 acceptTest.shouldRunAfter("test")

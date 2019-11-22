@@ -1,3 +1,5 @@
+![](https://github.com/jskov/backup/workflows/Build%20and%20run%20tests/badge.svg)
+
 # backup
 
 Application that makes a secure backup of photo/music files.
