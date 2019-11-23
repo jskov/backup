@@ -58,6 +58,10 @@ info_and_exit() {
     echo " encrypted with key id @@BACKUP_KEY_ID@@"
     echo " ${#crypts[@]} crypted archive(s) contains ${#files[@]} files in ${#archives[@]} nested archives"
 
+	if [ "$1" == "" ]; then
+		exit 0
+	fi
+
     local name=$1[@]
     local array=("${!name}")
     if [ "$1" == "crypts" -o "$1" == "files" -o "$1" == "archives" ]; then
