@@ -51,26 +51,31 @@ expect_file() {
 
 
 info_and_exit() {
-    echo "Backup '@@BACKUP_NAME@@'"
-    echo " made with backup version @@VERSION@@"
-    echo " created on @@BACKUP_DATE_TIME@@"
-    echo " original size @@BACKUP_INPUT_SIZE@@"
-    echo " encrypted with key id @@BACKUP_KEY_ID@@"
-    echo " ${#crypts[@]} crypted archive(s) contains ${#files[@]} files in ${#archives[@]} nested archives"
+	local sel=""
+    if [ "$1" == "-c" ]; then
+    	sel="crypts"
+    elif [ "$1" == "-a" ]; then
+    	sel="archives"
+    elif [ "$1" == "-f" ]; then
+    	sel="files"
+    fi
 
-	if [ "$1" == "" ]; then
-		exit 0
-	fi
-
-    local name=$1[@]
-    local array=("${!name}")
-    if [ "$1" == "crypts" -o "$1" == "files" -o "$1" == "archives" ]; then
-	for l in "${array[@]}"; do
-	    local file=${l:77}
-	    local size=${l:0:11}
-	    local sha2=${l:12:64}
-	    echo "  ${file} ${sha2} ${size}"
-	done
+    if [ "$sel" == "crypts" -o "$sel" == "archives" -o "$sel" == "files" ]; then
+	    local name=$sel[@]
+	    local array=("${!name}")
+		for l in "${array[@]}"; do
+		    local file=${l:77}
+		    local size=${l:0:11}
+		    local sha2=${l:12:64}
+		    echo "${file} ${sha2} ${size}"
+		done
+	else
+	    echo "Backup '@@BACKUP_NAME@@'"
+	    echo " made with backup version @@VERSION@@"
+	    echo " created on @@BACKUP_DATE_TIME@@"
+	    echo " original size @@BACKUP_INPUT_SIZE@@"
+	    echo " encrypted with key id @@BACKUP_KEY_ID@@"
+	    echo " ${#crypts[@]} crypted archive(s) contains ${#files[@]} files in ${#archives[@]} nested archives"
     fi
 
     exit 0
@@ -84,6 +89,9 @@ usage_and_exit() {
     echo "With cmd being one of:"
     echo
     echo "  info               information about backup"
+    echo "  info -c            information about crypted backup files"
+    echo "  info -a            information about archive files"
+    echo "  info -f            information about the original files"
     echo
     echo "  unpack dir         unpacks all files to dir"
     echo "  unpack -a dir      unpacks (only) archives to dir"

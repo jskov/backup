@@ -17,7 +17,7 @@ import fixture.MakeBackup;
 import fixture.TestCertificateInfo;
 
 /**
- * Makes a backup, cheks info in backup.
+ * Makes a backup, checks info in backup.
  */
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class BackupInfoTest {
@@ -29,7 +29,7 @@ class BackupInfoTest {
 	}
 
 	/**
-	 * Tests that the verification of the encrypted archive(s) works.
+	 * Tests that the backup information is included in the restore script.
 	 */
 	@Test
 	void backupContainsInfo() throws IOException, InterruptedException {
@@ -44,6 +44,56 @@ class BackupInfoTest {
 				"created on 20",
 				"original size 12.6 KiB",
 				"encrypted with key id 281DE650E39B5DCA3E9D542092B7BAA1D6B4A52D"
+			);
+	}
+
+	/**
+	 * Tests that the backup information for crypted archives can be printed.
+	 */
+	@Test
+	void backupInfoCrypted() throws IOException, InterruptedException {
+		Result res = runRestoreCmd("info", "-c");
+
+		assertThat(res.exitValue)
+			.isEqualTo(0);
+		assertThat(res.output)
+			.contains(
+				"test-01.crypt",
+				"19274"
+			);
+	}
+
+	/**
+	 * Tests that the backup information for tar archives can be printed.
+	 */
+	@Test
+	void backupInfoTars() throws IOException, InterruptedException {
+		Result res = runRestoreCmd("info", "-a");
+
+		assertThat(res.exitValue)
+			.isEqualTo(0);
+		assertThat(res.output)
+			.contains(
+				"dir-a.tar e42fa7a5806b41d4e1646ec1885e1f43bdbd9488465fa7022c1aa541ead9348f        2560",
+				"file-root1.bin"
+			);
+	}
+
+	/**
+	 * Tests that the backup information for the original files can be printed.
+	 */
+	@Test
+	void backupInfoFiles() throws IOException, InterruptedException {
+		Result res = runRestoreCmd("info", "-f");
+
+		System.out.println(res.output);
+		
+		assertThat(res.exitValue)
+			.isEqualTo(0);
+		assertThat(res.output)
+			.contains(
+				"dir-a/file-a1.bin e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855           0",
+				"dir-e/file-e with space.bin e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855           0"
 			);
 	}
 
