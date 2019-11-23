@@ -32,9 +32,9 @@ class BackupInfoTest {
 	 * Tests that the verification of the encrypted archive(s) works.
 	 */
 	@Test
-	void backupCryptFilesCanBeVerified() throws IOException, InterruptedException {
+	void backupContainsInfo() throws IOException, InterruptedException {
 		Result res = runRestoreCmd("info");
-		
+
 		assertThat(res.exitValue)
 			.isEqualTo(0);
 		assertThat(res.output)
