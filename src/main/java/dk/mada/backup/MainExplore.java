@@ -13,6 +13,8 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileTime;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -40,6 +42,8 @@ public class MainExplore {
 	private final String recipientKeyId;
 	private final Map<String, String> gpgEnvOverrides;
 	private final long maxTarSize;
+	
+	private long totalInputSize;
 	
 	public MainExplore(String recipientKeyId, Map<String, String> gpgEnvOverrides, long maxTarSize) {
 		this.recipientKeyId = recipientKeyId;
@@ -89,9 +93,18 @@ public class MainExplore {
 			throw new IllegalStateException("Failed to lazy get output files", e);
 		}
 		
+		String backupTime = LocalDateTime.now().format(new DateTimeFormatterBuilder()
+															.appendPattern("Y.M.d H:m")
+															.toFormatter());
+		
 		Path restoreScript = targetDir.resolve(name + ".sh");
 		Map<VariableName, String> vars = Map.of(
-				VariableName.VERSION, Version.getBackupVersion()
+				VariableName.VERSION, Version.getBackupVersion(),
+				VariableName.BACKUP_DATE_TIME, backupTime,
+				VariableName.BACKUP_NAME, name,
+				VariableName.BACKUP_INPUT_SIZE, HumanByteCount.humanReadableByteCount(totalInputSize),
+				VariableName.BACKUP_KEY_ID, recipientKeyId
+				
 		);
 		new RestoreScriptWriter().write(restoreScript, vars, cryptElements, archiveElements, fileElements);
 	
@@ -174,6 +187,8 @@ public class MainExplore {
 
 		try (InputStream is = Files.newInputStream(file); BufferedInputStream bis = new BufferedInputStream(is)) {
 			long size = Files.size(file);
+			
+			totalInputSize += size;
 			
 			String type = inArchiveName.endsWith(".tar") ? "=>" : "-";
 			String humanSize = HumanByteCount.humanReadableByteCount(size);

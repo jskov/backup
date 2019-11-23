@@ -51,11 +51,11 @@ expect_file() {
 
 
 info_and_exit() {
-    echo "Backup of directory >>2004<<"
+    echo "Backup '@@BACKUP_NAME@@'"
     echo " made with backup version @@VERSION@@"
-    echo " created on >>2019.06.11 14:45<<"
-    echo " original size >>1.3GB<<"
-    echo " encrypted with key id >>CA2DE6A3<<"
+    echo " created on @@BACKUP_DATE_TIME@@"
+    echo " original size @@BACKUP_INPUT_SIZE@@"
+    echo " encrypted with key id @@BACKUP_KEY_ID@@"
     echo " ${#crypts[@]} crypted archive(s) contains ${#files[@]} files in ${#archives[@]} nested archives"
 
     local name=$1[@]
