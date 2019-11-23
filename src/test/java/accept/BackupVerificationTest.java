@@ -53,7 +53,7 @@ class BackupVerificationTest {
 	 */
 	@Test
 	void archiveChecksumsStableOverTime() throws IOException, InterruptedException {
-		Result res = runRestoreCmd("info", "archives");
+		Result res = runRestoreCmd("info", "-a");
 		
 		assertThat(res.exitValue)
 			.isEqualTo(0);
@@ -68,7 +68,7 @@ class BackupVerificationTest {
 	 */
 	@Test
 	void cryptContentStableOverTime() throws IOException, InterruptedException {
-		Result res = runRestoreCmd("info", "crypts");
+		Result res = runRestoreCmd("info", "-c");
 		
 		assertThat(res.exitValue)
 			.isEqualTo(0);
