@@ -13,12 +13,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 
-import dk.mada.backup.cli.CliMain;
 import dk.mada.backup.restore.RestoreExecutor;
 import dk.mada.backup.restore.RestoreExecutor.Result;
 import fixture.DisplayNameCamelCase;
+import fixture.MakeBackup;
 import fixture.TestCertificateInfo;
-import fixture.TestDataPrepper;
 
 /**
  * Makes a backup, runs multiple checks on the restore of this backup.
@@ -29,19 +28,7 @@ class BackupVerificationTest {
 
 	@BeforeAll
 	static void makeBackup() throws IOException, ArchiveException {
-		Path srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree");
-		Path targetDir = Paths.get("build/backup-dest");
-		
-		org.assertj.core.util.Files.delete(targetDir.toFile());
-
-		restoreScript = targetDir.resolve("test.sh");
-		CliMain.main(new String[] {
-					"-n", "test", 
-					"-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID,
-					"--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME,
-					srcDir.toAbsolutePath().toString(),
-					targetDir.toAbsolutePath().toString()
-				});
+		restoreScript = MakeBackup.makeBackup();
 	}
 
 	/**
@@ -66,7 +53,7 @@ class BackupVerificationTest {
 	 */
 	@Test
 	void archiveChecksumsStableOverTime() throws IOException, InterruptedException {
-		Result res = runRestoreCmd("info", "archives");
+		Result res = runRestoreCmd("info", "-a");
 		
 		assertThat(res.exitValue)
 			.isEqualTo(0);
@@ -81,7 +68,7 @@ class BackupVerificationTest {
 	 */
 	@Test
 	void cryptContentStableOverTime() throws IOException, InterruptedException {
-		Result res = runRestoreCmd("info", "crypts");
+		Result res = runRestoreCmd("info", "-c");
 		
 		assertThat(res.exitValue)
 			.isEqualTo(0);

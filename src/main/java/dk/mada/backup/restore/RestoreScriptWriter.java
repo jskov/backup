@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,8 +21,7 @@ import dk.mada.backup.api.BackupTargetExistsException;
  * Copies out the restore script, replacing backup information as it goes.
  */
 public class RestoreScriptWriter {
-
-	public void write(Path script, List<? extends BackupElement> crypts, List<? extends BackupElement> tars, List<? extends BackupElement> files) {
+	public void write(Path script, Map<VariableName, String> vars, List<? extends BackupElement> crypts, List<? extends BackupElement> tars, List<? extends BackupElement> files) {
 		if (Files.exists(script)) {
 			throw new BackupTargetExistsException("Restore script file " + script + " already exists!");
 		}
@@ -48,7 +48,9 @@ public class RestoreScriptWriter {
 				}
 				
 				if (!ignoringSection) {
-					bw.write(addLine);
+					String expanded = expandVars(vars, addLine);
+					
+					bw.write(expanded);
 					bw.append('\n');
 				}
 			}
@@ -59,6 +61,16 @@ public class RestoreScriptWriter {
 		makeScriptExecutable(script);
 	}
 	
+	private String expandVars(Map<VariableName, String> vars, String line) {
+		String res = line;
+		
+		for (Map.Entry<VariableName, String> e : vars.entrySet()) {
+			res = res.replace("@@" + e.getKey().name()+ "@@", e.getValue());
+		}
+		
+		return res;
+	}
+
 	private void makeScriptExecutable(Path script) {
 		try {
 			Set<PosixFilePermission> perms = Files.getPosixFilePermissions(script);
