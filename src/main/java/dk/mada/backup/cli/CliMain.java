@@ -35,6 +35,7 @@ public class CliMain {
 			.addObject(cliArgs)
 			.build();
 		jc.setProgramName("backup");
+		jc.parse(args);
 		
 		if (!cliArgs.isInputOutputValid()) {
 			jc.usage();
