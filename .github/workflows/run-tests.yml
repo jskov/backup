@@ -38,7 +38,6 @@ jobs:
         name: test-report
         path: build/reports
     - run: test -f build/all-tests-passed
-	- run: type gu
-	- run: gu install native-image
-	- run: type native-image
-	
+    - run: type gu
+    - run: gu install native-image
+    - run: type native-image
