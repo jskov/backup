@@ -52,6 +52,10 @@ jobs:
 
     - uses: jskov/setup-graalvm-linux@19.3.0
     
-    - run: gu install native-image
+    - name: Install GraalVM native-image
+      run: gu install native-image
+    
+    - run: type -a native-image || echo "Not found"
+    
     - name: Build native executable
-      run: ./gradlew buildNative -s -i
+      run: ./gradlew --no-daemon --console plain buildNative -s
