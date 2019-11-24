@@ -61,7 +61,7 @@ jobs:
     - run: echo $GRAALVM_HOME
     - run: ls -l $GRAALVM_HOME
     - run: gu install native-image
-    - run: native-image -h
+    - run: native-image --help
     
 
 #    - run: ./gradlew check
