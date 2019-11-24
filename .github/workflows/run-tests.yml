@@ -32,12 +32,16 @@ jobs:
     - uses: rtc11/setup-graalvm@1.0
       with:
         args: 'https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz'
-    - run: ./gradlew check
-    - uses: actions/upload-artifact@v1
-      with:
-        name: test-report
-        path: build/reports
-    - run: test -f build/all-tests-passed
-    - run: type gu
-    - run: gu install native-image
-    - run: type native-image
+    - run: ls -l /
+    - run: ls -l /home/runner/work/_temp/_github_home || true
+    - run: ls -l /github/home || true
+    - run: ls -l /github/workspace || true
+#    - run: ./gradlew check
+#    - uses: actions/upload-artifact@v1
+#      with:
+#        name: test-report
+#        path: build/reports
+#    - run: test -f build/all-tests-passed
+#    - run: type gu
+#    - run: gu install native-image
+#    - run: type native-image
