@@ -25,10 +25,11 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
-    - uses: actions/setup-java@v1
-      with:
-        java-version: '11.0.x'
-        architecture: x64
+#    - uses: actions/setup-java@v1
+#      with:
+#        java-version: '11.0.x'
+#        architecture: x64
+
 #    - uses: rtc11/setup-graalvm@1.0
 #      with:
 #        args: 'https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz'
@@ -52,9 +53,16 @@ jobs:
 
 
     - name: Download and checksum graal
-      run: curl -L https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz > graalvm.tgz && sha256sum -c graalvm
+      run: curl -L https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz > graalvm.tgz && sha256sum -c graalvm.sha256
+
+    - name: Unpack graal
+      run: tar xf graalvm.tgz
+      
+    - run: export PATH=$PATH:$RUNNER_WORKSPACE/graalvm-ce-java11-19.3.0/bin
 
     - run: ls -l $RUNNER_WORKSPACE
+    - run: gu install native-image
+    - run: type native-image
 
     
 
@@ -65,5 +73,3 @@ jobs:
 #        path: build/reports
 #    - run: test -f build/all-tests-passed
 #    - run: type gu
-#    - run: gu install native-image
-#    - run: type native-image
