@@ -3,7 +3,8 @@
 #  https://github.com/actions
 #  https://github.com/features/actions
 
-# https://github.com/rtc11/setup-graalvm
+# https://github.com/marketplace/actions/setup-graalvm-environment
+
 
 # Gradle check does not return error on test failures.
 # This allows test report to be collected before checking for success
@@ -21,6 +22,8 @@ on:
 
 jobs:
   build-job:
+    env:
+      GRAALVM_VERSION: 19.3.0
     name: Build and test
     runs-on: ubuntu-18.04
     steps:
@@ -30,9 +33,10 @@ jobs:
 #        java-version: '11.0.x'
 #        architecture: x64
 
-    env:
-      GRAALVM_VERSION: 19.3.0
-      GRAALVM_HOME_PATH: ${GITHUB_WORKSPACE}/graalvm-ce-java11-${GRAALVM_VERSION}
+
+    - uses: DeLaGuardo/setup-graalvm@5bcf84f
+      with:
+        graalvm-version: '19.3.0'
 
 
 #    - uses: rtc11/setup-graalvm@1.0
