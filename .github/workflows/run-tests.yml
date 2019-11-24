@@ -1,5 +1,9 @@
 # From https://help.github.com/en/articles/workflow-syntax-for-github-actions
-# Find actions in https://github.com/actions
+# Find actions in
+#  https://github.com/actions
+#  https://github.com/features/actions
+
+# https://github.com/rtc11/setup-graalvm
 
 # Gradle check does not return error on test failures.
 # This allows test report to be collected before checking for success
@@ -25,10 +29,16 @@ jobs:
       with:
         java-version: '11.0.x'
         architecture: x64
+    - uses: rtc11/setup-graalvm@1.0
+      with:
+        args: 'https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz'
     - run: ./gradlew check
     - uses: actions/upload-artifact@v1
       with:
         name: test-report
         path: build/reports
     - run: test -f build/all-tests-passed
-        
+	- run: type gu
+	- run: gu install native-image
+	- run: type native-image
+	
