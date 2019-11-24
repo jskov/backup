@@ -54,4 +54,4 @@ jobs:
     
     - run: gu install native-image
     - name: Build native executable
-      run: ./gradlew buildNative
+      run: ./gradlew buildNative -s -i
