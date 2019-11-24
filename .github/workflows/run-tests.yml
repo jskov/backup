@@ -34,7 +34,7 @@ jobs:
 #        architecture: x64
 
 
-    - uses: DeLaGuardo/setup-graalvm@5bcf84f
+    - uses: DeLaGuardo/setup-graalvm@1.0
       with:
         graalvm-version: '19.3.0'
 
