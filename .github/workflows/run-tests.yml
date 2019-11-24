@@ -22,8 +22,6 @@ on:
 
 jobs:
   build-job:
-    env:
-      GRAALVM_VERSION: 19.3.0
     name: Build and test
     runs-on: ubuntu-18.04
     steps:
@@ -34,7 +32,7 @@ jobs:
 #        architecture: x64
 
 
-    - uses: jskov/setup-graalvm-linux@master
+    - uses: jskov/setup-graalvm-linux@19.3.0
 
 
 #    - uses: rtc11/setup-graalvm@1.0
