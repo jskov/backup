@@ -128,6 +128,6 @@ tasks.clean { delete("dist") }
 tasks.eclipseClasspath.dependsOn("cleanEclipseClasspath")
 
 
-task buildNative(type: Exec, dependsOn: shadow) {
+task buildNative(type: Exec, dependsOn: shadowJar) {
 	commandLine 'native-image', '-jar', 'build/libs/shadow.jar'
 }
