@@ -34,8 +34,31 @@ jobs:
 #        args: 'https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz'
     - run: env | sort
     - run: sh -c "pwd"
-    - run: curl https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz | tar xzf -
+    
+    
+    - name: Cache graal
+      id: graal-part1
+      uses: actions/cache@v1
+      with:
+        path: graalaa
+        key: graal-19.3.0aa
+
+    - name: Cache graal
+      id: graal-part2
+      uses: actions/cache@v1
+      with:
+        path: graalab
+        key: graal-19.3.0ab
+    
+    - name: Download graal
+      if: steps.graal-part1.outputs.cache-hit != 'true'
+      if: steps.graal-part2.outputs.cache-hit != 'true'
+      run: curl -L https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz | split -b 300M - graal
+    
     - run: ls -l $RUNNER_WORKSPACE
+
+    - name: Checksum graal
+      run: cat graalaa graalab | sha256sum
     
 #    - run: ./gradlew check
 #    - uses: actions/upload-artifact@v1
