@@ -115,10 +115,10 @@ jar {
 	archiveBaseName = "backup"
 }
 
-shadowJar {
-	classifier = null
-	archiveName = "shadow.jar"
-}
+//shadowJar {
+//	classifier = null
+//	archiveName = "shadow.jar"
+//}
 
 sourceCompatibility = 11
 targetCompatibility = 11
@@ -128,6 +128,9 @@ tasks.clean { delete("dist") }
 tasks.eclipseClasspath.dependsOn("cleanEclipseClasspath")
 
 
-task buildNative(type: Exec, dependsOn: shadowJar) {
-	commandLine 'native-image', '-jar', 'build/libs/shadow.jar'
+task buildNative(type: Exec, dependsOn: jar) {
+	doFirst {
+		project.delete("build/backup")
+	}
+	commandLine 'native-image', '--allow-incomplete-classpath', '--no-fallback', '-cp', sourceSets.main.getRuntimeClasspath().getAsPath(), "dk.mada.backup.cli.CliMain", "build/backup"
 }
