@@ -23,7 +23,7 @@ jobs:
   build-job:
     env:
       GRAALVM_VERSION: 19.3.0
-      GRAALVM_HOME_PATH: ${{env.GITHUB_WORKSPACE}}/graalvm-ce-java11-${{env.GRAALVM_VERSION}}
+      GRAALVM_HOME_PATH: ${{GITHUB_WORKSPACE}}/graalvm-ce-java11-${{GRAALVM_VERSION}}
     name: Build and test
     runs-on: ubuntu-18.04
     steps:
