@@ -59,6 +59,7 @@ jobs:
     - name: Checksum graal
       run: cat graal-1/graalaa graal-2/graalab | sha256sum
     
+
 #    - run: ./gradlew check
 #    - uses: actions/upload-artifact@v1
 #      with:
