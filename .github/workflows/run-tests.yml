@@ -35,8 +35,6 @@ jobs:
 
 
     - uses: jskov/setup-graalvm-linux@master
-      with:
-        graalvm-version: '19.3.0'
 
 
 #    - uses: rtc11/setup-graalvm@1.0
@@ -67,14 +65,10 @@ jobs:
 #    - name: Unpack graal
 #      run: tar xzf graalvm.tgz
 
-    - run: echo $GRAALVM_HOME_PATH
-    - run: echo ${{env.GRAALVM_HOME_PATH}}
-
-    - run: ls -l $GITHUB_WORKSPACE
-    - run: ls -l $GITHUB_WORKSPACE/graalvm || true
-    - run: $GRAALVM_HOME_PATH/bin/gu install native-image
-    - run: $GRAALVM_HOME_PATH/bin/native-image -h
-
+    - run: echo $GRAALVM_HOME
+    - run: ls -l $GRAALVM_HOME
+    - run: gu install native-image
+    - run: native-image -h
     
 
 #    - run: ./gradlew check
