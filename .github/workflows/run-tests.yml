@@ -66,11 +66,12 @@ jobs:
 
 #    - name: Unpack graal
 #      run: tar xzf graalvm.tgz
-      
+
     - run: echo $GRAALVM_HOME_PATH
     - run: echo ${{env.GRAALVM_HOME_PATH}}
 
     - run: ls -l $GITHUB_WORKSPACE
+    - run: ls -l $GITHUB_WORKSPACE/graalvm || true
     - run: $GRAALVM_HOME_PATH/bin/gu install native-image
     - run: $GRAALVM_HOME_PATH/bin/native-image -h
 
