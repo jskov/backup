@@ -36,28 +36,26 @@ jobs:
     - run: sh -c "pwd"
     
     
-    - name: Cache graal part 1
-      id: graal-part1
-      uses: actions/cache@v1
-      with:
-        path: graal-1
-        key: graal-19.3.0aa
+#    - name: Cache graal part 1
+#      id: graal-part1
+#      uses: actions/cache@v1
+#      with:
+#        path: graal-1
+#        key: graal-19.3.0aa
 
-    - name: Cache graal part 2
-      id: graal-part2
-      uses: actions/cache@v1
-      with:
-        path: graal-2
-        key: graal-19.3.0ab
-    
-    - name: Download graal
-      if: steps.graal-part1.outputs.cache-hit != 'true' && steps.graal-part2.outputs.cache-hit != 'true'
-      run: mkdir graal-1 graal-2 && curl -L https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz | split -b 300M - graal && mv graalaa graal-1/ && mv graalab graal-2/
-    
+#    - name: Download graal
+#      if: steps.graal-part1.outputs.cache-hit != 'true' && steps.graal-part2.outputs.cache-hit != 'true'
+#      run: mkdir graal-1 graal-2 && curl -L https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz | split -b 300M - graal && mv graalaa graal-1/ && mv graalab graal-2/
+ 
+#    - name: Checksum graal
+#      run: cat graal-1/graalaa graal-2/graalab | sha256sum
+
+
+    - Download and checksum graal
+      run: curl -L https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz > graalvm.tgz && sha256sum -c graalvm
+      
     - run: ls -l $RUNNER_WORKSPACE
 
-    - name: Checksum graal
-      run: cat graal-1/graalaa graal-2/graalab | sha256sum
     
 
 #    - run: ./gradlew check
