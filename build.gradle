@@ -10,12 +10,6 @@ import org.gradle.crypto.checksum.Checksum
 
 ext {
 	successMarker = project.file("build/all-tests-passed")
-
-	graalDir = file("build/graal")
-	graalDist = file("build/graal.tgz")
-	graalDistSha256 = "238c5c21bb4aa292caf95b2aca592ce8c1be2f036d93af48cd865f67d558f907"
-	graalDistUrl = "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz"
-
 }
 
 def declaredVersion = System.getenv("BUILD_SOURCEBRANCH")
@@ -123,13 +117,7 @@ jar {
 
 shadowJar {
 	classifier = null
-	destinationDirectory = file("dist")
-}
-
-task release(dependsOn: ["check", "shadowJar"]) {
-	doLast {
-		println "Release $version"
-	}
+	archiveName = "shadow.jar"
 }
 
 sourceCompatibility = 11
@@ -140,10 +128,6 @@ tasks.clean { delete("dist") }
 tasks.eclipseClasspath.dependsOn("cleanEclipseClasspath")
 
 
-task buildNative(type: Exec) {
-	doFirst {
-		println "Build native..."
-	}
-	
-	commandLine 'native-image', '--help'
+task buildNative(type: Exec, dependsOn: shadow) {
+	commandLine 'native-image', '-jar', 'build/libs/shadow.jar'
 }
