@@ -34,7 +34,7 @@ jobs:
 #        architecture: x64
 
 
-    - uses: jskov/setup-graalvm@master
+    - uses: jskov/setup-graalvm-linux@master
       with:
         graalvm-version: '19.3.0'
 
