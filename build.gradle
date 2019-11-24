@@ -2,10 +2,20 @@ plugins {
     id 'eclipse'
     id 'java'
     id 'com.github.johnrengelman.shadow' version '5.1.0'
+    id 'org.gradle.crypto.checksum' version '1.1.0'
 }
+
+import org.gradle.crypto.checksum.Checksum
+import org.gradle.crypto.checksum.Checksum
 
 ext {
 	successMarker = project.file("build/all-tests-passed")
+
+	graalDir = file("build/graal")
+	graalDist = file("build/graal.tgz")
+	graalDistSha256 = "238c5c21bb4aa292caf95b2aca592ce8c1be2f036d93af48cd865f67d558f907"
+	graalDistUrl = "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz"
+
 }
 
 def declaredVersion = System.getenv("BUILD_SOURCEBRANCH")
@@ -20,7 +30,7 @@ println "Builds version $version"
 group = "dk.mada.backup"
 
 repositories {
-     mavenCentral()
+	mavenCentral()
 }
 
 dependencies {
@@ -60,29 +70,12 @@ task prepareActionsGpgTestHome() {
 	}
 }
 
-task zipReports(type: Zip, dependsOn: "test") {
-	archiveFileName = "test-reports.zip"
-	destinationDirectory = file("build")
-	from "build/reports"
-	
-	doLast {
-// This replaces the log from build step on the Logs pane of the build
-//		println "##vso[build.uploadlog]" + file("build").absolutePath + "/test-reports.zip"
-
-		
-		println "---LOG---"
-		println file("build/test-results/test/TEST-unit.backup.NondestructionTest.xml").text
-		println "---LOG---"
-	}
-}
-
 task makeSuccessMarker() {
 	doFirst {
 		project.mkdir("build")
 		successMarker.createNewFile()
 	}
 }
-
 
 task acceptTest(type: Test) {
 	dependsOn(makeSuccessMarker)
@@ -145,3 +138,12 @@ targetCompatibility = 11
 tasks.clean { delete("dist") }
 
 tasks.eclipseClasspath.dependsOn("cleanEclipseClasspath")
+
+
+task buildNative(type: Exec) {
+	doFirst {
+		println "Build native..."
+	}
+	
+	commandLine 'native-image', '--help'
+}
