@@ -31,14 +31,6 @@ jobs:
         java-version: '11.0.x'
         architecture: x64
 
-    
-
-#    - name: Download graal
-#      if: steps.graal-part1.outputs.cache-hit != 'true' && steps.graal-part2.outputs.cache-hit != 'true'
-#      run: mkdir graal-1 graal-2 && curl -L https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz | split -b 300M - graal && mv graalaa graal-1/ && mv graalab graal-2/
- 
-    
-
     - name: Build and run tests
       run: ./gradlew check
 
@@ -54,8 +46,6 @@ jobs:
     
     - name: Install GraalVM native-image
       run: gu install native-image
-    
-    - run: type -a native-image || echo "Not found"
     
     - name: Build native executable
       run: ./gradlew --no-daemon --console plain buildNative -s
