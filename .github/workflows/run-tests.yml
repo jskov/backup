@@ -51,9 +51,9 @@ jobs:
 #      run: cat graal-1/graalaa graal-2/graalab | sha256sum
 
 
-    - Download and checksum graal
+    - name: Download and checksum graal
       run: curl -L https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz > graalvm.tgz && sha256sum -c graalvm
-      
+
     - run: ls -l $RUNNER_WORKSPACE
 
     
