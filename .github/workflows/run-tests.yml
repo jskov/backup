@@ -21,6 +21,10 @@ on:
 
 jobs:
   build-job:
+    env:
+      GRAALVM_VERSION: 19.3.0
+      GRAALVM_HOME_PATH: $GITHUB_WORKSPACE/graalvm-ce-java11-$GRAALVM_VERSION
+      PATH: $PATH:$GRAALVM_HOME_PATH/bin
     name: Build and test
     runs-on: ubuntu-18.04
     steps:
@@ -53,17 +57,17 @@ jobs:
 
 
     - name: Download and checksum graal
-      run: curl -L https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.0/graalvm-ce-java11-linux-amd64-19.3.0.tar.gz > graalvm.tgz && sha256sum -c graalvm.sha256
+      run: curl -L https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-$GRAALVM_VERSION/graalvm-ce-java11-linux-amd64-$GRAALVM_VERSION.tar.gz > graalvm.tgz && sha256sum -c graalvm.sha256
 
     - name: Unpack graal
-      run: tar xzvf graalvm.tgz
+      run: tar xzf graalvm.tgz
       
-    - run: export PATH=$PATH:$GITHUB_WORKSPACE/graalvm-ce-java11-19.3.0/bin
     - run: echo $PATH
+    - run: echo $GRAALVM_HOME_PATH
 
     - run: ls -l $GITHUB_WORKSPACE
-    - run: gu install native-image
-    - run: type native-image
+    - run: $GRAALVM_HOME_PATH/bin/gu install native-image
+    - run: $GRAALVM_HOME_PATH/bin/native-image -h
 
     
 
