@@ -24,16 +24,20 @@ jobs:
   build:
     name: Build and test
     runs-on: ubuntu-18.04
+    
+    env:
+      runs_release: ${{contains(github.ref, 'refs/tags')}}
+    
     steps:
 
     - name: Env
       run: env|sort
 
     - name: On any push
-      run: echo "On any push ${{github.event}} ${{github.event_name}} ${{github.ref}}"
+      run: echo "On any push ${{github.event}} ${{github.event_name}} ${{github.ref}} ${{env.runs_release}}"
        
     - name: Only on tags
-      if: contains(github.ref, 'refs/tags')
+      if: env.runs_release
       run: echo "Only on tag ${{github.ref}} ${{github.event_name}}"
 
     - uses: actions/checkout@v1
@@ -58,11 +62,14 @@ jobs:
 #    - name: Check test results
 #      run: test -f build/all-tests-passed
 
+
     - uses: jskov/setup-graalvm-linux@19.3.0
-      if: contains(github.ref, 'odd')
-#    
-#    - name: Install GraalVM native-image
-#      run: gu install native-image
-#    
-#    - name: Build native executable
-#      run: ./gradlew --no-daemon --console plain buildNative -s
+      if: env.runs_release
+   
+    - name: Install GraalVM native-image
+      if: env.runs_release
+      run: gu install native-image
+    
+    - name: Build native executable
+      if: env.runs_release
+      run: ./gradlew --no-daemon --console plain buildNative -s
