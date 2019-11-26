@@ -27,7 +27,7 @@ jobs:
     steps:
 
      - name: On any push
-       run: echo "On any push ${{github.event}}"
+       run: echo "On any push ${{github.event}} ${{github.event_name}} ${{github.ref}}"
      
      - name: Only on tags
        if: contains(github.ref, '/refs/tags')
