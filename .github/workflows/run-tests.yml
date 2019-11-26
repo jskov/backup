@@ -55,11 +55,11 @@ jobs:
         name: test-report
         path: build/reports
 
-    - name: Check test results
-      run: test -f build/all-tests-passed
+#    - name: Check test results
+#      run: test -f build/all-tests-passed
 
     - uses: jskov/setup-graalvm-linux@19.3.0
-      if: contains(github.ref, 'refs')
+      if: contains(github.ref, 'odd')
 #    
 #    - name: Install GraalVM native-image
 #      run: gu install native-image
