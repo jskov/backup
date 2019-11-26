@@ -21,31 +21,38 @@ on:
 #      - cron: '28 11 * * *'
 
 jobs:
-  build-job:
+  build:
     name: Build and test
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-java@v1
-      with:
-        java-version: '11.0.x'
-        architecture: x64
 
-    - name: Build and run tests
-      run: ./gradlew check
+     - name: On any push
+       run: echo "On any push ${{github.event}}"
+     
+     - name: Only on tags
+       run: echo "Only on tag ${{github.ref}} ${{github.event_name}}"
 
-    - uses: actions/upload-artifact@v1
-      with:
-        name: test-report
-        path: build/reports
-
-    - name: Check test results
-      run: test -f build/all-tests-passed
-
-    - uses: jskov/setup-graalvm-linux@19.3.0
-    
-    - name: Install GraalVM native-image
-      run: gu install native-image
-    
-    - name: Build native executable
-      run: ./gradlew --no-daemon --console plain buildNative -s
+#    - uses: actions/checkout@v1
+#    - uses: actions/setup-java@v1
+#      with:
+#        java-version: '11.0.x'
+#        architecture: x64
+#
+#    - name: Build and run tests
+#      run: ./gradlew check
+#
+#    - uses: actions/upload-artifact@v1
+#      with:
+#        name: test-report
+#        path: build/reports
+#
+#    - name: Check test results
+#      run: test -f build/all-tests-passed
+#
+#    - uses: jskov/setup-graalvm-linux@19.3.0
+#    
+#    - name: Install GraalVM native-image
+#      run: gu install native-image
+#    
+#    - name: Build native executable
+#      run: ./gradlew --no-daemon --console plain buildNative -s
