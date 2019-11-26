@@ -62,8 +62,11 @@ jobs:
 #    - name: Check test results
 #      run: test -f build/all-tests-passed
 
-    - name: Install GraalVM native-image
+    - name: Prep GraalVM
+      if: contains(github.ref, 'refs/tags')
       uses: jskov/setup-graalvm-linux@19.3.0
+
+    - name: Install GraalVM native-image
       if: contains(github.ref, 'refs/tags')
       run: gu install native-image
     
