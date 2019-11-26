@@ -68,7 +68,7 @@ jobs:
         release_name: ${{ github.ref }}
         draft: false
         prerelease: false
-        body: sha256sum ${{ hashFiles('build/libs/backup') }}
+        body: sha256sum ${{ hashFiles('build/backup') }}
         
     - name: Upload Release Asset
       if: contains(github.ref, 'refs/tags')
