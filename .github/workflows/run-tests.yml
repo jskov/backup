@@ -46,9 +46,6 @@ jobs:
     - name: Build and run tests
       run: ./gradlew check
       
-    - name: Show
-      run: ls -l build/libs
-
     - name: Upload test report on failure
       uses: actions/upload-artifact@v1
       if: failure()
