@@ -33,7 +33,7 @@ jobs:
         architecture: x64
 
     - name: Build and run tests
-      run: ./gradlew check
+      run: ./gradlew check jar
       
     - name: Upload test report on failure
       uses: actions/upload-artifact@v1
@@ -66,11 +66,11 @@ jobs:
       with:
         tag_name: ${{ github.ref }}
         release_name: ${{ github.ref }}
-        body: Copy to release note sha256sum ${{ hashFiles('build/backup') }}
+        body: Copy to release note sha256sum ${{ hashFiles('build/backup', 'build/libs/*.jar') }}
         draft: true
         prerelease: false
         
-    - name: Upload Release Asset
+    - name: Upload binary Asset
       if: contains(github.ref, 'refs/tags')
       id: upload-release-asset 
       uses: actions/upload-release-asset@v1.0.1
@@ -81,3 +81,15 @@ jobs:
         asset_path: ./build/backup
         asset_name: backup
         asset_content_type: application/octet-stream
+
+    - name: Upload jar Asset
+      if: contains(github.ref, 'refs/tags')
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./build/libs/backup-${{ github.ref }}.jar
+        asset_name: backup.jar
+        asset_content_type: application/java-archive
