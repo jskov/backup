@@ -9,20 +9,17 @@
 # Gradle check does not return error on test failures.
 # This allows test report to be collected before checking for success
 
-name: Build and run tests
-
+name: Build, test, and release
 
 # Should work with both push and schedule, as per below, but does not.
 # https://github.community/t5/GitHub-Actions/Multiple-event-triggers-with-config/m-p/33258
 
 on:
   push
-#  schedule:
-#      - cron: '28 11 * * *'
 
 jobs:
   build:
-    name: Build and test
+    name: Build, test, and release
     runs-on: ubuntu-18.04
     
     env:
@@ -47,20 +44,20 @@ jobs:
         architecture: x64
 
     - name: Build and run tests
-#      run: ./gradlew check
-      run: ./gradlew jar
+      run: ./gradlew check
       
     - name: Show
       run: ls -l build/libs
 
-    - uses: actions/upload-artifact@v1
+    - name: Upload test report on failure
+      uses: actions/upload-artifact@v1
       if: failure()
       with:
         name: test-report
         path: build/reports
 
-#    - name: Check test results
-#      run: test -f build/all-tests-passed
+    - name: Check test results
+      run: test -f build/all-tests-passed
 
     - name: Prep GraalVM
       if: contains(github.ref, 'refs/tags')
@@ -82,9 +79,10 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        release_name: ${{ github.ref }}
         draft: false
         prerelease: false
+        body: sha256sum ${{ hashFiles('build/libs/backup') }}
         
     - name: Upload Release Asset
       if: contains(github.ref, 'refs/tags')
@@ -97,4 +95,3 @@ jobs:
         asset_path: ./build/backup
         asset_name: backup
         asset_content_type: application/octet-stream
-        
