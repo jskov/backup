@@ -66,7 +66,7 @@ jobs:
       with:
         tag_name: ${{ github.ref }}
         release_name: ${{ github.ref }}
-        body: Copy to release note sha256sum ${{ hashFiles('build/backup', 'build/libs/*.jar') }}
+        body: "Copy to release note sha256sum backup: ${{ hashFiles('build/backup') }} backup.jar: ${{ hashFiles('build/libs/backup*.jar') }}"
         draft: true
         prerelease: false
         
