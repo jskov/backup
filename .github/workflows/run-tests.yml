@@ -26,11 +26,14 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
 
+     - name: Env
+       run: env|sort
+
      - name: On any push
        run: echo "On any push ${{github.event}} ${{github.event_name}} ${{github.ref}}"
-     
+       
      - name: Only on tags
-       if: contains(github.ref, '/refs/tags')
+       if: contains(github.ref, 'refs/tags')
        run: echo "Only on tag ${{github.ref}} ${{github.event_name}}"
 
 #    - uses: actions/checkout@v1
