@@ -1,34 +1,83 @@
 # From https://help.github.com/en/articles/workflow-syntax-for-github-actions
-# Find actions in https://github.com/actions
+# Find actions in
+#  https://github.com/actions
+#  https://github.com/features/actions
+
+# https://github.com/marketplace/actions/setup-graalvm-environment
+
 
 # Gradle check does not return error on test failures.
 # This allows test report to be collected before checking for success
 
-name: Build and run tests
-
+name: Build, test, and release
 
 # Should work with both push and schedule, as per below, but does not.
 # https://github.community/t5/GitHub-Actions/Multiple-event-triggers-with-config/m-p/33258
 
 on:
   push
-#  schedule:
-#      - cron: '28 11 * * *'
 
 jobs:
-  build-job:
-    name: Build and test
+  build:
+    name: Build, test, and release
     runs-on: ubuntu-18.04
+    
     steps:
+    - name: Env
+      run: env|sort
+       
     - uses: actions/checkout@v1
     - uses: actions/setup-java@v1
       with:
         java-version: '11.0.x'
         architecture: x64
-    - run: ./gradlew check
-    - uses: actions/upload-artifact@v1
+
+    - name: Build and run tests
+      run: ./gradlew check
+      
+    - name: Upload test report on failure
+      uses: actions/upload-artifact@v1
+      if: failure()
       with:
         name: test-report
         path: build/reports
-    - run: test -f build/all-tests-passed
+
+    - name: Check test results
+      run: test -f build/all-tests-passed
+
+    - name: Prep GraalVM
+      if: contains(github.ref, 'refs/tags')
+      uses: jskov/setup-graalvm-linux@19.3.0
+
+    - name: Install GraalVM native-image
+      if: contains(github.ref, 'refs/tags')
+      run: gu install native-image
+    
+    - name: Build native executable
+      if: contains(github.ref, 'refs/tags')
+      run: ./gradlew --no-daemon --console plain buildNative -s
+
+    - name: Create Release
+      if: contains(github.ref, 'refs/tags')
+      id: create_release
+      uses: actions/create-release@v1.0.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ${{ github.ref }}
+        body: Copy to release note sha256sum ${{ hashFiles('build/backup') }}
+        draft: true
+        prerelease: false
         
+    - name: Upload Release Asset
+      if: contains(github.ref, 'refs/tags')
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./build/backup
+        asset_name: backup
+        asset_content_type: application/octet-stream
