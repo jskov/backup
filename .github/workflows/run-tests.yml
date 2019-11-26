@@ -66,9 +66,10 @@ jobs:
       with:
         tag_name: ${{ github.ref }}
         release_name: ${{ github.ref }}
-        draft: false
+        body: |
+          backup sha256sum ${{ hashFiles('build/backup') }}
+        draft: true
         prerelease: false
-        body: sha256sum ${{ hashFiles('build/backup') }}
         
     - name: Upload Release Asset
       if: contains(github.ref, 'refs/tags')
