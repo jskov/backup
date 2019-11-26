@@ -47,7 +47,7 @@ jobs:
       run: ./gradlew jar
       
     - name: Show
-      run: ls -l build
+      run: ls -l build/libs
 #
 #    - uses: actions/upload-artifact@v1
 #      with:
