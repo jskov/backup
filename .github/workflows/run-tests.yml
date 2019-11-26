@@ -22,21 +22,10 @@ jobs:
     name: Build, test, and release
     runs-on: ubuntu-18.04
     
-    env:
-      runs_release: ${{ contains(github.ref, 'refs/tags') }}
-    
     steps:
-
     - name: Env
       run: env|sort
-
-    - name: On any push
-      run: echo "On any push ${{github.event}} ${{github.event_name}} ${{github.ref}} ${{env.runs_release}}"
        
-    - name: Only on tags
-      if: env.runs_release
-      run: echo "Only on tag ${{github.ref}} ${{github.event_name}}"
-
     - uses: actions/checkout@v1
     - uses: actions/setup-java@v1
       with:
