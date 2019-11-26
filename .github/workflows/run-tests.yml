@@ -30,7 +30,7 @@ jobs:
        run: echo "On any push ${{github.event}}"
      
      - name: Only on tags
-       if: contains(github.ref, "/refs/tags")
+       if: contains(github.ref, '/refs/tags')
        run: echo "Only on tag ${{github.ref}} ${{github.event_name}}"
 
 #    - uses: actions/checkout@v1
