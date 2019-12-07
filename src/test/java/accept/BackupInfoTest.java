@@ -42,7 +42,7 @@ class BackupInfoTest {
 				"Backup 'test'",
 				"made with backup version undef",
 				"created on 20",
-				"original size 12.6 KiB",
+				"original size 56 B",
 				"encrypted with key id 281DE650E39B5DCA3E9D542092B7BAA1D6B4A52D"
 			);
 	}
