@@ -115,7 +115,7 @@ jar {
 
 shadowJar {
 	classifier = null
-	archiveName = "backup-shadow.jar"
+	archiveFileName = "backup-shadow.jar"
 }
 
 sourceCompatibility = 11
