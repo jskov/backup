@@ -135,7 +135,7 @@ public class MainExplore {
 			fileElements.add(dirInfo);
 			
 			String inArchiveName = dir.getFileName().toString() + ".tar";
-			FileInfo res = copyToTarResettingFileTime(tempArchiveFile, inArchiveName, tarOs);
+			FileInfo res = copyTarBundleToTarResettingFileTime(tempArchiveFile, inArchiveName, tarOs);
 			
 			Files.delete(tempArchiveFile);
 			return res;
@@ -174,21 +174,23 @@ public class MainExplore {
 	
 	private FileInfo copyToTar(Path file, TarArchiveOutputStream tos) {
 		String archivePath = rootDir.relativize(file).toString();
-		return copyToTar(file, archivePath, tos);
+		return copyToTar(file, archivePath, tos, true);
 	}
 
-	private FileInfo copyToTarResettingFileTime(Path file, String inArchiveName, TarArchiveOutputStream tos) throws IOException {
+	private FileInfo copyTarBundleToTarResettingFileTime(Path file, String inArchiveName, TarArchiveOutputStream tos) throws IOException {
 		Files.setLastModifiedTime(file, FileTime.fromMillis(0));
-		return copyToTar(file, inArchiveName, tos);
+		return copyToTar(file, inArchiveName, tos, false);
 	}
 	
-	private FileInfo copyToTar(Path file, String inArchiveName, TarArchiveOutputStream tos) {
+	private FileInfo copyToTar(Path file, String inArchiveName, TarArchiveOutputStream tos, boolean countsTowardsSize) {
 		byte[] buffer = new byte[8192];
 
 		try (InputStream is = Files.newInputStream(file); BufferedInputStream bis = new BufferedInputStream(is)) {
 			long size = Files.size(file);
 			
-			totalInputSize += size;
+			if (countsTowardsSize) {
+				totalInputSize += size;
+			}
 			
 			String type = inArchiveName.endsWith(".tar") ? "=>" : "-";
 			String humanSize = HumanByteCount.humanReadableByteCount(size);
