@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
 
 import dk.mada.backup.Version;
 import dk.mada.backup.api.BackupApi;
@@ -33,15 +34,19 @@ public class CliMain {
 		cliArgs = new CliArgs();
 		JCommander jc = JCommander.newBuilder()
 			.addObject(cliArgs)
+			.defaultProvider(new CliArgs.Defaults())
 			.build();
 		jc.setProgramName("backup");
-		jc.parse(args);
 		
-		if (!cliArgs.isInputOutputValid()) {
+		try {
+			jc.parse(args);
+			cliArgs.assertPositionalInput();
+		} catch (ParameterException pe) {
+			System.out.println("Bad input: " + pe.getMessage());
 			jc.usage();
 			System.exit(1);
 		}
-
+	
 		envOverrides = cliArgs.getAlternativeGpgHome()
 				.map(home -> Map.of("GNUPGHOME", home.toAbsolutePath().toString()))
 				.orElse(Collections.emptyMap());
