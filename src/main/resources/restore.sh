@@ -204,7 +204,7 @@ filename="\$1"
 
 a=\$(/usr/bin/sha256sum -b - | echo "\$(/bin/sed -e "s/ \*-/,/;")\$filename")
 
-/bin/grep -q "\$a" /tmp/valid-input.txt
+/bin/grep -F -q "\$a" /tmp/valid-input.txt
 
 res=\$?
 if [ \$res -ne 0 ]; then
