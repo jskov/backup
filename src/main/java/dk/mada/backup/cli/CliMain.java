@@ -27,7 +27,7 @@ public class CliMain {
 		for (String a : args) {
 			if ("--version".equals(a)) {
 				System.out.println("Backup version " + Version.getBackupVersion());
-				System.exit(0);
+				systemExit(0);
 			}
 		}
 
@@ -44,7 +44,7 @@ public class CliMain {
 		} catch (ParameterException pe) {
 			System.out.println("Bad input: " + pe.getMessage());
 			jc.usage();
-			System.exit(1);
+			systemExit(1);
 		}
 	
 		envOverrides = cliArgs.getAlternativeGpgHome()
@@ -69,7 +69,7 @@ public class CliMain {
 		} catch (BackupTargetExistsException e) {
 			logger.info("Failed to create backup: {}", e.getMessage());
 			logger.debug("Failure", e);
-			System.exit(1);
+			systemExit(1);
 			return null; // WTF?
 		}
 	}
@@ -77,14 +77,28 @@ public class CliMain {
 	private void verifyBackup(Path script) {
 		try {
 			logger.info("Verifying backup...");
-			RestoreExecutor.runRestoreScriptExitOnFail(script, envOverrides, "verify");
-			RestoreExecutor.runRestoreScriptExitOnFail(script, envOverrides, "verify", "-s");
+			boolean avoidSystemExit = cliArgs.isRunningTests();
+			RestoreExecutor.runRestoreScriptExitOnFail(avoidSystemExit, script, envOverrides, "verify");
+			RestoreExecutor.runRestoreScriptExitOnFail(avoidSystemExit, script, envOverrides, "verify", "-s");
 			logger.info("Backup verified.");
 		} catch (Exception e) {
 			throw new IllegalStateException("Failed to run verify script " + script, e);
 		}
 	}
 
+	/**
+	 * Handle system exit.
+	 * 
+	 * When running tests, this would kill the Gradle daemon which it dislikes very much.
+	 * So when test flag is set, throw an exception instead.
+	 */
+	private void systemExit(int exitCode) {
+		if (cliArgs.isRunningTests()) {
+			throw new IllegalStateException("Backup/restore failed, would system exit: " + exitCode);
+		}
+		System.exit(exitCode);
+	}
+	
 	public static void main(String[] args) {
 		new CliMain(args).run();
 	}

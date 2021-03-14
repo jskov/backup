@@ -16,12 +16,17 @@ public class RestoreExecutor {
 		return runCmd(script, envOverrides, args);
 	}
 
-	public static String runRestoreScriptExitOnFail(Path script, Map<String, String> envOverrides, String... args) {
+	public static String runRestoreScriptExitOnFail(boolean avoidSystemExit, Path script, Map<String, String> envOverrides, String... args) {
 		Result res = runCmd(script, envOverrides, args);
 		if (res.exitValue != 0) {
 			System.out.println("Failed to run " + script + ", returned " + res.exitValue);
 			System.out.println(res.output);
-			System.exit(1);
+			
+			if (avoidSystemExit) {
+				throw new IllegalStateException("Restore operation failed, see stdout/stderr output");
+			} else {
+				System.exit(1);
+			}
 		}
 		
 		return res.output;
