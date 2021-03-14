@@ -1,4 +1,4 @@
-package fixture;
+package dk.mada.fixture;
 
 
 import java.lang.reflect.Method;

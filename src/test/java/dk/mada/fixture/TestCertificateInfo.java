@@ -1,4 +1,4 @@
-package fixture;
+package dk.mada.fixture;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

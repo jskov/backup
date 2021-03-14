@@ -1,4 +1,4 @@
-package unit.encryption;
+package dk.mada.unit.encryption;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,8 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.mada.backup.gpg.GpgEncryptedOutputStream;
-import fixture.DisplayNameCamelCase;
-import fixture.TestCertificateInfo;
+import dk.mada.fixture.DisplayNameCamelCase;
+import dk.mada.fixture.TestCertificateInfo;
 
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class EncryptionOutputStreamTest {

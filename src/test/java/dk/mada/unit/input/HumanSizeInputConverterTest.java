@@ -1,4 +1,4 @@
-package unit.input;
+package dk.mada.unit.input;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -9,7 +9,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import dk.mada.backup.cli.HumanSizeInputConverter;
-import fixture.DisplayNameCamelCase;
+import dk.mada.fixture.DisplayNameCamelCase;
 
 /**
  * Test conversion of human size input converter.
