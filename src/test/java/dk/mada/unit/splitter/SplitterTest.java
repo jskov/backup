@@ -1,4 +1,4 @@
-package unit.splitter;
+package dk.mada.unit.splitter;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -17,7 +17,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dk.mada.backup.api.BackupTargetExistsException;
 import dk.mada.backup.splitter.SplitterOutputStream;
-import fixture.DisplayNameCamelCase;
+import dk.mada.fixture.DisplayNameCamelCase;
 
 /**
  * Splitter splits stream into several files.

@@ -1,4 +1,4 @@
-package unit.restorescript;
+package dk.mada.unit.restorescript;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,7 +17,7 @@ import org.junit.jupiter.api.io.TempDir;
 import dk.mada.backup.BackupElement;
 import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.restore.VariableName;
-import fixture.DisplayNameCamelCase;
+import dk.mada.fixture.DisplayNameCamelCase;
 
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class RestoreScriptGenerationTest {

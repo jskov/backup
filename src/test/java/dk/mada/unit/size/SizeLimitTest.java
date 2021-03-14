@@ -1,4 +1,4 @@
-package unit.size;
+package dk.mada.unit.size;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,9 +15,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dk.mada.backup.api.BackupApi;
-import fixture.DisplayNameCamelCase;
-import fixture.TestCertificateInfo;
-import fixture.TestDataPrepper;
+import dk.mada.fixture.DisplayNameCamelCase;
+import dk.mada.fixture.TestCertificateInfo;
+import dk.mada.fixture.TestDataPrepper;
 
 /**
  * It should be possible to size limit the output files.

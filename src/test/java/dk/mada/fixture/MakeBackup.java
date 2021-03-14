@@ -1,4 +1,4 @@
-package fixture;
+package dk.mada.fixture;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -25,6 +25,7 @@ public class MakeBackup {
 
 		Path restoreScript = targetDir.resolve("test.sh");
 		CliMain.main(new String[] {
+					"--running-tests",
 					"-n", "test", 
 					"-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID,
 					"--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME,

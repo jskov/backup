@@ -35,6 +35,8 @@ public class CliArgs {
 	private boolean skipVerify;
 	@Parameter(names = OPT_MAX_SIZE, description = "Max file size", converter = HumanSizeInputConverter.class)
 	private long maxFileSize;
+	@Parameter(names = "--running-tests", description = "Used for testing to avoid System.exit")
+	private boolean testingAvoidSystemExit;
 
 	static class Defaults implements IDefaultProvider {
 		@Override
@@ -88,6 +90,9 @@ public class CliArgs {
 		return maxFileSize;
 	}
 
+	public boolean isRunningTests() {
+		return testingAvoidSystemExit;
+	}
 
 	private void assertInputOutputCount() {
 		if (inputOutput.size() < 2) {

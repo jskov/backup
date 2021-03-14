@@ -1,4 +1,4 @@
-package unit.backup;
+package dk.mada.unit.backup;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -17,9 +17,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dk.mada.backup.api.BackupApi;
 import dk.mada.backup.api.BackupTargetExistsException;
-import fixture.DisplayNameCamelCase;
-import fixture.TestCertificateInfo;
-import fixture.TestDataPrepper;
+import dk.mada.fixture.DisplayNameCamelCase;
+import dk.mada.fixture.TestCertificateInfo;
+import dk.mada.fixture.TestDataPrepper;
 
 /**
  * The backup program must not overwrite any files - it should

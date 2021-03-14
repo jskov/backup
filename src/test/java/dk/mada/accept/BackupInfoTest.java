@@ -1,4 +1,4 @@
-package accept;
+package dk.mada.accept;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -12,9 +12,9 @@ import org.junit.jupiter.api.Test;
 
 import dk.mada.backup.restore.RestoreExecutor;
 import dk.mada.backup.restore.RestoreExecutor.Result;
-import fixture.DisplayNameCamelCase;
-import fixture.MakeBackup;
-import fixture.TestCertificateInfo;
+import dk.mada.fixture.DisplayNameCamelCase;
+import dk.mada.fixture.MakeBackup;
+import dk.mada.fixture.TestCertificateInfo;
 
 /**
  * Makes a backup, checks info in backup.

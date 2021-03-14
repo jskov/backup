@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/bin/bash
+
+set -e
 
 crypts=(
 #BEGIN_CRYPTS#
@@ -126,8 +128,7 @@ verify_files() {
 	local sha2=${l:12:64}
 	local file=${l:77}
 
-	(cd $files_dir; expect_file "$size" "$sha2" "$file" "- ($i/$len) ")
-	if [ "$?" != "0" ]; then
+	if ! (cd $files_dir; expect_file "$size" "$sha2" "$file" "- ($i/$len) ") ; then
 	    exit 1
 	fi
 	i=$((i + 1))
@@ -172,7 +173,6 @@ unpack() {
 	/bin/cat $crypt_files | $gpg_cmd | (cd "$target" && /bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - || /bin/cat > \"$TAR_FILENAME\""')
 	verify_files "files" "$target"
     fi
-    
 }
 
 
@@ -189,8 +189,8 @@ verify_stream() {
 	local size=${l:0:11}
 	local sha2=${l:12:64}
 	local file=${l:77}
-	echo $file | /bin/grep -q -e ".tar$"
-	if [ $? -ne 0 ];then
+	
+	if ! (echo $file | /bin/grep -q -e ".tar$") ; then
 	    file_checksums="$file_checksums$sha2,$file\n"
 	fi
     done
@@ -199,15 +199,15 @@ verify_stream() {
     # Make script to test each stream's checksum
     # Called with filename as argument, stream via stdin
     /bin/cat >/tmp/verify.sh <<EOF
-#!/bin/bash -e
+#!/bin/bash
+
+set -e
+
 filename="\$1"
 
 a=\$(/usr/bin/sha256sum -b - | echo "\$(/bin/sed -e "s/ \*-/,/;")\$filename")
 
-/bin/grep -F -q "\$a" /tmp/valid-input.txt
-
-res=\$?
-if [ \$res -ne 0 ]; then
+if ! (/bin/grep -F -q "\$a" /tmp/valid-input.txt) ; then
   echo "Did not find matching checksum for file '\$filename'"
   exit 1
 fi
@@ -224,12 +224,7 @@ EOF
 
     /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "set -e && [[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - --to-command=\"/bin/bash /tmp/verify.sh \\\"\\\$TAR_FILENAME\\\"\" || /bin/bash /tmp/verify.sh \"$TAR_FILENAME\""')
 
-    local res=$?
-    if [ $res -eq 0 ]; then
-	echo "All files verified ok."
-    fi
-    
-    return $res
+    echo "All files verified ok."
 }
 
 if [ "$1" == "verify" ]; then
@@ -237,7 +232,7 @@ if [ "$1" == "verify" ]; then
 
     if [ "$1" == "-s" ]; then
 	verify_stream
-	exit $?
+	exit 0
     fi
 
     if [ "$1" == "-a" ]; then
@@ -275,4 +270,3 @@ else
 fi
     
 echo $#
-
