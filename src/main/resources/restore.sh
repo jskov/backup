@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/bin/bash
+
+set -e
 
 crypts=(
 #BEGIN_CRYPTS#
