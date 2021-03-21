@@ -188,7 +188,7 @@ match_jotta() {
     local md5="$2"
     local jotta_state="$3"
 
-    if ! cat $jotta_state | /usr/bin/egrep "$file.*$md5" ; then
+    if ! cat $jotta_state | /usr/bin/egrep -q "$file.*$md5" ; then
 	echo -e "Failed to find $file with expected checksum $md5 in Jotta list:\n"
 	cat $jotta_state
 	rm -f $jotta_state
@@ -211,6 +211,7 @@ verify_jotta() {
 	match_jotta "$file" "$md5" "$jotta_state"
     done
 
+    echo "Files on Jotta path $jotta_path matched!"
     rm -f $jotta_state
 }
 
