@@ -188,31 +188,51 @@ match_jotta() {
     local md5="$2"
     local jotta_state="$3"
 
-    if ! cat $jotta_state | /usr/bin/egrep -q "$file.*$md5" ; then
-	echo -e "Failed to find $file with expected checksum $md5 in Jotta list:\n"
-	cat $jotta_state
-	rm -f $jotta_state
-	exit 1
-    fi
+    /bin/cat $jotta_state | /usr/bin/egrep -q "$file.*$md5"
 }
 
 verify_jotta() {
     local jotta_path="$1"
 
+    local ok="\xE2\x9C\x94"
+    local bad="\xE2\x9D\x8C"
+
+    local success=1
+    
+    echo -e "Checking backup files at Jotta cloud path $jotta_path\n"
+    
     local jotta_state=$(mktemp)
     /usr/bin/jotta-cli ls -l "$jotta_path" > $jotta_state
 
-    match_jotta $(basename $0) $(/usr/bin/md5sum $0 | /bin/cut -f 1 -d' ') $jotta_state
-
+    local file=$(basename $0)
+    if match_jotta $file $(/usr/bin/md5sum $0 | /bin/cut -f 1 -d' ') $jotta_state; then
+	echo -e " $ok $file"
+    else
+	echo -e " $bad $file"
+	success=0
+    fi
+    
     for l in "${crypts[@]}"; do
 	local md5=${l:77:32}
 	local file=${l:110}
 
-	match_jotta "$file" "$md5" "$jotta_state"
+	if match_jotta "$file" "$md5" "$jotta_state"; then
+	    echo -e " $ok $file"
+	else
+	    echo -e " $bad $file"
+	    success=0
+	fi
     done
 
-    echo "Files on Jotta path $jotta_path matched!"
-    rm -f $jotta_state
+    if [[ $success == 1 ]]; then
+	echo -e "\nAll files ok!"
+	/bin/rm -f $jotta_state
+    else
+	echo -e "\nSome files did not match Jotta listing:\n"
+	/bin/cat $jotta_state
+	/bin/rm -f $jotta_state
+	exit 1
+    fi
 }
 
 
