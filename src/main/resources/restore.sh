@@ -53,7 +53,7 @@ expect_file() {
 
 
 info_and_exit() {
-	local sel=""
+    local sel=""
     if [ "$1" == "-c" ]; then
     	sel="crypts"
     elif [ "$1" == "-a" ]; then
@@ -67,6 +67,9 @@ info_and_exit() {
 	    local array=("${!name}")
 		for l in "${array[@]}"; do
 		    local file=${l:77}
+		    if [[ $sel == "crypts" ]]; then
+			file=${l:110}
+		    fi
 		    local size=${l:0:11}
 		    local sha2=${l:12:64}
 		    echo "${file} ${sha2} ${size}"
@@ -102,6 +105,7 @@ usage_and_exit() {
     echo "  verify -a dir      verifies decrypted archive files in dir"
     echo "  verify -f dir      verifies decrypted and unpacked files in dir"
     echo "  verify -s          decrypts and verifies files via streaming - prompts password"
+    echo "  verify -j path     verifies MD5 checksum of backup files at Jotta path"
 
     exit 1
 }
@@ -127,6 +131,9 @@ verify_files() {
 	local size=${l:0:11}
 	local sha2=${l:12:64}
 	local file=${l:77}
+	if [[ $name == "crypts[@]" ]]; then
+	   file=${l:110}
+	fi
 
 	if ! (cd $files_dir; expect_file "$size" "$sha2" "$file" "- ($i/$len) ") ; then
 	    exit 1
@@ -157,7 +164,7 @@ unpack() {
     for l in "${crypts[@]}"; do
 	local size=${l:0:11}
 	local sha2=${l:12:64}
-	local file=${l:77}
+	local file=${l:110}
 	crypt_files="$crypt_files $file"
     done
 
@@ -172,6 +179,59 @@ unpack() {
 	echo "Unpacking full backup..."
 	/bin/cat $crypt_files | $gpg_cmd | (cd "$target" && /bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - || /bin/cat > \"$TAR_FILENAME\""')
 	verify_files "files" "$target"
+    fi
+}
+
+
+match_jotta() {
+    local file="$1"
+    local md5="$2"
+    local jotta_state="$3"
+
+    /bin/cat $jotta_state | /usr/bin/egrep -q "$file.*$md5"
+}
+
+verify_jotta() {
+    local jotta_path="$1"
+
+    local ok="\xE2\x9C\x94"
+    local bad="\xE2\x9D\x8C"
+
+    local success=1
+    
+    echo -e "Checking backup files at Jotta cloud path $jotta_path\n"
+    
+    local jotta_state=$(mktemp)
+    /usr/bin/jotta-cli ls -l "$jotta_path" > $jotta_state
+
+    local file=$(basename $0)
+    if match_jotta $file $(/usr/bin/md5sum $0 | /bin/cut -f 1 -d' ') $jotta_state; then
+	echo -e " $ok $file"
+    else
+	echo -e " $bad $file"
+	success=0
+    fi
+    
+    for l in "${crypts[@]}"; do
+	local md5=${l:77:32}
+	local file=${l:110}
+
+	if match_jotta "$file" "$md5" "$jotta_state"; then
+	    echo -e " $ok $file"
+	else
+	    echo -e " $bad $file"
+	    success=0
+	fi
+    done
+
+    if [[ $success == 1 ]]; then
+	echo -e "\nAll files ok!"
+	/bin/rm -f $jotta_state
+    else
+	echo -e "\nSome files did not match Jotta listing:\n"
+	/bin/cat $jotta_state
+	/bin/rm -f $jotta_state
+	exit 1
     fi
 }
 
@@ -217,7 +277,7 @@ EOF
     for l in "${crypts[@]}"; do
 	local size=${l:0:11}
 	local sha2=${l:12:64}
-	local file=${l:77}
+	local file=${l:110}
 	crypt_files="$crypt_files $file"
     done
     local gpg_cmd="/usr/bin/gpg -q --no-permission-warning -d"
@@ -232,6 +292,13 @@ if [ "$1" == "verify" ]; then
 
     if [ "$1" == "-s" ]; then
 	verify_stream
+	exit 0
+    fi
+
+    if [ "$1" == "-j" ]; then
+	shift
+	
+	verify_jotta $*
 	exit 0
     fi
 
