@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -87,7 +86,7 @@ public class MainExplore {
 		List<FileInfo> cryptElements;
 		try {
 			cryptElements = outputFilesFuture.get().stream()
-				.map(archiveFile -> FileInfo.from(targetDir, archiveFile))
+				.map(archiveFile -> FileInfo.fromCryptFile(targetDir, archiveFile))
 				.collect(Collectors.toList());
 		} catch (Exception e) {
 			throw new IllegalStateException("Failed to lazy get output files", e);
@@ -208,15 +207,7 @@ public class MainExplore {
 			
 			tos.closeArchiveEntry();
 			
-			byte[] hash = digest.digest();
-			BigInteger bigInt = new BigInteger(1, hash);
-			StringBuilder sb = new StringBuilder(bigInt.toString(16));
-			while (sb.length() < 64) {
-				sb.insert(0, '0');
-			}
-			String checksum = sb.toString();
-
-			return new FileInfo(inArchiveName, size, checksum);
+			return FileInfo.of(inArchiveName, size, digest);
 			
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
