@@ -53,7 +53,7 @@ expect_file() {
 
 
 info_and_exit() {
-	local sel=""
+    local sel=""
     if [ "$1" == "-c" ]; then
     	sel="crypts"
     elif [ "$1" == "-a" ]; then
@@ -67,6 +67,9 @@ info_and_exit() {
 	    local array=("${!name}")
 		for l in "${array[@]}"; do
 		    local file=${l:77}
+		    if [[ $sel == "crypts" ]]; then
+			file=${l:110}
+		    fi
 		    local size=${l:0:11}
 		    local sha2=${l:12:64}
 		    echo "${file} ${sha2} ${size}"
@@ -127,6 +130,9 @@ verify_files() {
 	local size=${l:0:11}
 	local sha2=${l:12:64}
 	local file=${l:77}
+	if [[ $name == "crypts[@]" ]]; then
+	   file=${l:110}
+	fi
 
 	if ! (cd $files_dir; expect_file "$size" "$sha2" "$file" "- ($i/$len) ") ; then
 	    exit 1
@@ -157,7 +163,7 @@ unpack() {
     for l in "${crypts[@]}"; do
 	local size=${l:0:11}
 	local sha2=${l:12:64}
-	local file=${l:77}
+	local file=${l:110}
 	crypt_files="$crypt_files $file"
     done
 
