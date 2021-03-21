@@ -105,6 +105,7 @@ usage_and_exit() {
     echo "  verify -a dir      verifies decrypted archive files in dir"
     echo "  verify -f dir      verifies decrypted and unpacked files in dir"
     echo "  verify -s          decrypts and verifies files via streaming - prompts password"
+    echo "  verify -j path     verifies MD5 checksum of backup files at Jotta path"
 
     exit 1
 }
@@ -182,6 +183,38 @@ unpack() {
 }
 
 
+match_jotta() {
+    local file="$1"
+    local md5="$2"
+    local jotta_state="$3"
+
+    if ! cat $jotta_state | /usr/bin/egrep "$file.*$md5" ; then
+	echo -e "Failed to find $file with expected checksum $md5 in Jotta list:\n"
+	cat $jotta_state
+	rm -f $jotta_state
+	exit 1
+    fi
+}
+
+verify_jotta() {
+    local jotta_path="$1"
+
+    local jotta_state=$(mktemp)
+    /usr/bin/jotta-cli ls -l "$jotta_path" > $jotta_state
+
+    match_jotta $(basename $0) $(/usr/bin/md5sum $0 | /bin/cut -f 1 -d' ') $jotta_state
+
+    for l in "${crypts[@]}"; do
+	local md5=${l:77:32}
+	local file=${l:110}
+
+	match_jotta "$file" "$md5" "$jotta_state"
+    done
+
+    rm -f $jotta_state
+}
+
+
 verify_stream() {
     # Make a file with file/checksum lines for all (nested) files and root files
     local file_checksums=
@@ -223,7 +256,7 @@ EOF
     for l in "${crypts[@]}"; do
 	local size=${l:0:11}
 	local sha2=${l:12:64}
-	local file=${l:77}
+	local file=${l:110}
 	crypt_files="$crypt_files $file"
     done
     local gpg_cmd="/usr/bin/gpg -q --no-permission-warning -d"
@@ -238,6 +271,13 @@ if [ "$1" == "verify" ]; then
 
     if [ "$1" == "-s" ]; then
 	verify_stream
+	exit 0
+    fi
+
+    if [ "$1" == "-j" ]; then
+	shift
+	
+	verify_jotta $*
 	exit 0
     fi
 
