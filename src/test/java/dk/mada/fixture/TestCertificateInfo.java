@@ -14,7 +14,7 @@ public class TestCertificateInfo {
 	private static final Path LOCAL_SOURCE_TEST_GNUPG_HOME = Paths.get("src/test/data/gpghome");
 	private static final Path TEST_GNUPG_HOME = (isRunningOnGitHubActions() ? IMPORT_TEST_GNUPG_HOME : LOCAL_SOURCE_TEST_GNUPG_HOME);
 	public static final String ABS_TEST_GNUPG_HOME = TEST_GNUPG_HOME.toAbsolutePath().toString();
-	public static final String TEST_RECIPIEND_KEY_ID = /*KEYID*/"40EDC2674F01F9C9"/*KEYID*/;
+	public static final String TEST_RECIPIEND_KEY_ID = /*KEYID*/"167CC1A22DE3E39EA4874DD014C0CEC7EA340497"/*KEYID*/;
 	public static final Map<String, String> TEST_KEY_ENVIRONMENT_OVERRIDES = Map.of("GNUPGHOME", ABS_TEST_GNUPG_HOME);
 
 	private TestCertificateInfo() {}
