@@ -11,3 +11,6 @@ keyId=$(gpg --batch --homedir src/test/data/gpghome --passphrase '' --quick-gene
 
 
 sed -i "s/KEYID.*KEYID/KEYID\*\/\"${keyId}\"\/\*KEYID/;" src/test/java/dk/mada/fixture/TestCertificateInfo.java
+
+gpg --batch --homedir src/test/data/gpghome --output src/test/data/gpghome/exported-secret-key.asc --armor --export-secret-key $keyId
+gpg --batch --homedir src/test/data/gpghome --export-ownertrust > src/test/data/gpghome/exported-owner-trust.asc

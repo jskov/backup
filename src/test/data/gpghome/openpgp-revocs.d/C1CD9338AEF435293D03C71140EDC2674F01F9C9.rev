@@ -1,7 +1,7 @@
 This is a revocation certificate for the OpenPGP key:
 
 pub   rsa3072 2021-06-29 [SC] [expires: 2022-06-29]
-      1FC543F5EB7EA9A38CC83860844DBEB592A1C1EC
+      C1CD9338AEF435293D03C71140EDC2674F01F9C9
 uid          testKey
 
 A revocation certificate is a kind of "kill switch" to publicly
@@ -21,15 +21,15 @@ before importing and publishing this revocation certificate.
 :-----BEGIN PGP PUBLIC KEY BLOCK-----
 Comment: This is a revocation certificate
 
-iQG2BCABCAAgFiEEH8VD9et+qaOMyDhghE2+tZKhwewFAmDa944CHQAACgkQhE2+
-tZKhwexVwQwAkMr/MGjJPyEKdEwfmIGKgNXS3sikvlyXnqeKnusXqt3wHySkx9lc
-T8pa2LZC+MmOTaFHTqVklXP8qdkn5EvhPpdrMoRPKMhh53hqhHqKjZWgkx25eSR8
-BtC5P3NxtProDWv32di5SQZhZR5CalMjc72GOeRCZFZeJYOED94limM7kfCge5ND
-JCbwxCGFHSLgT+iKCMN5lPnB58emyIbZL5NDMbUuhwfOrpqruuPZOXlAkDfmQcuQ
-do8jRSlo2u5cIPWzMbZvgtgYdmK7rXk85SqpoICHLv5jWOFYEYWNQTy0OK+zg1fH
-uAjBwCJYr4ewLxsacPQjZAYVVIIw1rkBqLoyVG/17zXebV+yBQI68cmDqFWAN+Tw
-NRIne+6RQGBUbt3P8wGpEzTvYpbBh9tpG0r7RdHyeQ9R8N7CWykoVJr1sZlUpWhD
-a0f1UtMK2cBzQpyoQ59NUOJdM3cy1pnI+IiRPhI2drKj1c0ci+s/iBF3exL1BVX8
-U72nXN7wlT24
-=eATY
+iQG2BCABCAAgFiEEwc2TOK70NSk9A8cRQO3CZ08B+ckFAmDa+hMCHQAACgkQQO3C
+Z08B+cmeuAv+P/Mqxh4HYYKrUg9/gV6cm2wWBlWFTajNX6+8Ai52yWNLx3b+hVTq
+TSonvwppQhzoa9MwIr2K1DbrX30MvtIv46QC+C1bihi7ObuGQtxUinbebf4z/bxK
+WK4OV/SKMnA9yhBaaYHHX9fB06mb1/x3i0tW5iFgaZrvc1ydHkLu3m3MR8f2MEpe
+VJbTy9ybh830SH7mTlDPOL1k3b9sj4mqSaph57DYiLHljI25BblXuMormYpaTr/l
+TEosZqgBaGGUFwsAFO8BYOrRVCExIKNfwf1dHdRLpI84/iErKRaMdFI9EV6lHONI
+I9XVi+fCv8nZvzL959n4EgS9D79k5Ru043K6dDAKSM9oUm8dGzJJkfs79fGydQCK
+LAL4UqLFINWtmV2LMh3d5RtJdja0XDlUK270RQBILHbl/Xw1K85msKGQ3MzKtQ+j
+/VMdiV5mnv78zBEPcVcbosOY4Sz2573y85RsXWNrUFYuNzsmuCZqKjiMH2ngSreC
+XoRzU18N6NBT
+=i+Ty
 -----END PGP PUBLIC KEY BLOCK-----
