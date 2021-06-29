@@ -43,7 +43,7 @@ class BackupInfoTest {
 				"made with backup version undef",
 				"created on 20",
 				"original size 66 B",
-				"encrypted with key id 281DE650E39B5DCA3E9D542092B7BAA1D6B4A52D"
+				"encrypted with key id " + TestCertificateInfo.TEST_RECIPIEND_KEY_ID
 			);
 	}
 
@@ -59,7 +59,7 @@ class BackupInfoTest {
 		assertThat(res.output)
 			.contains(
 				"test-01.crypt",
-				"22348"
+				"22476"
 			);
 	}
 

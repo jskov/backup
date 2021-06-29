@@ -1,8 +1,8 @@
 This is a revocation certificate for the OpenPGP key:
 
-pub   rsa2048 2019-06-30 [SC] [expires: 2021-06-29]
-      281DE650E39B5DCA3E9D542092B7BAA1D6B4A52D
-uid          Backup Test Key Nopass <jskov@mada.dk>
+pub   rsa3072 2021-06-29 [SC] [expires: 2022-06-29]
+      D44089983B1F25F4EC98CD26D1487E949A58FDAA
+uid          testKey
 
 A revocation certificate is a kind of "kill switch" to publicly
 declare that a key shall not anymore be used.  It is not possible
@@ -21,12 +21,15 @@ before importing and publishing this revocation certificate.
 :-----BEGIN PGP PUBLIC KEY BLOCK-----
 Comment: This is a revocation certificate
 
-iQE2BCABCAAgFiEEKB3mUOObXco+nVQgkre6oda0pS0FAl0YeusCHQAACgkQkre6
-oda0pS1IOggAiEBKYb5IFFjOw8yNa+e/fCllMRhKrilBv03fgKI7+U9MajSHNdr7
-5WBNjH9hwj/gNhktiSmmrvH6JN3UdeTaj3mrRrqtwfqzuCXXAIBCEWoMCEibiNRq
-xATtBHfCCh4h5Wl4cJJGdiYGRPJghj+IPC9nVAzhNE5BxhogXtguKZXBoHGeHf+3
-Os8HO3pHhccoCPeYFmdc6vcMGyxIDoubzBbPdFoUCBpOt3W6qmR6eKB6LImZiCGL
-yjJ4ZTmrp1Nwpli2+t2RAGRE0ZacE8ZUcBwbGQiqye+SeacOrAaqlhp17W/Mk4f7
-8IIn07Mz9xSN14FLCg2wJ5p6RtdPSUu8JA==
-=xo+U
+iQG2BCABCAAgFiEE1ECJmDsfJfTsmM0m0Uh+lJpY/aoFAmDa/uACHQAACgkQ0Uh+
+lJpY/aqQ9wv+MlWgPlQc50ah2Lh4kUxnM6VL1sv/rDZJtUuvonNgWCEiOfD7L1dP
+h2EFTSawel4QlD9THPQ5XuBgXS3imu5pyO5q13D9UzzpIuOa2WxhMIVZLeHXAfR9
+WVQPqwb/a4WDQs4tEVSEIRmEceH2YbOim7nZqQDkc89pwLKeQjqddxq7uAE5pHCp
+p2mlX7CoIQnm/SHhLo+y5MhdCx41Nq/Go6BXaZQO1PvFOf9SJKsDWrmMnX+3kdyq
+ZBc55+Bnopkbyj8lyKXTU7OqTNcoZaFIsmkPRoBUJ/+8lN7cDsO05ncPtPdEfbL+
+Dt+DwRofVcxLqEx7PR+ZL6O4AccLHgoQUBzLr8KpG88HiCJNAwnS/OESuQJjhWOg
+sABQv5iymQ+1JnL2BMEGk4hl1PJEFqEjuBkASuKSCeMlF/2EQ67sg1mDuOq+WVDY
+yKPFsmMToz4Oyp8XkVxbf+1Lfugfd+gmdIN4PGyKqF+ZNABM4NYUm6M0+a7qaQGX
+GzuyMliJXXIq
+=zBEL
 -----END PGP PUBLIC KEY BLOCK-----
