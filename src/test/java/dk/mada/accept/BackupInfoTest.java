@@ -59,7 +59,7 @@ class BackupInfoTest {
 		assertThat(res.output)
 			.contains(
 				"test-01.crypt",
-				"22476"
+				"22181"
 			);
 	}
 
