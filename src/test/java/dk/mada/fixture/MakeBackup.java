@@ -21,7 +21,7 @@ public class MakeBackup {
 		Path srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree");
 		Path targetDir = Paths.get("build/backup-dest");
 		
-		org.assertj.core.util.Files.delete(targetDir.toFile());
+		DirectoryDeleter.delete(targetDir);
 
 		Path restoreScript = targetDir.resolve("test.sh");
 		CliMain.main(new String[] {

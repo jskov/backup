@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.BeforeAll;
@@ -13,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import dk.mada.backup.restore.RestoreExecutor;
 import dk.mada.backup.restore.RestoreExecutor.Result;
 import dk.mada.fixture.DisplayNameCamelCase;
+import dk.mada.fixture.InfoParser;
+import dk.mada.fixture.InfoParser.Info;
 import dk.mada.fixture.MakeBackup;
 import dk.mada.fixture.TestCertificateInfo;
 
@@ -49,6 +52,9 @@ class BackupInfoTest {
 
 	/**
 	 * Tests that the backup information for crypted archives can be printed.
+	 *
+	 * Size is checked to be within a range since crypted data on Ubuntu
+	 * (GitHub actions) seems to differ from data crypted on Fedora (my dev box).
 	 */
 	@Test
 	void backupInfoCrypted() throws IOException, InterruptedException {
@@ -56,11 +62,15 @@ class BackupInfoTest {
 
 		assertThat(res.exitValue)
 			.isEqualTo(0);
-		assertThat(res.output)
-			.contains(
-				"test-01.crypt",
-				"22181"
-			);
+		
+		List<Info> infos = new InfoParser().parse(res.output);
+		assertThat(infos)
+		    .hasSize(1)
+		    .first()
+		    .satisfies(i -> {
+		        assertThat(i.filename()).isEqualTo("test-01.crypt");
+		        assertThat(i.size()).isBetween(22100L, 22300L);
+		    });
 	}
 
 	/**
