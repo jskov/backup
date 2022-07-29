@@ -1,0 +1,50 @@
+# https://github.com/marketplace/actions/setup-graalvm-environment
+
+
+    - name: Prep GraalVM
+      if: contains(github.ref, 'refs/tags')
+      uses: jskov/setup-graalvm-linux@19.3.0
+
+    - name: Install GraalVM native-image
+      if: contains(github.ref, 'refs/tags')
+      run: gu install native-image
+    
+    - name: Build native executable
+      if: contains(github.ref, 'refs/tags')
+      run: ./gradlew --no-daemon --console plain buildNative -s
+
+    - name: Create Release
+      if: contains(github.ref, 'refs/tags')
+      id: create_release
+      uses: actions/create-release@v1.0.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ${{ github.ref }}
+        draft: true
+        prerelease: false
+        
+    - name: Upload exe Asset
+      if: contains(github.ref, 'refs/tags')
+      id: upload-exe-asset 
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./build/backup
+        asset_name: backup
+        asset_content_type: application/octet-stream
+
+    - name: Upload jar Asset
+      if: contains(github.ref, 'refs/tags')
+      id: upload-jar-asset
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./build/libs/backup-shadow.jar
+        asset_name: backup.jar
+        asset_content_type: application/java-archive
