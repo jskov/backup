@@ -9,7 +9,10 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
@@ -18,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,6 +37,10 @@ import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.restore.VariableName;
 import dk.mada.backup.splitter.SplitterOutputStream;
 
+/**
+ * Code from the original spike exploration of the
+ * solution. TODO: Needs to be rewritten/split up.
+ */
 public class MainExplore {
 	private static final Logger logger = LoggerFactory.getLogger(MainExplore.class);
 	private Path rootDir;
@@ -43,6 +51,7 @@ public class MainExplore {
 	private final long maxTarSize;
 	
 	private long totalInputSize;
+    private static final FileAttribute<Set<PosixFilePermission>> ATTR_PRIVATE_TO_USER = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
 	
 	public MainExplore(String recipientKeyId, Map<String, String> gpgEnvOverrides, long maxTarSize) {
 		this.recipientKeyId = recipientKeyId;
@@ -129,7 +138,7 @@ public class MainExplore {
 	}
 	private FileInfo processDir(TarArchiveOutputStream tarOs, Path dir) {
 		try {
-			Path tempArchiveFile = Files.createTempFile("backup", "tmp");
+			Path tempArchiveFile = Files.createTempFile("backup", "tmp", ATTR_PRIVATE_TO_USER);
 			DirInfo dirInfo = createArchiveFromDir(dir, tempArchiveFile);
 			fileElements.add(dirInfo);
 			

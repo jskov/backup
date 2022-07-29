@@ -69,8 +69,9 @@ public class FileInfo implements BackupElement {
 	private static FileInfo from(Path rootDir, Path file, boolean includeMd5Sum) {
 		byte[] buffer = new byte[8192];
 
-		try (InputStream is = Files.newInputStream(file); BufferedInputStream bis = new BufferedInputStream(is)) {
-			MessageDigest digestMd5 = MessageDigest.getInstance("MD5"); // NOSONAR - MD5 used by Jottacloud
+		try (InputStream is = Files.newInputStream(file);
+		        BufferedInputStream bis = new BufferedInputStream(is)) {
+		    MessageDigest digestMd5 = MessageDigest.getInstance("MD5"); // NOSONAR - MD5 used by Jottacloud
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
 			long size = Files.size(file);
 
