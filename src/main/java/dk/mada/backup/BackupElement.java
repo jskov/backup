@@ -6,5 +6,5 @@ package dk.mada.backup;
 @FunctionalInterface
 public interface BackupElement {
     /** {@return a summary about the element} */
-	String toBackupSummary();
+    String toBackupSummary();
 }
