@@ -5,35 +5,35 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class DirInfo implements BackupElement {
-	private final String pathName;
-	private final List<FileInfo> files;
+    private final String pathName;
+    private final List<FileInfo> files;
 
-	private DirInfo(String pathName, List<FileInfo> files) {
-		this.pathName = pathName;
-		this.files = files;
-	}
+    private DirInfo(String pathName, List<FileInfo> files) {
+        this.pathName = pathName;
+        this.files = files;
+    }
 
-	public static DirInfo from(Path rootDir, Path dir, List<FileInfo> files) {
-		return new DirInfo(rootDir.relativize(dir).toString(), files);
-	}
-	
-	public String getPathName() {
-		return pathName;
-	}
+    public static DirInfo from(Path rootDir, Path dir, List<FileInfo> files) {
+        return new DirInfo(rootDir.relativize(dir).toString(), files);
+    }
 
-	public List<FileInfo> getFiles() {
-		return files;
-	}
+    public String getPathName() {
+        return pathName;
+    }
 
-	@Override
-	public String toString() {
-		return "DirInfo [pathName=" + pathName + ", files=" + files + "]";
-	}
+    public List<FileInfo> getFiles() {
+        return files;
+    }
 
-	@Override
-	public String toBackupSummary() {
-		return files.stream()
-			.map(BackupElement::toBackupSummary)
-			.collect(Collectors.joining("\n"));
-	}
+    @Override
+    public String toString() {
+        return "DirInfo [pathName=" + pathName + ", files=" + files + "]";
+    }
+
+    @Override
+    public String toBackupSummary() {
+        return files.stream()
+                .map(BackupElement::toBackupSummary)
+                .collect(Collectors.joining("\n"));
+    }
 }
