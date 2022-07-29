@@ -27,7 +27,7 @@ public class TestDataPrepper {
 		Files.createDirectories(srcDir);
 		
 		Path testSetDir = srcDir.resolve(name);
-		org.assertj.core.util.Files.delete(testSetDir.toFile());
+		DirectoryDeleter.delete(testSetDir);
 
 		Path tar = Paths.get("src/test/data").resolve(name+".tar");
 		new Expander().expand(tar.toFile(), srcDir.toFile());
