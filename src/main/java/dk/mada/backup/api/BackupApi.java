@@ -39,8 +39,8 @@ public class BackupApi {
 	 * 
 	 * @param gpgRecipientKeyId GPG recipient key id.
 	 */
-	public BackupApi(String recipientKeyId) {
-		this(recipientKeyId, Collections.emptyMap());
+	public BackupApi(String gpgRecipientKeyId) {
+		this(gpgRecipientKeyId, Collections.emptyMap());
 	}
 
 	/**
@@ -51,7 +51,7 @@ public class BackupApi {
 	 * @param targetDir Destination directory
 	 * @return Path of the restore script
 	 * 
-	 * @throws BackupException, or any of its subclasses, on failure
+	 * @throws BackupException or any of its subclasses, on failure
 	 */
 	public Path makeBackup(String backupName, Path sourceDir, Path targetDir) {
 		return spikeCode.packDir(sourceDir, targetDir, backupName);
