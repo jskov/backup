@@ -66,15 +66,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-    - name: Build and run tests
-      run: ./gradlew check shadow
-
-    - name: Upload test report on failure
-      uses: actions/upload-artifact@v1
-      if: failure()
-      with:
-        name: test-report
-        path: build/reports
-
-    - name: Check test results
-      run: test -f build/all-tests-passed
+      - name: Build and run tests
+        run: ./gradlew check shadow
+  
+      - name: Upload test report on failure
+        uses: actions/upload-artifact@v1
+        if: failure()
+        with:
+          name: test-report
+          path: build/reports
+  
+      - name: Check test results
+        run: test -f build/all-tests-passed
+  
