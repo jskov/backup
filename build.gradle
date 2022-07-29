@@ -11,17 +11,6 @@ ext {
 	successMarker = project.file("build/all-tests-passed")
 }
 
-def declaredVersion = System.getenv("GITHUB_REF")
-if (declaredVersion != null && declaredVersion.startsWith("refs/tags/")) {
-	rootProject.version = declaredVersion.substring(10)
-} else {
-	project.version = "1-SNAPSHOT"
-}
-println "Builds version $version"
-
-
-group = "dk.mada.backup"
-
 repositories {
 	mavenCentral()
 }
@@ -31,8 +20,13 @@ dependencies {
 	implementation 'org.apache.commons:commons-compress:1.20'
 	implementation "com.beust:jcommander:1.81"
 
-    testImplementation "org.assertj:assertj-core:3.19.0"
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
+    testImplementation  platform("org.junit:junit-bom:$junitVersion")
+    testImplementation  'org.junit.jupiter:junit-jupiter'
+    testImplementation  'org.junit.jupiter:junit-jupiter-params'
+    testImplementation  'org.junit.jupiter:junit-jupiter-engine'
+    testImplementation  'org.junit.jupiter:junit-jupiter-api'
+    testImplementation  'org.junit.platform:junit-platform-runner'
+    testImplementation  "org.assertj:assertj-core:$assertJVersion"
 }
 
 task makeActionsDockerImage() {
@@ -48,6 +42,23 @@ task makeActionsDockerImage() {
 			commandLine("podman", "build", "-t", "actions-backup", "build/actions-docker")
 		}
 	}
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    
+    withJavadocJar()
+    withSourcesJar()
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
 }
 
 task prepareActionsGpgTestHome() {
@@ -118,9 +129,6 @@ shadowJar {
 	classifier = null
 	archiveFileName = "backup-shadow.jar"
 }
-
-sourceCompatibility = 11
-targetCompatibility = 11
 
 tasks.clean { delete("dist") }
 
