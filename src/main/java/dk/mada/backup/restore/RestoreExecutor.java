@@ -46,8 +46,11 @@ public class RestoreExecutor {
 			String output = readOutput(p);
 			
 			return new Result(p.waitFor(), output);
-		} catch (IOException | InterruptedException e) {
+		} catch (IOException e) {
 			throw new IllegalStateException("Failed to run restore script " + script, e);
+		} catch (InterruptedException e) {
+		    Thread.currentThread().interrupt();
+		    throw new IllegalStateException("Interrupted restore script " + script, e);
 		}
 	}
 
