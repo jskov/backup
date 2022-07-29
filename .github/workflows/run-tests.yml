@@ -19,7 +19,7 @@ on:
 
 jobs:
   build:
-    name: Build
+    name: Build, test, and release
     runs-on: ubuntu-latest
     steps:
       - name: Define BUILD_LABEL
