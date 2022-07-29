@@ -25,10 +25,10 @@ public class HumanSizeInputConverter implements IStringConverter<Long> {
 				multiplier = 1024;
 				break;
 			case "M":
-				multiplier = 1024*1024;
+				multiplier = 1024*1024L;
 				break;
 			case "G":
-				multiplier = 1024*1024*1024;
+				multiplier = 1024*1024*1024L;
 				break;
 			}
 		}

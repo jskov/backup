@@ -10,7 +10,7 @@ import dk.mada.backup.MainExplore;
  * API for the backup operation.
  */
 public class BackupApi {
-	public static final long DEFAULT_MAX_FILE_SIZE = 1*1024*1024*1024;
+	public static final long DEFAULT_MAX_FILE_SIZE = 1*1024*1024*1024L;
 	private final MainExplore spikeCode;
 
 	/**

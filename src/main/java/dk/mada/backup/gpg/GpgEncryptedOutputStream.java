@@ -24,7 +24,9 @@ import dk.mada.backup.api.BackupTargetExistsException;
  * OutputStream  filter that GPG-encrypts the outgoing stream.
  */
 public class GpgEncryptedOutputStream extends FilterOutputStream {
-	private static final Logger logger = LoggerFactory.getLogger(GpgEncryptedOutputStream.class);
+    private static final Logger logger = LoggerFactory.getLogger(GpgEncryptedOutputStream.class);
+    private static final int GPG_BACKGROUND_MAX_WAIT_SECONDS = 60;
+	private static final int GPG_STDERR_MAX_WAIT_SECONDS = 5;
 	private String recipientKeyId;
 	private Map<String, String> envOverrides;
 	private OutputStream gpgSink;
@@ -103,17 +105,11 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     	}
     	
     	logger.debug("Waiting for GPG background process to complete");
-    	try {
-			stdoutDone.await(60, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			throw new IOException("Got timeout while waiting for GPG output to complete", e);
-		}
-    	try {
-			stderrDone.await(1, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			throw new IOException("Got timeout while waiting for GPG error output to complete", e);
-		}
-    	
+    	awaitLatch(stdoutDone, GPG_BACKGROUND_MAX_WAIT_SECONDS,
+    	        "GPG background process");
+    	awaitLatch(stderrDone, GPG_STDERR_MAX_WAIT_SECONDS,
+    	        "GPG stderr output");
+
     	String stderrMessage = stderrMessageRef.get();
     	if (!stderrMessage.isEmpty()) {
     		logger.warn("GPG error message: {}", stderrMessage);
@@ -135,6 +131,17 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     	}
     	
     	logger.debug("GPG background process completed");
+    }
+
+    private void awaitLatch(CountDownLatch latch, long timeout, String operationDescription) throws IOException {
+        try {
+            if (!latch.await(timeout, TimeUnit.SECONDS)) {
+                throw new IllegalStateException(operationDescription + " failed to complete in " + timeout + " seconds!");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Got timeout while waiting for " + operationDescription, e);
+        }
     }
     
 	private OutputStream startGpgBackgroundProcess() throws GpgEncrypterException {
