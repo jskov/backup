@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import dk.mada.backup.restore.RestoreExecutor;
 import dk.mada.backup.restore.RestoreExecutor.Result;
+import dk.mada.fixture.DirectoryDeleter;
 import dk.mada.fixture.DisplayNameCamelCase;
 import dk.mada.fixture.MakeBackup;
 import dk.mada.fixture.TestCertificateInfo;
@@ -82,7 +83,7 @@ class BackupVerificationTest {
 	@Test
 	void backupArchivesCanBeRestored() throws IOException, InterruptedException {
 		Path restoreDir = Paths.get("build/backup-restored");
-		org.assertj.core.util.Files.delete(restoreDir.toFile());
+		DirectoryDeleter.delete(restoreDir);
 
 		Result res = runRestoreCmd("unpack", "-a", restoreDir.toAbsolutePath().toString());
 		
@@ -107,7 +108,7 @@ class BackupVerificationTest {
 	@Test
 	void backupFilesCanBeRestored() throws IOException, InterruptedException {
 		Path restoreDir = Paths.get("build/backup-restored");
-		org.assertj.core.util.Files.delete(restoreDir.toFile());
+		DirectoryDeleter.delete(restoreDir);
 
 		Result res = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
 		

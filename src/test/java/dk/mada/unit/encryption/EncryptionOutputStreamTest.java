@@ -52,7 +52,7 @@ class EncryptionOutputStreamTest {
 		printProcessOutput(p);
 		
 		assertThat(decryptedFile)
-			.hasSameContentAs(originFile);
+			.hasSameTextualContentAs(originFile);
 
 		assertThat(p.exitValue())
 			.isEqualTo(0);
