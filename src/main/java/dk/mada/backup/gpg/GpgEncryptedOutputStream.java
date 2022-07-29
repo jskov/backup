@@ -115,20 +115,8 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     		logger.warn("GPG error message: {}", stderrMessage);
     	}
     	
-    	if (stdoutException != null) {
-    		// Let specific exception through - but do not rethrow, as this causes problem with JDK
-    		if (stdoutException instanceof BackupTargetExistsException) {
-    			throw new BackupTargetExistsException(stdoutException.getMessage(), stdoutException);
-    		}
-    		throw new GpgEncrypterException("GPG IO failed", stdoutException);
-    	}
-    	if (stderrException != null) {
-    		// Let specific exception through - but do not rethrow, as this causes problem with JDK
-    		if (stdoutException instanceof BackupTargetExistsException) {
-    			throw new BackupTargetExistsException(stdoutException.getMessage(), stdoutException);
-    		}
-    		throw new GpgEncrypterException("GPG IO failed", stderrException);
-    	}
+    	throwOnFailure(stdoutException);
+    	throwOnFailure(stderrException);
     	
     	logger.debug("GPG background process completed");
     }
@@ -143,7 +131,17 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
             throw new IOException("Got timeout while waiting for " + operationDescription, e);
         }
     }
-    
+
+    private void throwOnFailure(Exception e) throws GpgEncrypterException {
+        if (e != null) {
+            // Let specific exception through - but do not rethrow, as this causes problem with JDK
+            if (e instanceof BackupTargetExistsException) {
+                throw new BackupTargetExistsException(e.getMessage(), e);
+            }
+            throw new GpgEncrypterException("GPG IO failed", e);
+        }
+    }
+
 	private OutputStream startGpgBackgroundProcess() throws GpgEncrypterException {
 		try {
 			List<String> cmd = new ArrayList<>(List.of(
