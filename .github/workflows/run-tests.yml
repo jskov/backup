@@ -27,8 +27,6 @@ jobs:
           INPUT: ${{ github.head_ref || github.ref_name }}
         run: |
           echo "BUILD_LABEL=${INPUT//\//_}" >> $GITHUB_ENV
-      - name: Echo env
-        run: env | sort
     
       - uses: actions/checkout@v2
         with:
@@ -66,9 +64,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      - name: Build and run tests
-        run: ./gradlew check shadow
-  
       - name: Upload test report on failure
         uses: actions/upload-artifact@v1
         if: failure()
