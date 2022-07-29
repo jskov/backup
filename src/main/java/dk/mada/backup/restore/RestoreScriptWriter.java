@@ -71,10 +71,17 @@ public class RestoreScriptWriter {
 		return res;
 	}
 
+	/**
+	 * Makes script executable by owner/group.
+	 *
+	 * Used to include others, but cannot think of a good reason to
+	 * do this.
+	 *
+	 * @param script the script file to make executable
+	 */
 	private void makeScriptExecutable(Path script) {
 		try {
 			Set<PosixFilePermission> perms = Files.getPosixFilePermissions(script);
-			perms.add(PosixFilePermission.OTHERS_EXECUTE);
 			perms.add(PosixFilePermission.GROUP_EXECUTE);
 			perms.add(PosixFilePermission.OWNER_EXECUTE);
 			Files.setPosixFilePermissions(script, perms);
