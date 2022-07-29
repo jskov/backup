@@ -44,6 +44,23 @@ task makeActionsDockerImage() {
 	}
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    
+    withJavadocJar()
+    withSourcesJar()
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
 task prepareActionsGpgTestHome() {
 	doFirst {
 		project.mkdir("build/actions-gpg-home")
@@ -112,9 +129,6 @@ shadowJar {
 	classifier = null
 	archiveFileName = "backup-shadow.jar"
 }
-
-sourceCompatibility = 11
-targetCompatibility = 11
 
 tasks.clean { delete("dist") }
 
