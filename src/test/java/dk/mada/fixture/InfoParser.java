@@ -34,7 +34,7 @@ public class InfoParser {
 
     private Info parseLine(String l) {
         String[] parts = l.split(" +", INFO_PARTS);
-        if (parts.length != 3) {
+        if (parts.length != INFO_PARTS) {
             throw new IllegalStateException("Failed to parse line: '" + l + "'");
         }
         String filename = parts[0];

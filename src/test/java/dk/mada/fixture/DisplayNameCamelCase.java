@@ -8,12 +8,11 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 /**
  * Makes prettier test output names from camelcase input.
  */
-public class DisplayNameCamelCase extends DisplayNameGenerator.Standard {
+public final class DisplayNameCamelCase extends DisplayNameGenerator.Standard {
+    /** Pattern for upper-case letters. */
     private static final Pattern UPPERCASE = Pattern.compile("([A-Z])");
+    /** Pattern for the first letter in the string. */
     private static final Pattern FIRST = Pattern.compile("^.");
-
-    public DisplayNameCamelCase() {
-    }
 
     @Override
     public String generateDisplayNameForClass(Class<?> testClass) {

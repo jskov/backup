@@ -8,15 +8,17 @@ import org.apache.commons.compress.archivers.ArchiveException;
 
 import dk.mada.backup.cli.CliMain;
 
+/**
+ * Makes a backup from canned input. Mostly used for testing the
+ * resulting restore script.
+ */
 public class MakeBackup {
-
+    private MakeBackup() { }
+    
     /**
      * Create backup from test data.
-     * 
+     *
      * @return restore script
-     * 
-     * @throws IOException
-     * @throws ArchiveException
      */
     public static Path makeBackup() throws IOException, ArchiveException {
         Path srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree");
