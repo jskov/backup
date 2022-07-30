@@ -21,9 +21,10 @@ import dk.mada.fixture.TestCertificateInfo;
 
 class EncryptionOutputStreamTest {
     private static final Logger logger = LoggerFactory.getLogger(EncryptionOutputStreamTest.class);
+    /** System path of GPG. */
     private static final String USR_BIN_GPG = "/usr/bin/gpg";
-    @TempDir
-    Path dir;
+    /** Temp output directory. */
+    private @TempDir Path dir;
 
     /**
      * Tests that encrypted works by encrypting an output stream and verifying that

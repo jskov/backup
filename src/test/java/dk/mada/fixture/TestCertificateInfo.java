@@ -36,8 +36,4 @@ public final class TestCertificateInfo {
     private static boolean isRunningOnGitHubActions() {
         return Files.exists(Paths.get("/etc/debian_version"));
     }
-
-    public static Map<String, String> makeEnvOverrideForGnuPgpHome(Path home) {
-        return Map.of("GNUPGHOME", home.toAbsolutePath().toString());
-    }
 }

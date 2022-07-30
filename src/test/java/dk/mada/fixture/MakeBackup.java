@@ -12,9 +12,9 @@ import dk.mada.backup.cli.CliMain;
  * Makes a backup from canned input. Mostly used for testing the
  * resulting restore script.
  */
-public class MakeBackup {
+public final class MakeBackup {
     private MakeBackup() { }
-    
+
     /**
      * Create backup from test data.
      *

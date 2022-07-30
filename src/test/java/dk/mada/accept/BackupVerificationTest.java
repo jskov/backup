@@ -143,7 +143,7 @@ class BackupVerificationTest {
     /**
      * Tests that the a faulty file in the backup set can be found by the streaming
      * verifier.
-     * 
+     *
      * Done by breaking the checksum in the restore script before running verify.
      */
     @Test
