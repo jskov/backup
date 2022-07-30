@@ -93,7 +93,7 @@ public class CliMain {
      * much. So when test flag is set, throw an exception instead.
      */
     private void systemExit(int exitCode) {
-        if (cliArgs.isRunningTests()) {
+        if (cliArgs != null && cliArgs.isRunningTests()) {
             throw new IllegalStateException("Backup/restore failed, would system exit: " + exitCode);
         }
         System.exit(exitCode);
