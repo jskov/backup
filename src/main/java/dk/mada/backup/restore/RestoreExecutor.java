@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import dk.mada.backup.cli.Console;
+
 /**
  * Executes a restore script.
  */
@@ -39,12 +41,12 @@ public class RestoreExecutor {
             Map<String, String> envOverrides, String... args) {
         Result res = runCmd(script, envOverrides, args);
         if (res.exitValue != 0) {
-            System.out.println("Failed to run " + script + ", returned " + res.exitValue);
-            System.out.println(res.output);
+            Console.println("Failed to run " + script + ", returned " + res.exitValue);
+            Console.println(res.output);
 
             if (avoidSystemExit) {
-                throw new IllegalStateException(
-                        "Restore operation failed, exit " + res.exitValue + ", output: " + res.output);
+                throw new IllegalStateException("Restore operation failed, exit " + res.exitValue
+                        + ", output: " + res.output);
             } else {
                 System.exit(1);
             }

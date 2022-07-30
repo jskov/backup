@@ -26,7 +26,7 @@ public class CliMain {
     public CliMain(String[] args) {
         for (String a : args) {
             if ("--version".equals(a)) {
-                System.out.println("Backup version " + Version.getBackupVersion() + " built on " + Version.getBuildTime());
+                Console.println("Backup version " + Version.getBackupVersion() + " built on " + Version.getBuildTime());
                 systemExit(0);
             }
         }
@@ -42,7 +42,7 @@ public class CliMain {
             jc.parse(args);
             cliArgs.assertPositionalInput();
         } catch (ParameterException pe) {
-            System.out.println("Bad input: " + pe.getMessage());
+            Console.println("Bad input: " + pe.getMessage());
             jc.usage();
             systemExit(1);
         }

@@ -15,14 +15,14 @@ public class HumanByteCount {
      * @param number the number to convert
      * @return a string representing the number
      */
-    public static String humanReadableByteCount(long number) {
+    public static String humanReadableByteCount(long number) { // NOSONAR - external
         long b = number == Long.MIN_VALUE ? Long.MAX_VALUE : Math.abs(number);
         return b < 1024L ? number + " B"
-                : b <= 0xfffccccccccccccL >> 40 ? String.format("%.1f KiB", number / 0x1p10)
-                        : b <= 0xfffccccccccccccL >> 30 ? String.format("%.1f MiB", number / 0x1p20)
-                                : b <= 0xfffccccccccccccL >> 20 ? String.format("%.1f GiB", number / 0x1p30)
-                                        : b <= 0xfffccccccccccccL >> 10 ? String.format("%.1f TiB", number / 0x1p40)
-                                                : b <= 0xfffccccccccccccL
+                : b <= 0xfffccccccccccccL >> 40 ? String.format("%.1f KiB", number / 0x1p10) // NOSONAR - external
+                        : b <= 0xfffccccccccccccL >> 30 ? String.format("%.1f MiB", number / 0x1p20) // NOSONAR - external
+                                : b <= 0xfffccccccccccccL >> 20 ? String.format("%.1f GiB", number / 0x1p30) // NOSONAR - external
+                                        : b <= 0xfffccccccccccccL >> 10 ? String.format("%.1f TiB", number / 0x1p40) // NOSONAR - external
+                                                : b <= 0xfffccccccccccccL // NOSONAR - external
                                                         ? String.format("%.1f PiB", (number >> 10) / 0x1p40)
                                                         : String.format("%.1f EiB", (number >> 20) / 0x1p40);
     }
