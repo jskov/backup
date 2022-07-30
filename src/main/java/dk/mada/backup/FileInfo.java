@@ -17,6 +17,7 @@ import com.beust.jcommander.internal.Nullable;
  * Captures information about a file.
  */
 public final class FileInfo implements BackupElement {
+    /** File scanning buffer size. */
     private static final int FILE_SCAN_BUFFER_SIZE = 8192;
     /** Path of the file relative to the backup root. */
     private final String pathName;

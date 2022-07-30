@@ -42,6 +42,7 @@ import dk.mada.backup.splitter.SplitterOutputStream;
  * TODO: Needs to be rewritten/split up.
  */
 public class MainExplore {
+    /** File scanning buffer size. */
     private static final int FILE_SCAN_BUFFER_SIZE = 8192;
     private static final Logger logger = LoggerFactory.getLogger(MainExplore.class);
     /** File permissions used for temporary files used while creating backup. */
