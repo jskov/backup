@@ -8,6 +8,9 @@ import dk.mada.backup.digest.Sha256sum;
  * Code to parse lines of info output from script.
  */
 public class InfoParser {
+    /** Number of parts expected to be extracted from an info line. */
+    private static final int INFO_PARTS = 3;
+
     /**
      * Backup entry information from the 'info' command output.
      *
@@ -15,8 +18,7 @@ public class InfoParser {
      * @param checksum the checksum of the file
      * @param size     the size of the file
      **/
-    public record Info(String filename, Sha256sum checksum, long size) {
-    }
+    public record Info(String filename, Sha256sum checksum, long size) { }
 
     /**
      * Parses 'info' command output into structured data.
@@ -31,7 +33,7 @@ public class InfoParser {
     }
 
     private Info parseLine(String l) {
-        String[] parts = l.split(" +", 3);
+        String[] parts = l.split(" +", INFO_PARTS);
         if (parts.length != 3) {
             throw new IllegalStateException("Failed to parse line: '" + l + "'");
         }
