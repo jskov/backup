@@ -23,7 +23,7 @@ public class RestoreExecutor {
 			System.out.println(res.output);
 			
 			if (avoidSystemExit) {
-				throw new IllegalStateException("Restore operation failed, see stdout/stderr output");
+				throw new IllegalStateException("Restore operation failed, exit " + res.exitValue + ", output: " + res.output);
 			} else {
 				System.exit(1);
 			}
