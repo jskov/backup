@@ -20,7 +20,17 @@ import dk.mada.backup.api.BackupTargetExistsException;
 /**
  * Copies out the restore script, replacing backup information as it goes.
  */
-public class RestoreScriptWriter {
+public final class RestoreScriptWriter {
+
+    /**
+     * Constructs and writes restore script.
+     *
+     * @param script the destination path for the script
+     * @param vars the variables to expand in the script template
+     * @param crypts the information about crypted files
+     * @param tars the information about tar files
+     * @param files the information about the origin files
+     */
     public void write(Path script, Map<VariableName, String> vars, List<? extends BackupElement> crypts,
             List<? extends BackupElement> tars, List<? extends BackupElement> files) {
         if (Files.exists(script)) {

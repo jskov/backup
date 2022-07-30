@@ -8,7 +8,7 @@ import com.beust.jcommander.IStringConverter;
 /**
  * Converts sizes with suffixes to actual number.
  */
-public class HumanSizeInputConverter implements IStringConverter<Long> {
+public final class HumanSizeInputConverter implements IStringConverter<Long> {
     /** One binary kilo. */
     private static final long ONE_K = 1024L;
     /** Accepted input patterns. */

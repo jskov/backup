@@ -82,14 +82,11 @@ public final class RestoreExecutor {
         }
     }
 
-    public static class Result {
-        public final int exitValue;
-        public final String output;
-
-        public Result(int exitValue, String output) {
-            super();
-            this.exitValue = exitValue;
-            this.output = output;
-        }
-    }
+    /**
+     * Result from running external process.
+     *
+     * @param exitValue the process exit value
+     * @param output the (combined) stdout and stderr output
+     */
+    public record Result(int exitValue, String output) { }
 }
