@@ -17,6 +17,7 @@ import com.beust.jcommander.internal.Nullable;
  * Captures information about a file.
  */
 public final class FileInfo implements BackupElement {
+    private static final int FILE_SCAN_BUFFER_SIZE = 8192;
     /** Path of the file relative to the backup root. */
     private final String pathName;
     /** Size of the file. */
@@ -90,7 +91,7 @@ public final class FileInfo implements BackupElement {
     }
 
     private static FileInfo from(Path rootDir, Path file, boolean includeMd5Sum) {
-        byte[] buffer = new byte[8192];
+        byte[] buffer = new byte[FILE_SCAN_BUFFER_SIZE];
 
         try (InputStream is = Files.newInputStream(file);
                 BufferedInputStream bis = new BufferedInputStream(is)) {

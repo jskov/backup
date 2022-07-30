@@ -42,6 +42,7 @@ import dk.mada.backup.splitter.SplitterOutputStream;
  * TODO: Needs to be rewritten/split up.
  */
 public class MainExplore {
+    private static final int FILE_SCAN_BUFFER_SIZE = 8192;
     private static final Logger logger = LoggerFactory.getLogger(MainExplore.class);
     /** File permissions used for temporary files used while creating backup. */
     private static final FileAttribute<Set<PosixFilePermission>> ATTR_PRIVATE_TO_USER = PosixFilePermissions
@@ -158,7 +159,6 @@ public class MainExplore {
 
     private FileInfo processFile(TarArchiveOutputStream tarOs, Path file) {
         return copyToTar(file, tarOs);
-
     }
 
     private FileInfo processDir(TarArchiveOutputStream tarOs, Path dir) {
@@ -218,7 +218,7 @@ public class MainExplore {
     }
 
     private FileInfo copyToTar(Path file, String inArchiveName, TarArchiveOutputStream tos, boolean countsTowardsSize) {
-        byte[] buffer = new byte[8192];
+        byte[] buffer = new byte[FILE_SCAN_BUFFER_SIZE];
 
         try (InputStream is = Files.newInputStream(file); BufferedInputStream bis = new BufferedInputStream(is)) {
             long size = Files.size(file);
