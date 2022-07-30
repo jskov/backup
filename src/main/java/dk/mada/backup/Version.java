@@ -11,20 +11,28 @@ import java.util.Properties;
 /**
  * Get backup application version properties.
  */
-public class Version {
+public final class Version {
+    /** The application properties. */
     private static Properties appProperties = new Properties();
 
+    private Version() { }
+
+    /** {@return the version of the application} */
     public static String getBackupVersion() {
         readProperties();
         return appProperties.getProperty("version", "version-undefined");
     }
 
+    /** {@return the build time of the application} */
     public static String getBuildTime() {
         readProperties();
         return appProperties.getProperty("builtOn", "build-time-undefined");
     }
 
     private static void readProperties() {
+        if (appProperties != null) {
+            return;
+        }
         try (InputStream is = Version.class.getResourceAsStream("/backup-version.properties");
                 InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
                 BufferedReader br = new BufferedReader(isr)) {

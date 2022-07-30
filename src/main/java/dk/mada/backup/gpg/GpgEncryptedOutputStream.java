@@ -21,29 +21,54 @@ import dk.mada.backup.api.BackupTargetExistsException;
 
 /**
  * OutputStream filter that GPG-encrypts the outgoing stream.
+ *
+ * Writes to this stream instance are passed on to the stdin
+ * of an external GPG process.
+ * The stdout from the GPG process is passed to the super
+ * output stream of this instance.
+ *
+ * Stderr from the GPG process is captured separately.
+ *
+ * When this instance is closed it closes the GPG stdin stream
+ * and waits for the GPG process to complete.
  */
-public class GpgEncryptedOutputStream extends FilterOutputStream {
+public final class GpgEncryptedOutputStream extends FilterOutputStream {
     private static final Logger logger = LoggerFactory.getLogger(GpgEncryptedOutputStream.class);
+    /** The buffer size used when streaming. */
+    private static final int BUFFER_SIZE = 8192;
+    /** The max wait time in seconds for GPG output to be consumed after the process ends. */
     private static final int GPG_BACKGROUND_MAX_WAIT_SECONDS = 60;
+    /** The max wait time in seconds for the GPG stderr output to be consumed after the process ends. */
     private static final int GPG_STDERR_MAX_WAIT_SECONDS = 5;
-    private String recipientKeyId;
-    private Map<String, String> envOverrides;
+
+    /** GPG recipient key id. */
+    private final String recipientKeyId;
+    /** Environment overrides. */
+    private final Map<String, String> envOverrides;
+    /** Latch signaling completion of the (stdout) GPG process. */
+    private final CountDownLatch gpgStdoutDone = new CountDownLatch(1);
+    /** Latch signaling completed capture of the stderr from the GPG process. */
+    private final CountDownLatch gpgStderrDone = new CountDownLatch(1);
+    /** Error message captured from GPG (or empty). */
+    private final AtomicReference<String> stderrMessageRef = new AtomicReference<>();
+    /** Exception captured when writing to the external GPG process (or empty). */
+    private final AtomicReference<IOException> sinkException = new AtomicReference<>();
+    /** The output stream (sink) connecting to the GPG process's stdin. */
     private OutputStream gpgSink;
-    private CountDownLatch stdoutDone = new CountDownLatch(1);
-    private CountDownLatch stderrDone = new CountDownLatch(1);
+    /** Exception captured in thread copying GPG stdout (the crypted data), or null. */
     private Exception stdoutException;
+    /** Exception captured in thread copying GPG stderr, or null. */
     private Exception stderrException;
-    private AtomicReference<String> stderrMessageRef = new AtomicReference<>();
-    private AtomicReference<IOException> sinkException = new AtomicReference<>();
 
-    private GpgEncryptedOutputStream() {
-        super(null);
-    }
-
-    private GpgEncryptedOutputStream(OutputStream out) {
-        super(null);
-    }
-
+    /**
+     * Creates new instance.
+     *
+     * @param out the stream to write the encoded data to
+     * @param recipientKeyId the recipient GPG key to use for encryption
+     * @param envOverrides the environment overrides to use
+     *
+     * @throws GpgEncrypterException if the GPG process fails
+     */
     public GpgEncryptedOutputStream(OutputStream out, String recipientKeyId, Map<String, String> envOverrides)
             throws GpgEncrypterException {
         super(out);
@@ -53,6 +78,14 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
         gpgSink = startGpgBackgroundProcess();
     }
 
+    /**
+     * Creates new instance.
+     *
+     * @param out the stream to write the encoded data to
+     * @param recipientKeyId the recipient GPG key to use for encryption
+     *
+     * @throws GpgEncrypterException if the GPG process fails
+     */
     public GpgEncryptedOutputStream(OutputStream out, String recipientKeyId) throws GpgEncrypterException {
         this(out, recipientKeyId, Collections.emptyMap());
     }
@@ -68,7 +101,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     }
 
     @Override
-    public void write(byte b[]) throws IOException {
+    public void write(byte[] b) throws IOException {
         try {
             gpgSink.write(b, 0, b.length);
         } catch (IOException e) {
@@ -78,7 +111,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     }
 
     @Override
-    public void write(byte b[], int off, int len) throws IOException {
+    public void write(byte[] b, int off, int len) throws IOException {
         try {
             gpgSink.write(b, off, len);
         } catch (IOException e) {
@@ -105,9 +138,9 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
         }
 
         logger.debug("Waiting for GPG background process to complete");
-        awaitLatch(stdoutDone, GPG_BACKGROUND_MAX_WAIT_SECONDS,
+        awaitLatch(gpgStdoutDone, GPG_BACKGROUND_MAX_WAIT_SECONDS,
                 "GPG background process");
-        awaitLatch(stderrDone, GPG_STDERR_MAX_WAIT_SECONDS,
+        awaitLatch(gpgStderrDone, GPG_STDERR_MAX_WAIT_SECONDS,
                 "GPG stderr output");
 
         String stderrMessage = stderrMessageRef.get();
@@ -142,6 +175,14 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
         }
     }
 
+    /**
+     * Starts an external GPG process and two threads to copy
+     * data from its stdout and stderr.
+     *
+     * @return output stream connected to GPG process's stdin
+     *
+     * @throws GpgEncrypterException if creation of process or threads failed
+     */
     private OutputStream startGpgBackgroundProcess() throws GpgEncrypterException {
         try {
             List<String> cmd = List.of(
@@ -185,12 +226,12 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
         } catch (IOException e) {
             stderrException = new IOException("Failed to read GPG error output", e);
         } finally {
-            stderrDone.countDown();
+            gpgStderrDone.countDown();
         }
     }
 
     private void copyToUnderlyingStream(InputStream is) {
-        byte[] buffer = new byte[8192];
+        byte[] buffer = new byte[BUFFER_SIZE];
 
         try (BufferedInputStream bis = new BufferedInputStream(is)) {
             int read;
@@ -206,7 +247,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
         } catch (Exception e) {
             stdoutException = new GpgEncrypterException("Failed to copy data from GPG to output stream", e);
         } finally {
-            stdoutDone.countDown();
+            gpgStdoutDone.countDown();
         }
     }
 }

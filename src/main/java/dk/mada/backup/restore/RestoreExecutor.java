@@ -7,25 +7,45 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import dk.mada.backup.cli.Console;
+
 /**
  * Executes a restore script.
  */
-public class RestoreExecutor {
+public final class RestoreExecutor {
+    private RestoreExecutor() { }
 
+    /**
+     * Runs restore script.
+     *
+     * @param script the restore script
+     * @param envOverrides provided environment overrides
+     * @param args restore script arguments
+     * @return the result of executing the script
+     */
     public static Result runRestoreScript(Path script, Map<String, String> envOverrides, String... args) {
         return runCmd(script, envOverrides, args);
     }
 
+    /**
+     * Runs restore script.
+     *
+     * @param avoidSystemExit flag to disable use of System.exit. Used from tests
+     * @param script the restore script
+     * @param envOverrides provided environment overrides
+     * @param args restore script arguments
+     * @return the result of executing the script
+     */
     public static String runRestoreScriptExitOnFail(boolean avoidSystemExit, Path script,
             Map<String, String> envOverrides, String... args) {
         Result res = runCmd(script, envOverrides, args);
         if (res.exitValue != 0) {
-            System.out.println("Failed to run " + script + ", returned " + res.exitValue);
-            System.out.println(res.output);
+            Console.println("Failed to run " + script + ", returned " + res.exitValue);
+            Console.println(res.output);
 
             if (avoidSystemExit) {
-                throw new IllegalStateException(
-                        "Restore operation failed, exit " + res.exitValue + ", output: " + res.output);
+                throw new IllegalStateException("Restore operation failed, exit " + res.exitValue
+                        + ", output: " + res.output);
             } else {
                 System.exit(1);
             }
@@ -62,14 +82,11 @@ public class RestoreExecutor {
         }
     }
 
-    public static class Result {
-        public final int exitValue;
-        public final String output;
-
-        public Result(int exitValue, String output) {
-            super();
-            this.exitValue = exitValue;
-            this.output = output;
-        }
-    }
+    /**
+     * Result from running external process.
+     *
+     * @param exitValue the process exit value
+     * @param output the (combined) stdout and stderr output
+     */
+    public record Result(int exitValue, String output) { }
 }

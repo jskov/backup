@@ -21,18 +21,36 @@ import dk.mada.backup.api.BackupTargetExistsException;
 /**
  * An output stream that splits the stream over several files of a given size.
  */
-public class SplitterOutputStream extends OutputStream {
+public final class SplitterOutputStream extends OutputStream {
     private static final Logger logger = LoggerFactory.getLogger(SplitterOutputStream.class);
+
+    /** Target directory for the files split from the stream. */
     private final Path targetDir;
+    /** Base name of the output files. */
     private final String basename;
+    /** Suffix to give the output files. */
     private final String suffix;
+    /** Active file size limit. */
     private final long openNextFileAtOffset;
+    /** Accruing list of files created from the stream. */
     private final List<Path> outputFiles = new ArrayList<>();
-    private int counter = 1;
-    private long writtenToCurrentFile = 0;
+    /** The current file being written to. */
     private OutputStream currentOutputStream = null;
+    /** Bytes written to the current file. */
+    private long writtenToCurrentFile = 0;
+    /** Number of files written. */
+    private int fileCounter = 0;
+    /** Future for handing over the list of created files to the caller. */
     private CompletableFuture<List<Path>> outputFilesFuture = new CompletableFuture<>();
 
+    /**
+     * Split output stream over a number of files of a given size.
+     *
+     * @param targetDir the directory to store the files in
+     * @param basename the base name of the files
+     * @param suffix the suffix for the files
+     * @param sizeLimit the size limit for the files
+     */
     public SplitterOutputStream(Path targetDir, String basename, String suffix, long sizeLimit) {
         this.targetDir = Objects.requireNonNull(targetDir);
         this.basename = Objects.requireNonNull(basename);
@@ -44,23 +62,40 @@ public class SplitterOutputStream extends OutputStream {
         }
     }
 
+    /** {@return the future containing the output files} */
     public Future<List<Path>> getOutputFiles() {
         return outputFilesFuture;
     }
 
     @Override
     public void write(int b) throws IOException {
-        if (writtenToCurrentFile >= openNextFileAtOffset
-                || currentOutputStream == null) {
+        if (currentOutputStream == null
+                || writtenToCurrentFile >= openNextFileAtOffset) {
             openNextFile();
         }
         writtenToCurrentFile++;
         currentOutputStream.write(b);
     }
 
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
+        if (currentOutputStream == null) {
+            openNextFile();
+        }
+
+        // do it piecemeal if limit is reached
+        if (writtenToCurrentFile + len >= openNextFileAtOffset) {
+            super.write(b, off, len);
+        } else {
+            // otherwise bulk write for performance
+            writtenToCurrentFile += len;
+            currentOutputStream.write(b, off, len);
+        }
+    }
+
     private void openNextFile() throws IOException {
         closeCurrentFile();
-        String name = basename + "-" + String.format("%02d", counter++) + suffix;
+        String name = basename + "-" + String.format("%02d", ++fileCounter) + suffix;
         Path outputFile = targetDir.resolve(name);
 
         if (Files.exists(outputFile)) {
@@ -80,7 +115,7 @@ public class SplitterOutputStream extends OutputStream {
         writtenToCurrentFile = 0;
     }
 
-    public void closeCurrentFile() throws IOException {
+    private void closeCurrentFile() throws IOException {
         if (currentOutputStream != null) {
             currentOutputStream.close();
             currentOutputStream = null;

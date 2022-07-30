@@ -10,20 +10,17 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 
 import dk.mada.backup.restore.RestoreExecutor;
 import dk.mada.backup.restore.RestoreExecutor.Result;
 import dk.mada.fixture.DirectoryDeleter;
-import dk.mada.fixture.DisplayNameCamelCase;
 import dk.mada.fixture.MakeBackup;
 import dk.mada.fixture.TestCertificateInfo;
 
 /**
  * Makes a backup, runs multiple checks on the restore of this backup.
  */
-@DisplayNameGeneration(DisplayNameCamelCase.class)
 class BackupVerificationTest {
     private static Path restoreScript;
 
@@ -39,9 +36,9 @@ class BackupVerificationTest {
     void backupCryptFilesCanBeVerified() throws IOException, InterruptedException {
         Result res = runRestoreCmd("verify");
 
-        assertThat(res.exitValue)
-                .isEqualTo(0);
-        assertThat(res.output)
+        assertThat(res.exitValue())
+                .isZero();
+        assertThat(res.output())
                 .contains("(1/1) test-01.crypt... ok");
     }
 
@@ -56,9 +53,9 @@ class BackupVerificationTest {
     void archiveChecksumsStableOverTime() throws IOException, InterruptedException {
         Result res = runRestoreCmd("info", "-a");
 
-        assertThat(res.exitValue)
-                .isEqualTo(0);
-        assertThat(res.output)
+        assertThat(res.exitValue())
+                .isZero();
+        assertThat(res.output())
                 .contains(
                         "dir-a.tar e42fa7a5806b41d4e1646ec1885e1f43bdbd9488465fa7022c1aa541ead9348f        2560",
                         "dir-b.tar 628b2ef22626e6a2d74c4bf441cf6394d5db0bf149a4a98ee048b51d9ce69374        2048");
@@ -71,9 +68,9 @@ class BackupVerificationTest {
     void cryptContentStableOverTime() throws IOException, InterruptedException {
         Result res = runRestoreCmd("info", "-c");
 
-        assertThat(res.exitValue)
-                .isEqualTo(0);
-        assertThat(res.output)
+        assertThat(res.exitValue())
+                .isZero();
+        assertThat(res.output())
                 .contains("test-01.crypt");
     }
 
@@ -87,9 +84,9 @@ class BackupVerificationTest {
 
         Result res = runRestoreCmd("unpack", "-a", restoreDir.toAbsolutePath().toString());
 
-        assertThat(res.exitValue)
-                .isEqualTo(0);
-        assertThat(res.output)
+        assertThat(res.exitValue())
+                .isZero();
+        assertThat(res.output())
                 .contains(" - (1/9) dir-a.tar... ok",
                         " - (2/9) dir-b.tar... ok",
                         " - (3/9) dir-c.tar... ok",
@@ -112,7 +109,7 @@ class BackupVerificationTest {
 
         Result res = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
 
-        assertThat(res.output)
+        assertThat(res.output())
                 .contains(" - (1/9) dir-a/file-a1.bin... ok",
                         " - (2/9) dir-a/file-a2.bin... ok",
                         " - (3/9) dir-b/file-b1.bin... ok",
@@ -124,8 +121,8 @@ class BackupVerificationTest {
                         " - (9/9) dir-m-with-[brackets]-and-(parens)-dir/text-file.txt... ok",
                         "Success!");
 
-        assertThat(res.exitValue)
-                .isEqualTo(0);
+        assertThat(res.exitValue())
+                .isZero();
     }
 
     /**
@@ -135,11 +132,11 @@ class BackupVerificationTest {
     void backupFilesCanBeVerifiedByStream() throws IOException, InterruptedException {
         Result res = runRestoreCmd("verify", "-s");
 
-        assertThat(res.output)
+        assertThat(res.output())
                 .contains("All files verified ok.");
 
-        assertThat(res.exitValue)
-                .isEqualTo(0);
+        assertThat(res.exitValue())
+                .isZero();
     }
 
     /**
@@ -159,11 +156,11 @@ class BackupVerificationTest {
 
         Result res = runRestoreCmd(badRestoreScript, "verify", "-s");
 
-        assertThat(res.output)
+        assertThat(res.output())
                 .contains("Did not find matching checksum for file 'dir-b/file-b1.bin'");
 
-        assertThat(res.exitValue)
-                .isNotEqualTo(0);
+        assertThat(res.exitValue())
+                .isNotZero();
     }
 
     private Result runRestoreCmd(String... args) throws IOException {

@@ -11,17 +11,14 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.mada.backup.gpg.GpgEncryptedOutputStream;
-import dk.mada.fixture.DisplayNameCamelCase;
 import dk.mada.fixture.TestCertificateInfo;
 
-@DisplayNameGeneration(DisplayNameCamelCase.class)
 class EncryptionOutputStreamTest {
     private static final Logger logger = LoggerFactory.getLogger(EncryptionOutputStreamTest.class);
     private static final String USR_BIN_GPG = "/usr/bin/gpg";
@@ -57,7 +54,7 @@ class EncryptionOutputStreamTest {
                 .hasSameTextualContentAs(originFile);
 
         assertThat(p.exitValue())
-                .isEqualTo(0);
+                .isZero();
     }
 
     private void printProcessOutput(Process p) throws IOException {

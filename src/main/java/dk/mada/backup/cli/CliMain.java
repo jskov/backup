@@ -23,10 +23,15 @@ public class CliMain {
     private CliArgs cliArgs;
     private Map<String, String> envOverrides;
 
+    /**
+     * Creates new instance for a single invocation from CLI.
+     *
+     * @param args the command line arguments
+     */
     public CliMain(String[] args) {
         for (String a : args) {
             if ("--version".equals(a)) {
-                System.out.println("Backup version " + Version.getBackupVersion() + " built on " + Version.getBuildTime());
+                Console.println("Backup version " + Version.getBackupVersion() + " built on " + Version.getBuildTime());
                 systemExit(0);
             }
         }
@@ -42,7 +47,7 @@ public class CliMain {
             jc.parse(args);
             cliArgs.assertPositionalInput();
         } catch (ParameterException pe) {
-            System.out.println("Bad input: " + pe.getMessage());
+            Console.println("Bad input: " + pe.getMessage());
             jc.usage();
             systemExit(1);
         }
@@ -88,9 +93,11 @@ public class CliMain {
 
     /**
      * Handle system exit.
-     * 
+     *
      * When running tests, this would kill the Gradle daemon which it dislikes very
      * much. So when test flag is set, throw an exception instead.
+     *
+     * @param exitCode the code to exit with
      */
     private void systemExit(int exitCode) {
         if (cliArgs != null && cliArgs.isRunningTests()) {
@@ -99,6 +106,11 @@ public class CliMain {
         System.exit(exitCode);
     }
 
+    /**
+     * CLI main entry.
+     *
+     * @param args the command line arguments
+     */
     public static void main(String[] args) {
         new CliMain(args).run();
     }

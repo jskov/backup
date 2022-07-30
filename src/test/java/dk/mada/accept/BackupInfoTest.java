@@ -8,12 +8,10 @@ import java.util.List;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 
 import dk.mada.backup.restore.RestoreExecutor;
 import dk.mada.backup.restore.RestoreExecutor.Result;
-import dk.mada.fixture.DisplayNameCamelCase;
 import dk.mada.fixture.InfoParser;
 import dk.mada.fixture.InfoParser.Info;
 import dk.mada.fixture.MakeBackup;
@@ -22,7 +20,6 @@ import dk.mada.fixture.TestCertificateInfo;
 /**
  * Makes a backup, checks info in backup.
  */
-@DisplayNameGeneration(DisplayNameCamelCase.class)
 class BackupInfoTest {
     private static Path restoreScript;
 
@@ -38,9 +35,9 @@ class BackupInfoTest {
     void backupContainsInfo() throws IOException, InterruptedException {
         Result res = runRestoreCmd("info");
 
-        assertThat(res.exitValue)
-                .isEqualTo(0);
-        assertThat(res.output)
+        assertThat(res.exitValue())
+                .isZero();
+        assertThat(res.output())
                 .contains(
                         "Backup 'test'",
                         "made with backup version",
@@ -59,10 +56,10 @@ class BackupInfoTest {
     void backupInfoCrypted() throws IOException, InterruptedException {
         Result res = runRestoreCmd("info", "-c");
 
-        assertThat(res.exitValue)
-                .isEqualTo(0);
+        assertThat(res.exitValue())
+                .isZero();
 
-        List<Info> infos = new InfoParser().parse(res.output);
+        List<Info> infos = new InfoParser().parse(res.output());
         assertThat(infos)
                 .hasSize(1)
                 .first()
@@ -79,9 +76,9 @@ class BackupInfoTest {
     void backupInfoTars() throws IOException, InterruptedException {
         Result res = runRestoreCmd("info", "-a");
 
-        assertThat(res.exitValue)
-                .isEqualTo(0);
-        assertThat(res.output)
+        assertThat(res.exitValue())
+                .isZero();
+        assertThat(res.output())
                 .contains(
                         "dir-a.tar e42fa7a5806b41d4e1646ec1885e1f43bdbd9488465fa7022c1aa541ead9348f        2560",
                         "file-root1.bin");
@@ -94,11 +91,9 @@ class BackupInfoTest {
     void backupInfoFiles() throws IOException, InterruptedException {
         Result res = runRestoreCmd("info", "-f");
 
-        System.out.println(res.output);
-
-        assertThat(res.exitValue)
-                .isEqualTo(0);
-        assertThat(res.output)
+        assertThat(res.exitValue())
+                .isZero();
+        assertThat(res.output())
                 .contains(
                         "dir-a/file-a1.bin e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855           0",
                         "dir-e/file-e with space.bin e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855           0");

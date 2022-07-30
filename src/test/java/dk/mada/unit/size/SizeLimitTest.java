@@ -10,19 +10,16 @@ import java.util.stream.Stream;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dk.mada.backup.api.BackupApi;
-import dk.mada.fixture.DisplayNameCamelCase;
 import dk.mada.fixture.TestCertificateInfo;
 import dk.mada.fixture.TestDataPrepper;
 
 /**
  * It should be possible to size limit the output files.
  */
-@DisplayNameGeneration(DisplayNameCamelCase.class)
 class SizeLimitTest {
     @TempDir
     Path targetDir;
