@@ -50,12 +50,28 @@ public class SplitterOutputStream extends OutputStream {
 
     @Override
     public void write(int b) throws IOException {
-        if (writtenToCurrentFile >= openNextFileAtOffset
-                || currentOutputStream == null) {
+        if (currentOutputStream == null
+                || writtenToCurrentFile >= openNextFileAtOffset) {
             openNextFile();
         }
         writtenToCurrentFile++;
         currentOutputStream.write(b);
+    }
+    
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
+        if (currentOutputStream == null) {
+            openNextFile();
+        }
+
+        // do it piecemeal if limit is reached
+        if (writtenToCurrentFile + len >= openNextFileAtOffset) {
+            super.write(b, off, len);
+        } else {
+            // otherwise bulk write for performance
+            writtenToCurrentFile += len;
+            currentOutputStream.write(b, off, len);
+        }
     }
 
     private void openNextFile() throws IOException {
