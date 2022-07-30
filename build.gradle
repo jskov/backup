@@ -14,6 +14,9 @@ import org.gradle.crypto.checksum.Checksum
 
 ext {
 	successMarker = project.file("build/all-tests-passed")
+    builtOn = LocalDateTime.now()
+                .atZone(ZoneId.of('Europe/Copenhagen'))
+                .withNano(0)
 }
 
 repositories {
@@ -66,6 +69,18 @@ compileTestJava {
     options.encoding = 'UTF-8'
 }
 
+processResources {
+    inputs.property("version", project.version)
+    inputs.property("builtOn", builtOn)
+
+    filesMatching("**/backup-version.properties") {
+        filter(s -> s
+            .replaceAll("version.*", "version = ${project.version}")
+            .replaceAll("builtOn.*", "builtOn = ${builtOn}")
+        )
+    }
+}
+
 task prepareActionsGpgTestHome() {
 	doFirst {
 		project.mkdir("build/actions-gpg-home")
@@ -93,6 +108,13 @@ test {
     }  
     ignoreFailures = true
 
+    testLogging.showStandardStreams = true
+
+    // listen to standard out and standard error of the test JVM(s)
+    onOutput { descriptor, event ->
+        logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+    }
+
     afterTest { td, tr ->
         if (tr.resultType == org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE) {
             successMarker.delete()
@@ -111,6 +133,13 @@ task acceptTest(type: Test) {
     }
     ignoreFailures = true
     forkEvery = 1
+
+    testLogging.showStandardStreams = true
+
+    // listen to standard out and standard error of the test JVM(s)
+    onOutput { descriptor, event ->
+        logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+    }
 
     afterTest { td, tr ->
 		if (tr.resultType == org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE) {
