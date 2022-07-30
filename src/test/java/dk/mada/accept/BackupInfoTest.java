@@ -39,7 +39,7 @@ class BackupInfoTest {
         Result res = runRestoreCmd("info");
 
         assertThat(res.exitValue)
-                .isEqualTo(0);
+                .isZero();
         assertThat(res.output)
                 .contains(
                         "Backup 'test'",
@@ -60,7 +60,7 @@ class BackupInfoTest {
         Result res = runRestoreCmd("info", "-c");
 
         assertThat(res.exitValue)
-                .isEqualTo(0);
+                .isZero();
 
         List<Info> infos = new InfoParser().parse(res.output);
         assertThat(infos)
@@ -80,7 +80,7 @@ class BackupInfoTest {
         Result res = runRestoreCmd("info", "-a");
 
         assertThat(res.exitValue)
-                .isEqualTo(0);
+                .isZero();
         assertThat(res.output)
                 .contains(
                         "dir-a.tar e42fa7a5806b41d4e1646ec1885e1f43bdbd9488465fa7022c1aa541ead9348f        2560",
@@ -97,7 +97,7 @@ class BackupInfoTest {
         System.out.println(res.output);
 
         assertThat(res.exitValue)
-                .isEqualTo(0);
+                .isZero();
         assertThat(res.output)
                 .contains(
                         "dir-a/file-a1.bin e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855           0",

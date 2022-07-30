@@ -40,7 +40,7 @@ class BackupVerificationTest {
         Result res = runRestoreCmd("verify");
 
         assertThat(res.exitValue)
-                .isEqualTo(0);
+                .isZero();
         assertThat(res.output)
                 .contains("(1/1) test-01.crypt... ok");
     }
@@ -57,7 +57,7 @@ class BackupVerificationTest {
         Result res = runRestoreCmd("info", "-a");
 
         assertThat(res.exitValue)
-                .isEqualTo(0);
+                .isZero();
         assertThat(res.output)
                 .contains(
                         "dir-a.tar e42fa7a5806b41d4e1646ec1885e1f43bdbd9488465fa7022c1aa541ead9348f        2560",
@@ -72,7 +72,7 @@ class BackupVerificationTest {
         Result res = runRestoreCmd("info", "-c");
 
         assertThat(res.exitValue)
-                .isEqualTo(0);
+                .isZero();
         assertThat(res.output)
                 .contains("test-01.crypt");
     }
@@ -88,7 +88,7 @@ class BackupVerificationTest {
         Result res = runRestoreCmd("unpack", "-a", restoreDir.toAbsolutePath().toString());
 
         assertThat(res.exitValue)
-                .isEqualTo(0);
+                .isZero();
         assertThat(res.output)
                 .contains(" - (1/9) dir-a.tar... ok",
                         " - (2/9) dir-b.tar... ok",
@@ -125,7 +125,7 @@ class BackupVerificationTest {
                         "Success!");
 
         assertThat(res.exitValue)
-                .isEqualTo(0);
+                .isZero();
     }
 
     /**
@@ -139,7 +139,7 @@ class BackupVerificationTest {
                 .contains("All files verified ok.");
 
         assertThat(res.exitValue)
-                .isEqualTo(0);
+                .isZero();
     }
 
     /**
@@ -163,7 +163,7 @@ class BackupVerificationTest {
                 .contains("Did not find matching checksum for file 'dir-b/file-b1.bin'");
 
         assertThat(res.exitValue)
-                .isNotEqualTo(0);
+                .isNotZero();
     }
 
     private Result runRestoreCmd(String... args) throws IOException {

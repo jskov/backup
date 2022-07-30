@@ -57,7 +57,7 @@ class EncryptionOutputStreamTest {
                 .hasSameTextualContentAs(originFile);
 
         assertThat(p.exitValue())
-                .isEqualTo(0);
+                .isZero();
     }
 
     private void printProcessOutput(Process p) throws IOException {
