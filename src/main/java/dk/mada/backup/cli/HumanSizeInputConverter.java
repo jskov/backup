@@ -5,7 +5,13 @@ import java.util.regex.Pattern;
 
 import com.beust.jcommander.IStringConverter;
 
+/**
+ * Converts sizes with suffixes to actual number.
+ */
 public class HumanSizeInputConverter implements IStringConverter<Long> {
+    /** One binary kilo. */
+    private static final long ONE_K = 1024L;
+    /** Accepted input patterns. */
     private static final Pattern VALID_INPUT_PATTERN = Pattern.compile("(\\d+)([kmgKMG]?)");
 
     @Override
@@ -22,13 +28,13 @@ public class HumanSizeInputConverter implements IStringConverter<Long> {
         if (mod != null) {
             switch (mod.toUpperCase()) {
             case "K":
-                multiplier = 1024;
+                multiplier = ONE_K;
                 break;
             case "M":
-                multiplier = 1024 * 1024L;
+                multiplier = ONE_K * ONE_K;
                 break;
             case "G":
-                multiplier = 1024 * 1024 * 1024L;
+                multiplier = ONE_K * ONE_K * ONE_K;
                 break;
             case "":
                 break;
@@ -38,5 +44,4 @@ public class HumanSizeInputConverter implements IStringConverter<Long> {
         }
         return base * multiplier;
     }
-
 }

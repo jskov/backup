@@ -96,6 +96,8 @@ public class CliMain {
      *
      * When running tests, this would kill the Gradle daemon which it dislikes very
      * much. So when test flag is set, throw an exception instead.
+     *
+     * @param exitCode the code to exit with
      */
     private void systemExit(int exitCode) {
         if (cliArgs != null && cliArgs.isRunningTests()) {
@@ -104,6 +106,11 @@ public class CliMain {
         System.exit(exitCode);
     }
 
+    /**
+     * CLI main entry.
+     *
+     * @param args the command line arguments
+     */
     public static void main(String[] args) {
         new CliMain(args).run();
     }

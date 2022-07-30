@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
  * @param checksum the checksum, optionally prefixed with "sha256:"
  */
 public record Sha256sum(String checksum) {
+    /** Pattern for a valid SHA-256 checksum. */
     private static final Pattern CHECKSUM_PATTERN = Pattern.compile("[0-9a-f]{64}");
 
     /**

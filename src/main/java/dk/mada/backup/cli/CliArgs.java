@@ -17,7 +17,7 @@ import dk.mada.backup.api.BackupApi;
 /**
  * Argument definition for CLI invocation.
  */
-public class CliArgs {
+public final class CliArgs {
     private static final String OPT_MAX_SIZE = "--max-size";
     private static final String OPT_RECIPIENT = "-r";
 
