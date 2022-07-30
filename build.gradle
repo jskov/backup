@@ -13,20 +13,20 @@ group "${groupId}"
 import org.gradle.crypto.checksum.Checksum
 
 ext {
-	successMarker = project.file("build/all-tests-passed")
+    successMarker = project.file("build/all-tests-passed")
     builtOn = LocalDateTime.now()
                 .atZone(ZoneId.of('Europe/Copenhagen'))
                 .withNano(0)
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	implementation 'org.slf4j:slf4j-jdk14:2.0.0-alpha7'
-	implementation 'org.apache.commons:commons-compress:1.20'
-	implementation "com.beust:jcommander:1.82"
+    implementation 'org.slf4j:slf4j-jdk14:2.0.0-alpha7'
+    implementation 'org.apache.commons:commons-compress:1.20'
+    implementation "com.beust:jcommander:1.82"
 
     testImplementation  platform("org.junit:junit-bom:$junitVersion")
     testImplementation  'org.junit.jupiter:junit-jupiter'
@@ -38,18 +38,18 @@ dependencies {
 }
 
 task makeActionsDockerImage() {
-	doFirst {
-		copy {
-			into "build/actions-docker"
-			from "src/actions"
-			from ("src/test/data/gpghome") {
-				include "*.asc"
-			}
-		}
-	 	project.exec {
-			commandLine("podman", "build", "-t", "actions-backup", "build/actions-docker")
-		}
-	}
+    doFirst {
+        copy {
+            into "build/actions-docker"
+            from "src/actions"
+            from ("src/test/data/gpghome") {
+                include "*.asc"
+            }
+        }
+         project.exec {
+            commandLine("podman", "build", "-t", "actions-backup", "build/actions-docker")
+        }
+    }
 }
 
 java {
@@ -82,22 +82,22 @@ processResources {
 }
 
 task prepareActionsGpgTestHome() {
-	doFirst {
-		project.mkdir("build/actions-gpg-home")
-	 	project.exec {
-			commandLine("gpg", "--homedir", "build/actions-gpg-home", "--import", "src/test/data/gpghome/exported-secret-key.asc")
-		}
-	 	project.exec {
-			commandLine("gpg", "--homedir", "build/actions-gpg-home", "--import-ownertrust", "src/test/data/gpghome/exported-owner-trust.asc")
-		}
-	}
+    doFirst {
+        project.mkdir("build/actions-gpg-home")
+         project.exec {
+            commandLine("gpg", "--homedir", "build/actions-gpg-home", "--import", "src/test/data/gpghome/exported-secret-key.asc")
+        }
+         project.exec {
+            commandLine("gpg", "--homedir", "build/actions-gpg-home", "--import-ownertrust", "src/test/data/gpghome/exported-owner-trust.asc")
+        }
+    }
 }
 
 task makeSuccessMarker() {
-	doFirst {
-		project.mkdir("build")
-		successMarker.createNewFile()
-	}
+    doFirst {
+        project.mkdir("build")
+        successMarker.createNewFile()
+    }
 }
 
 test {
@@ -117,20 +117,20 @@ test {
 
 task acceptTest(type: Test) {
     shouldRunAfter(test)
-	dependsOn(makeSuccessMarker)
-	dependsOn(prepareActionsGpgTestHome)
-	finalizedBy jacocoTestReport // report is always generated after tests run
+    dependsOn(makeSuccessMarker)
+    dependsOn(prepareActionsGpgTestHome)
+    finalizedBy jacocoTestReport // report is always generated after tests run
 
     useJUnitPlatform {
-  	    includeTags "accept"
+          includeTags "accept"
     }
     ignoreFailures = true
     forkEvery = 1
 
     afterTest { td, tr ->
-		if (tr.resultType == org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE) {
-			successMarker.delete()
-		}
+        if (tr.resultType == org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE) {
+            successMarker.delete()
+        }
     }
 }
 
@@ -166,19 +166,19 @@ sonarqube {
 }
 
 jar {
-	manifest {
-		attributes(
-			'Git-Hash' : (System.getenv('BUILD_SOURCEVERSION') ?: "no-version"),
-			'Implementation-Version' : project.version,
-			'Main-Class' : "dk.mada.backup.cli.CliMain"
-		)
-	}
-	archiveBaseName = "backup"
+    manifest {
+        attributes(
+            'Git-Hash' : (System.getenv('BUILD_SOURCEVERSION') ?: "no-version"),
+            'Implementation-Version' : project.version,
+            'Main-Class' : "dk.mada.backup.cli.CliMain"
+        )
+    }
+    archiveBaseName = "backup"
 }
 
 shadowJar {
-	classifier = null
-	archiveFileName = "backup-shadow.jar"
+    classifier = null
+    archiveFileName = "backup-shadow.jar"
 }
 
 tasks.clean { delete("dist") }
@@ -187,8 +187,8 @@ tasks.eclipseClasspath.dependsOn("cleanEclipseClasspath")
 
 
 task buildNative(type: Exec, dependsOn: jar) {
-	doFirst {
-		project.delete("build/backup")
-	}
-	commandLine 'native-image', '-cp', sourceSets.main.getRuntimeClasspath().getAsPath(), "dk.mada.backup.cli.CliMain", "build/backup"
+    doFirst {
+        project.delete("build/backup")
+    }
+    commandLine 'native-image', '-cp', sourceSets.main.getRuntimeClasspath().getAsPath(), "dk.mada.backup.cli.CliMain", "build/backup"
 }
