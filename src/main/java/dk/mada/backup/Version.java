@@ -12,6 +12,7 @@ import java.util.Properties;
  * Get backup application version properties.
  */
 public final class Version {
+    /** The application properties. */
     private static Properties appProperties = new Properties();
 
     private Version() { }
@@ -29,6 +30,9 @@ public final class Version {
     }
 
     private static void readProperties() {
+        if (appProperties != null) {
+            return;
+        }
         try (InputStream is = Version.class.getResourceAsStream("/backup-version.properties");
                 InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
                 BufferedReader br = new BufferedReader(isr)) {

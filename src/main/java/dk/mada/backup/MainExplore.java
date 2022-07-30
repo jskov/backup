@@ -43,23 +43,44 @@ import dk.mada.backup.splitter.SplitterOutputStream;
  */
 public class MainExplore {
     private static final Logger logger = LoggerFactory.getLogger(MainExplore.class);
-    private Path rootDir;
-
-    private List<DirInfo> fileElements = new ArrayList<>();
-    private final String recipientKeyId;
-    private final Map<String, String> gpgEnvOverrides;
-    private final long maxTarSize;
-
-    private long totalInputSize;
+    /** File permissions used for temporary files used while creating backup. */
     private static final FileAttribute<Set<PosixFilePermission>> ATTR_PRIVATE_TO_USER = PosixFilePermissions
             .asFileAttribute(PosixFilePermissions.fromString("rwx------"));
 
-    public MainExplore(String recipientKeyId, Map<String, String> gpgEnvOverrides, long maxTarSize) {
+    /** The backup root directory. */
+    private Path rootDir;
+    /** Information about the directories included in the backup. */
+    private List<DirInfo> fileElements = new ArrayList<>();
+    /** GPG key used for encryption of the backup. */
+    private final String recipientKeyId;
+    /** Environment overrides used when invoking external GPG process. */
+    private final Map<String, String> gpgEnvOverrides;
+    /** Size limit for crypt-files. */
+    private final long maxCryptFileSize;
+    /** Total size of the files in the backup (does not include directory sizes). */
+    private long totalInputSize;
+
+    /**
+     * Creates a new instance.
+     *
+     * @param recipientKeyId the GPG key used for encryption of the backup
+     * @param gpgEnvOverrides the environment overrides used when invoking external GPG process
+     * @param maxCryptFileSize the size limit for crypt-files
+     */
+    public MainExplore(String recipientKeyId, Map<String, String> gpgEnvOverrides, long maxCryptFileSize) {
         this.recipientKeyId = recipientKeyId;
         this.gpgEnvOverrides = gpgEnvOverrides;
-        this.maxTarSize = maxTarSize;
+        this.maxCryptFileSize = maxCryptFileSize;
     }
 
+    /**
+     * Create a backup from a directory.
+     *
+     * @param srcDir the backup root directory
+     * @param targetDir the target directory for the encrypted backup files
+     * @param name the backup name
+     * @return the generated restore script
+     */
     public Path packDir(Path srcDir, Path targetDir, String name) {
         rootDir = srcDir;
         if (!Files.isDirectory(rootDir)) {
@@ -76,7 +97,7 @@ public class MainExplore {
         List<BackupElement> archiveElements;
         Future<List<Path>> outputFilesFuture;
         try (Stream<Path> files = Files.list(rootDir);
-                SplitterOutputStream sos = new SplitterOutputStream(targetDir, name, ".crypt", maxTarSize);
+                SplitterOutputStream sos = new SplitterOutputStream(targetDir, name, ".crypt", maxCryptFileSize);
                 GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(sos, recipientKeyId, gpgEnvOverrides);
                 TarArchiveOutputStream tarOs = makeTarOutputStream(eos)) {
 

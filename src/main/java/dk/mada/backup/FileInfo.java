@@ -11,13 +11,20 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.Objects;
 
+import com.beust.jcommander.internal.Nullable;
+
 /**
  * Captures information about a file.
  */
 public final class FileInfo implements BackupElement {
+    /** Path of the file relative to the backup root. */
     private final String pathName;
+    /** Size of the file. */
     private final long size;
+    /** SHA-256 sum of the file. */
     private final String checksum;
+    /** Optional MD5 sum of the file - only computed/captured for crypt-files. */
+    @Nullable
     private final String md5Checksum;
 
     private FileInfo(String pathName, long size, String checksum, String md5) {
@@ -27,36 +34,56 @@ public final class FileInfo implements BackupElement {
         this.md5Checksum = md5;
     }
 
+    /** {@return the file's path relative to the backup root directory.} */
     public String getPathName() {
         return pathName;
     }
 
+    /** {@return the file's size} */
     public long getSize() {
         return size;
     }
 
+    /** {@return the file's SHA-256 checksum} */
     public String getChecksum() {
         return checksum;
     }
 
+    /** {@return the file's MD5 checkum if present, or fail} */
     public String getMd5() {
         return Objects.requireNonNull(md5Checksum, "No MD5 sum captured for " + pathName);
     }
 
+    /**
+     * Creates new instance.
+     *
+     * @param pathName the path of the file relative to the backup root directory
+     * @param size the size of the file
+     * @param digest the digest computed for the file
+     * @return an instance capturing the file information for the backup
+     */
     public static FileInfo of(String pathName, long size, MessageDigest digest) {
         return new FileInfo(pathName, size, digestToString(digest), null);
     }
 
+    /**
+     * Creates new instance by examining the file.
+     *
+     * @param rootDir the backup root directory
+     * @param file the file to examine
+     * @return an instance capturing the file information for the backup
+     */
     public static FileInfo from(Path rootDir, Path file) {
         return from(rootDir, file, false);
     }
 
     /**
-     * Generates file info for crypt files. These include md5sum.
+     * Creates new instance by examining a crypt-file. This includes
+     * generating MD5 checksum.
      *
-     * @param rootDir
-     * @param file
-     * @return
+     * @param rootDir the backup root directory
+     * @param file the file to examine
+     * @return an instance capturing the file information for the backup
      */
     public static FileInfo fromCryptFile(Path rootDir, Path file) {
         return from(rootDir, file, true);
