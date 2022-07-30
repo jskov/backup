@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -83,7 +82,7 @@ public class MainExplore {
             archiveElements = files
                     .sorted(filenameSorter())
                     .map(p -> processRootElement(tarOs, p))
-                    .collect(Collectors.toList());
+                    .toList();
 
             outputFilesFuture = sos.getOutputFiles();
 
@@ -97,7 +96,7 @@ public class MainExplore {
         try {
             cryptElements = outputFilesFuture.get().stream()
                     .map(archiveFile -> FileInfo.fromCryptFile(targetDir, archiveFile))
-                    .collect(Collectors.toList());
+                    .toList();
         } catch (Exception e) {
             throw new IllegalStateException("Failed to lazy get output files", e);
         }
@@ -168,7 +167,7 @@ public class MainExplore {
                         .sorted(filenameSorter())
                         .filter(Files::isRegularFile)
                         .map(f -> copyToTar(f, tarForDirOs))
-                        .collect(Collectors.toList());
+                        .toList();
 
                 return DirInfo.from(rootDir, dir, containedFiles);
             }

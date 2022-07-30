@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 import com.beust.jcommander.IStringConverter;
 
 public class HumanSizeInputConverter implements IStringConverter<Long> {
-    private static final Pattern VALID_INPUT_PATTERN = Pattern.compile("([0-9]+)([kmgKMG]?)");
+    private static final Pattern VALID_INPUT_PATTERN = Pattern.compile("(\\d+)([kmgKMG]?)");
 
     @Override
     public Long convert(String inValue) {
