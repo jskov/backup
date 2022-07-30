@@ -4,19 +4,17 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.Objects;
 
 /**
  * Captures information about a file.
  */
 public class FileInfo implements BackupElement {
-    private static final int DIGEST_LENGTH_MD5 = 32;
-    private static final int DIGEST_LENGTH_SHA256 = 64;
     private final String pathName;
     private final long size;
     private final String checksum;
@@ -46,7 +44,7 @@ public class FileInfo implements BackupElement {
     }
 
     public static FileInfo of(String pathName, long size, MessageDigest digest) {
-        return new FileInfo(pathName, size, digestToString(digest, DIGEST_LENGTH_SHA256), null);
+        return new FileInfo(pathName, size, digestToString(digest), null);
     }
 
     public static FileInfo from(Path rootDir, Path file) {
@@ -80,12 +78,12 @@ public class FileInfo implements BackupElement {
                     digestMd5.update(buffer, 0, read);
                 }
             }
-            String checksum = digestToString(digest, DIGEST_LENGTH_SHA256);
+            String checksum = digestToString(digest);
 
             String relPath = rootDir.relativize(file).getFileName().toString();
 
             return new FileInfo(relPath, size, checksum,
-                    includeMd5Sum ? digestToString(digestMd5, DIGEST_LENGTH_MD5) : null);
+                    includeMd5Sum ? digestToString(digestMd5) : null);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } catch (NoSuchAlgorithmException e) {
@@ -93,16 +91,8 @@ public class FileInfo implements BackupElement {
         }
     }
 
-    private static String digestToString(MessageDigest digest, int length) {
-        byte[] hash = digest.digest();
-
-        BigInteger bigInt = new BigInteger(1, hash);
-        StringBuilder sb = new StringBuilder(bigInt.toString(16));
-        while (sb.length() < length) {
-            sb.insert(0, '0');
-        }
-        String checksum = sb.toString();
-        return checksum;
+    private static String digestToString(MessageDigest digest) {
+        return HexFormat.of().formatHex(digest.digest());
     }
 
     @Override

@@ -43,7 +43,7 @@ class BackupInfoTest {
         assertThat(res.output)
                 .contains(
                         "Backup 'test'",
-                        "made with backup version undef",
+                        "made with backup version",
                         "created on 20",
                         "original size 66 B",
                         "encrypted with key id " + TestCertificateInfo.TEST_RECIPIEND_KEY_ID);
