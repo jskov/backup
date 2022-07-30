@@ -8,14 +8,16 @@ import dk.mada.backup.digest.Sha256sum;
  * Code to parse lines of info output from script.
  */
 public class InfoParser {
-    /** Backup entry information from the 'info' command output.
+    /**
+     * Backup entry information from the 'info' command output.
      *
      * @param filename the name of the file
      * @param checksum the checksum of the file
-     * @param size the size of the file
+     * @param size     the size of the file
      **/
-    public record Info(String filename, Sha256sum checksum, long size) {}
-    
+    public record Info(String filename, Sha256sum checksum, long size) {
+    }
+
     /**
      * Parses 'info' command output into structured data.
      *
@@ -24,8 +26,8 @@ public class InfoParser {
      */
     public List<Info> parse(String txt) {
         return txt.lines()
-            .map(this::parseLine)
-            .toList();
+                .map(this::parseLine)
+                .toList();
     }
 
     private Info parseLine(String l) {

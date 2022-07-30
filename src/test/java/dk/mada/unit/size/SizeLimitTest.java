@@ -24,28 +24,30 @@ import dk.mada.fixture.TestDataPrepper;
  */
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class SizeLimitTest {
-	@TempDir Path targetDir;
-	private BackupApi api;
-	private static Path srcDir;
+    @TempDir
+    Path targetDir;
+    private BackupApi api;
+    private static Path srcDir;
 
-	@BeforeAll
-	static void prepSource() throws IOException, ArchiveException {
-		srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree");
-	}
-	
-	@BeforeEach
-	void createBackupApi() {
-		api = new BackupApi(TestCertificateInfo.TEST_RECIPIEND_KEY_ID, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES, 8000);
-	}
-	
-	@Test
-	void shouldSplitBackupOverSeveralFiles() throws IOException {
-		api.makeBackup("test", srcDir, targetDir);
-		System.out.println("From " + srcDir);
-		
-		try (Stream<String> files = Files.list(targetDir).map(Path::getFileName).map(Path::toString)) {
-			assertThat(files)
-				.containsExactlyInAnyOrder("test.sh", "test-01.crypt", "test-02.crypt", "test-03.crypt");
-		}
-	}
+    @BeforeAll
+    static void prepSource() throws IOException, ArchiveException {
+        srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree");
+    }
+
+    @BeforeEach
+    void createBackupApi() {
+        api = new BackupApi(TestCertificateInfo.TEST_RECIPIEND_KEY_ID,
+                TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES, 8000);
+    }
+
+    @Test
+    void shouldSplitBackupOverSeveralFiles() throws IOException {
+        api.makeBackup("test", srcDir, targetDir);
+        System.out.println("From " + srcDir);
+
+        try (Stream<String> files = Files.list(targetDir).map(Path::getFileName).map(Path::toString)) {
+            assertThat(files)
+                    .containsExactlyInAnyOrder("test.sh", "test-01.crypt", "test-02.crypt", "test-03.crypt");
+        }
+    }
 }

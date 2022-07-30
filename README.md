@@ -13,9 +13,10 @@ The hosted Actions build pipeline uses an Ubuntu 18.04.
 
 To reproduce the Actions environment locally:
 
-	$ ./gradlew makeActionsDockerImage
-	$ podman run -i -t actions-backup
-	
+```console
+$ ./gradlew makeActionsDockerImage
+$ podman run -i -t actions-backup
+````
 
 # Jotta Verification
 
