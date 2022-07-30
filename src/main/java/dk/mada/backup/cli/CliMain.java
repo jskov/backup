@@ -26,7 +26,7 @@ public class CliMain {
     public CliMain(String[] args) {
         for (String a : args) {
             if ("--version".equals(a)) {
-                System.out.println("Backup version " + Version.getBackupVersion());
+                System.out.println("Backup version " + Version.getBackupVersion() + " built on " + Version.getBuildTime());
                 systemExit(0);
             }
         }

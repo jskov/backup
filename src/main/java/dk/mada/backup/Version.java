@@ -19,6 +19,11 @@ public class Version {
         return appProperties.getProperty("version", "version-undefined");
     }
 
+    public static String getBuildTime() {
+        readProperties();
+        return appProperties.getProperty("builtOn", "build-time-undefined");
+    }
+
     private static void readProperties() {
         try (InputStream is = Version.class.getResourceAsStream("/backup-version.properties");
                 InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
