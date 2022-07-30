@@ -8,12 +8,10 @@ import java.util.List;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 
 import dk.mada.backup.restore.RestoreExecutor;
 import dk.mada.backup.restore.RestoreExecutor.Result;
-import dk.mada.fixture.DisplayNameCamelCase;
 import dk.mada.fixture.InfoParser;
 import dk.mada.fixture.InfoParser.Info;
 import dk.mada.fixture.MakeBackup;
@@ -22,7 +20,6 @@ import dk.mada.fixture.TestCertificateInfo;
 /**
  * Makes a backup, checks info in backup.
  */
-@DisplayNameGeneration(DisplayNameCamelCase.class)
 class BackupInfoTest {
     private static Path restoreScript;
 

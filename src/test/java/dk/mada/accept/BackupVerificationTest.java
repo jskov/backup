@@ -10,20 +10,17 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 
 import dk.mada.backup.restore.RestoreExecutor;
 import dk.mada.backup.restore.RestoreExecutor.Result;
 import dk.mada.fixture.DirectoryDeleter;
-import dk.mada.fixture.DisplayNameCamelCase;
 import dk.mada.fixture.MakeBackup;
 import dk.mada.fixture.TestCertificateInfo;
 
 /**
  * Makes a backup, runs multiple checks on the restore of this backup.
  */
-@DisplayNameGeneration(DisplayNameCamelCase.class)
 class BackupVerificationTest {
     private static Path restoreScript;
 

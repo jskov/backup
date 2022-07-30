@@ -93,7 +93,7 @@ public class RestoreScriptWriter {
 
     private String elementsToText(List<? extends BackupElement> elements) {
         return elements.stream()
-                .map(e -> e.toBackupSummary())
+                .map(BackupElement::toBackupSummary)
                 .collect(Collectors.joining("\n"));
     }
 }

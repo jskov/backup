@@ -11,20 +11,17 @@ import java.nio.file.Path;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dk.mada.backup.api.BackupApi;
 import dk.mada.backup.api.BackupTargetExistsException;
-import dk.mada.fixture.DisplayNameCamelCase;
 import dk.mada.fixture.TestCertificateInfo;
 import dk.mada.fixture.TestDataPrepper;
 
 /**
  * The backup program must not overwrite any files - it should fail instead.
  */
-@DisplayNameGeneration(DisplayNameCamelCase.class)
 class NondestructionTest {
     @TempDir
     Path targetDir;

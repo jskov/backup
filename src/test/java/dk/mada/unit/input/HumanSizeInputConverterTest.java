@@ -3,22 +3,20 @@ package dk.mada.unit.input;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import dk.mada.backup.cli.HumanSizeInputConverter;
-import dk.mada.fixture.DisplayNameCamelCase;
 
 /**
  * Test conversion of human size input converter.
  */
-@DisplayNameGeneration(DisplayNameCamelCase.class)
 class HumanSizeInputConverterTest {
     @Test
     void shouldAcceptPlain() {
-        assertThatThrownBy(() -> new HumanSizeInputConverter().convert("4o2"))
+        HumanSizeInputConverter sut = new HumanSizeInputConverter();
+        assertThatThrownBy(() -> sut.convert("4o2"))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 

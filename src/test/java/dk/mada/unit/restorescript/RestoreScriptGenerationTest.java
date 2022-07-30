@@ -10,16 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dk.mada.backup.BackupElement;
 import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.restore.VariableName;
-import dk.mada.fixture.DisplayNameCamelCase;
 
-@DisplayNameGeneration(DisplayNameCamelCase.class)
 class RestoreScriptGenerationTest {
     @TempDir
     Path dir;

@@ -11,39 +11,36 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dk.mada.backup.api.BackupTargetExistsException;
 import dk.mada.backup.splitter.SplitterOutputStream;
-import dk.mada.fixture.DisplayNameCamelCase;
 
 /**
  * Splitter splits stream into several files.
  */
-@DisplayNameGeneration(DisplayNameCamelCase.class)
 class SplitterTest {
     @TempDir
     Path targetDir;
 
+    /**
+     * Should fail if backup is going to overwrite an existing
+     * file.
+     */
     @Test
     void shouldAvoidOverwritingFiles() throws IOException {
-        assertThatThrownBy(() -> {
-            Files.createFile(targetDir.resolve("basename-01.tar"));
-            try (OutputStream os = new SplitterOutputStream(targetDir, "basename", ".tar", 2)) {
-                os.write("test".getBytes());
-            }
-        }).isInstanceOf(BackupTargetExistsException.class);
+        Files.createFile(targetDir.resolve("basename-01.tar"));
+        assertThatThrownBy(() ->
+            writeSplitterOutput("test", 2)
+        ).isInstanceOf(BackupTargetExistsException.class);
     }
 
     @Test
     void shouldSplitStreamOverSeveralFiles() throws IOException {
         String text = "Test text to be split";
 
-        try (OutputStream os = new SplitterOutputStream(targetDir, "basename", ".tar", 7)) {
-            os.write(text.getBytes());
-        }
+        writeSplitterOutput(text, 7);
 
         List<Path> files = getListOfGeneratedFiles();
 
@@ -56,6 +53,12 @@ class SplitterTest {
                 .isEqualTo(text);
     }
 
+    private void writeSplitterOutput(String text, long sizeLimit) throws IOException {
+        try (OutputStream os = new SplitterOutputStream(targetDir, "basename", ".tar", sizeLimit)) {
+            os.write(text.getBytes());
+        }
+    }
+    
     private String reassembleText(List<Path> files) {
         String assembledText = files.stream()
                 .map(this::readFile)
@@ -68,7 +71,7 @@ class SplitterTest {
         try (Stream<Path> fileStream = Files.list(targetDir)) {
             files = fileStream
                     .sorted()
-                    .collect(Collectors.toList());
+                    .toList();
         }
         return files;
     }
