@@ -14,7 +14,7 @@ import java.util.Objects;
 /**
  * Captures information about a file.
  */
-public class FileInfo implements BackupElement {
+public final class FileInfo implements BackupElement {
     private final String pathName;
     private final long size;
     private final String checksum;

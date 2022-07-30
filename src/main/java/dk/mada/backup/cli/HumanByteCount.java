@@ -5,8 +5,8 @@ package dk.mada.backup.cli;
  *
  * From https://programming.guide/java/formatting-byte-size-to-human-readable-format.html
  */
-public class HumanByteCount {
-    private HumanByteCount() {}
+public final class HumanByteCount {
+    private HumanByteCount() { }
 
     /**
      * Convert number to value with suffix making it easier to read by

@@ -23,6 +23,11 @@ public class CliMain {
     private CliArgs cliArgs;
     private Map<String, String> envOverrides;
 
+    /**
+     * Creates new instance for a single invocation from CLI.
+     *
+     * @param args the command line arguments
+     */
     public CliMain(String[] args) {
         for (String a : args) {
             if ("--version".equals(a)) {
@@ -88,7 +93,7 @@ public class CliMain {
 
     /**
      * Handle system exit.
-     * 
+     *
      * When running tests, this would kill the Gradle daemon which it dislikes very
      * much. So when test flag is set, throw an exception instead.
      */

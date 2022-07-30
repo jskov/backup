@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class DirInfo implements BackupElement {
+public final class DirInfo implements BackupElement {
     private final String pathName;
     private final List<FileInfo> files;
 

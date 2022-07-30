@@ -22,7 +22,7 @@ import dk.mada.backup.api.BackupTargetExistsException;
 /**
  * OutputStream filter that GPG-encrypts the outgoing stream.
  */
-public class GpgEncryptedOutputStream extends FilterOutputStream {
+public final class GpgEncryptedOutputStream extends FilterOutputStream {
     private static final Logger logger = LoggerFactory.getLogger(GpgEncryptedOutputStream.class);
     private static final int GPG_BACKGROUND_MAX_WAIT_SECONDS = 60;
     private static final int GPG_STDERR_MAX_WAIT_SECONDS = 5;

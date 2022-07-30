@@ -4,7 +4,7 @@ package dk.mada.backup.restore;
  * The variables used in the restore script.
  */
 public enum VariableName {
-    /** The creation time of the backup. */ 
+    /** The creation time of the backup. */
     BACKUP_DATE_TIME,
     /** The GPG key used for encryption of the backup. */
     BACKUP_KEY_ID,

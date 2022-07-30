@@ -11,10 +11,10 @@ import java.util.Properties;
 /**
  * Get backup application version properties.
  */
-public class Version {
+public final class Version {
     private static Properties appProperties = new Properties();
 
-    private Version() {}
+    private Version() { }
 
     /** {@return the version of the application} */
     public static String getBackupVersion() {

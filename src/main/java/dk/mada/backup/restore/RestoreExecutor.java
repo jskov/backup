@@ -12,9 +12,8 @@ import dk.mada.backup.cli.Console;
 /**
  * Executes a restore script.
  */
-public class RestoreExecutor {
-    
-    private RestoreExecutor() {}
+public final class RestoreExecutor {
+    private RestoreExecutor() { }
 
     /**
      * Runs restore script.

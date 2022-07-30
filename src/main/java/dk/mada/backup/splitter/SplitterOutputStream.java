@@ -21,7 +21,7 @@ import dk.mada.backup.api.BackupTargetExistsException;
 /**
  * An output stream that splits the stream over several files of a given size.
  */
-public class SplitterOutputStream extends OutputStream {
+public final class SplitterOutputStream extends OutputStream {
     private static final Logger logger = LoggerFactory.getLogger(SplitterOutputStream.class);
     private final Path targetDir;
     private final String basename;
@@ -57,7 +57,7 @@ public class SplitterOutputStream extends OutputStream {
         writtenToCurrentFile++;
         currentOutputStream.write(b);
     }
-    
+
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
         if (currentOutputStream == null) {
