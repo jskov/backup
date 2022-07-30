@@ -54,7 +54,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     public GpgEncryptedOutputStream(OutputStream out, String recipientKeyId) throws GpgEncrypterException {
         this(out, recipientKeyId, Collections.emptyMap());
     }
-	
+
     @Override
     public void write(int b) throws IOException {
         try {
