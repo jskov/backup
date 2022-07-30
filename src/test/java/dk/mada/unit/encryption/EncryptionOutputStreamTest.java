@@ -21,6 +21,8 @@ import dk.mada.fixture.TestCertificateInfo;
 
 class EncryptionOutputStreamTest {
     private static final Logger logger = LoggerFactory.getLogger(EncryptionOutputStreamTest.class);
+    /** Max seconds to wait for GPG. */
+    private static final int MAX_GPG_WAIT_TIME_SECONDS = 5;
     /** System path of GPG. */
     private static final String USR_BIN_GPG = "/usr/bin/gpg";
     /** Temp output directory. */
@@ -72,7 +74,7 @@ class EncryptionOutputStreamTest {
         Process p = new ProcessBuilder(unpackCmd)
                 .redirectErrorStream(true)
                 .start();
-        p.waitFor(5, TimeUnit.SECONDS);
+        p.waitFor(MAX_GPG_WAIT_TIME_SECONDS, TimeUnit.SECONDS);
         return p;
     }
 }

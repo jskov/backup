@@ -3,8 +3,10 @@ package dk.mada.unit.size;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -21,9 +23,13 @@ import dk.mada.fixture.TestDataPrepper;
  * It should be possible to size limit the output files.
  */
 class SizeLimitTest {
-    @TempDir
-    Path targetDir;
+    /** Crypt file size limit. */
+    private static final long MAX_CRYPT_FILE_SIZE = 8000L;
+    /** Temp output directory. */
+    private @TempDir Path targetDir;
+    /** The backup api - sut */
     private BackupApi api;
+    /** The prepared backup input tree. */
     private static Path srcDir;
 
     @BeforeAll
@@ -34,17 +40,47 @@ class SizeLimitTest {
     @BeforeEach
     void createBackupApi() {
         api = new BackupApi(TestCertificateInfo.TEST_RECIPIEND_KEY_ID,
-                TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES, 8000);
+                TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES, MAX_CRYPT_FILE_SIZE);
     }
+
+    /**
+     * Information about a backup files.
+     *
+     * @param filename the file name
+     * @param size the file size
+     */
+    private record CryptFile(String filename, long size) { }
 
     @Test
     void shouldSplitBackupOverSeveralFiles() throws IOException {
         api.makeBackup("test", srcDir, targetDir);
-        System.out.println("From " + srcDir);
 
-        try (Stream<String> files = Files.list(targetDir).map(Path::getFileName).map(Path::toString)) {
-            assertThat(files)
-                    .containsExactlyInAnyOrder("test.sh", "test-01.crypt", "test-02.crypt", "test-03.crypt");
+        List<CryptFile> crypted = getCryptFileInfos();
+
+        assertThat(crypted)
+            .map(CryptFile::filename)
+            .containsExactlyInAnyOrder("test.sh", "test-01.crypt", "test-02.crypt", "test-03.crypt");
+
+        // the parts should split at the requested size
+        assertThat(crypted)
+            .filteredOn(cf -> cf.filename().endsWith(".crypt"))
+            .map(cf -> cf.size())
+            .contains(MAX_CRYPT_FILE_SIZE);
+    }
+
+    private List<CryptFile> getCryptFileInfos() throws IOException {
+        try (Stream<Path> files = Files.list(targetDir)) {
+            return files
+                    .map(this::toCryptInfo)
+                    .toList();
+        }
+    }
+
+    private CryptFile toCryptInfo(Path p) {
+        try {
+            return new CryptFile(p.getFileName().toString(), Files.size(p));
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to capture data for " + p, e);
         }
     }
 }

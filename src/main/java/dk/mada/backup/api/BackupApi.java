@@ -11,7 +11,7 @@ import dk.mada.backup.MainExplore;
  */
 public class BackupApi {
     /** Default backup file output size limit. */
-    public static final long DEFAULT_MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024L;
+    public static final long DEFAULT_MAX_CRYPT_FILE_SIZE = 1 * 1024 * 1024 * 1024L;
     /** The current implementation of the code. */
     private final MainExplore spikeCode;
 
@@ -20,10 +20,10 @@ public class BackupApi {
      *
      * @param gpgRecipientKeyId GPG recipient key id.
      * @param gpgEnvOverrides   Environment overrides (for testing).
-     * @param maxTarSize        Maximum tar file output size.
+     * @param maxCryptFileSize  Maximum crypt file output size.
      */
-    public BackupApi(String gpgRecipientKeyId, Map<String, String> gpgEnvOverrides, long maxTarSize) {
-        spikeCode = new MainExplore(gpgRecipientKeyId, gpgEnvOverrides, maxTarSize);
+    public BackupApi(String gpgRecipientKeyId, Map<String, String> gpgEnvOverrides, long maxCryptFileSize) {
+        spikeCode = new MainExplore(gpgRecipientKeyId, gpgEnvOverrides, maxCryptFileSize);
     }
 
     /**
@@ -33,7 +33,7 @@ public class BackupApi {
      * @param gpgEnvOverrides   Environment overrides (for testing).
      */
     public BackupApi(String gpgRecipientKeyId, Map<String, String> gpgEnvOverrides) {
-        this(gpgRecipientKeyId, gpgEnvOverrides, DEFAULT_MAX_FILE_SIZE);
+        this(gpgRecipientKeyId, gpgEnvOverrides, DEFAULT_MAX_CRYPT_FILE_SIZE);
     }
 
     /**
