@@ -14,6 +14,9 @@ import org.gradle.crypto.checksum.Checksum
 
 ext {
 	successMarker = project.file("build/all-tests-passed")
+    builtOn = LocalDateTime.now()
+                .atZone(ZoneId.of('Europe/Copenhagen'))
+                .withNano(0)
 }
 
 repositories {
@@ -64,6 +67,18 @@ compileJava {
 
 compileTestJava {
     options.encoding = 'UTF-8'
+}
+
+processResources {
+    inputs.property("version", project.version)
+    inputs.property("builtOn", builtOn)
+
+    filesMatching("**/backup-version.properties") {
+        filter(s -> s
+            .replaceAll("version.*", "version = ${project.version}")
+            .replaceAll("builtOn.*", "builtOn = ${builtOn}")
+        )
+    }
 }
 
 task prepareActionsGpgTestHome() {
