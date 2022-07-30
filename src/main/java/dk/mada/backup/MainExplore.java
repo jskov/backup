@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
@@ -37,8 +38,8 @@ import dk.mada.backup.restore.VariableName;
 import dk.mada.backup.splitter.SplitterOutputStream;
 
 /**
- * Code from the original spike exploration of the solution. TODO: Needs to be
- * rewritten/split up.
+ * Code from the original spike exploration of the solution.
+ * TODO: Needs to be rewritten/split up.
  */
 public class MainExplore {
     private static final Logger logger = LoggerFactory.getLogger(MainExplore.class);
@@ -88,8 +89,7 @@ public class MainExplore {
 
             logger.info("Waiting for backup streaming to complete...");
         } catch (IOException e) {
-            logger.warn("BAD", e);
-            throw new IllegalStateException("Failed processing", e);
+            throw new UncheckedIOException("Failed processing", e);
         }
 
         List<FileInfo> cryptElements;
@@ -97,7 +97,10 @@ public class MainExplore {
             cryptElements = outputFilesFuture.get().stream()
                     .map(archiveFile -> FileInfo.fromCryptFile(targetDir, archiveFile))
                     .toList();
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted getting output files", e);
+        } catch (ExecutionException e) {
             throw new IllegalStateException("Failed to lazy get output files", e);
         }
 
