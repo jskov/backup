@@ -16,25 +16,25 @@ import dk.mada.fixture.DisplayNameCamelCase;
  */
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class HumanSizeInputConverterTest {
-	@Test
-	void shouldAcceptPlain() {
-		assertThatThrownBy(() -> new HumanSizeInputConverter().convert("4o2"))
-			.isInstanceOf(IllegalArgumentException.class);
-	}
+    @Test
+    void shouldAcceptPlain() {
+        assertThatThrownBy(() -> new HumanSizeInputConverter().convert("4o2"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 
-	@ParameterizedTest
-	@CsvSource({
-	    "42,         42",
-	    "2K,         2048",
-	    "16k,        16384",
-	    "1M,         1048576",
-	    "1G,         1073741824",
-	    "1_000_000,  1000000"
-	})
-	void testWithCsvSource(String humanInput, long value) {
-		long out = new HumanSizeInputConverter().convert(humanInput);
-		
-		assertThat(out)
-			.isEqualTo(value);
-	}
+    @ParameterizedTest
+    @CsvSource({
+            "42,         42",
+            "2K,         2048",
+            "16k,        16384",
+            "1M,         1048576",
+            "1G,         1073741824",
+            "1_000_000,  1000000"
+    })
+    void testWithCsvSource(String humanInput, long value) {
+        long out = new HumanSizeInputConverter().convert(humanInput);
+
+        assertThat(out)
+                .isEqualTo(value);
+    }
 }

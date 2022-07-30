@@ -23,56 +23,58 @@ import dk.mada.fixture.TestCertificateInfo;
 
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class EncryptionOutputStreamTest {
-	private static final Logger logger = LoggerFactory.getLogger(EncryptionOutputStreamTest.class);
-	private static final String USR_BIN_GPG = "/usr/bin/gpg";
-	@TempDir Path dir;
-	
-	/**
-	 * Tests that encrypted works by encrypting an output stream
-	 * and verifying that decrypting again results in a file
-	 * like the input.
-	 */
-	@Test
-	void defaultEncryptionWorks() throws IOException, InterruptedException {
-		Files.createDirectories(dir);
-		Path originFile = Paths.get("src/test/data/simple-input-tree.tar");
-		Path cryptedFile = dir.resolve("crypted.tar");
-		Path decryptedFile = dir.resolve("decrypted.tar");
-		
-		try (OutputStream os = Files.newOutputStream(cryptedFile);
-				BufferedOutputStream bos = new BufferedOutputStream(os);
-				GpgEncryptedOutputStream sutOutputStream = new GpgEncryptedOutputStream(bos, TestCertificateInfo.TEST_RECIPIEND_KEY_ID, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES)) {
-			Files.copy(originFile, sutOutputStream);
-		} catch (Exception e) {
-			logger.warn("Failed", e);
-			throw e;
-		}
+    private static final Logger logger = LoggerFactory.getLogger(EncryptionOutputStreamTest.class);
+    private static final String USR_BIN_GPG = "/usr/bin/gpg";
+    @TempDir
+    Path dir;
 
-		Process p = decryptFile(cryptedFile, decryptedFile);
-		printProcessOutput(p);
-		
-		assertThat(decryptedFile)
-			.hasSameTextualContentAs(originFile);
+    /**
+     * Tests that encrypted works by encrypting an output stream and verifying that
+     * decrypting again results in a file like the input.
+     */
+    @Test
+    void defaultEncryptionWorks() throws IOException, InterruptedException {
+        Files.createDirectories(dir);
+        Path originFile = Paths.get("src/test/data/simple-input-tree.tar");
+        Path cryptedFile = dir.resolve("crypted.tar");
+        Path decryptedFile = dir.resolve("decrypted.tar");
 
-		assertThat(p.exitValue())
-			.isEqualTo(0);
-	}
+        try (OutputStream os = Files.newOutputStream(cryptedFile);
+                BufferedOutputStream bos = new BufferedOutputStream(os);
+                GpgEncryptedOutputStream sutOutputStream = new GpgEncryptedOutputStream(bos,
+                        TestCertificateInfo.TEST_RECIPIEND_KEY_ID,
+                        TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES)) {
+            Files.copy(originFile, sutOutputStream);
+        } catch (Exception e) {
+            logger.warn("Failed", e);
+            throw e;
+        }
 
-	private void printProcessOutput(Process p) throws IOException {
-		System.out.println(new String(p.getInputStream().readAllBytes()));
-	}
+        Process p = decryptFile(cryptedFile, decryptedFile);
+        printProcessOutput(p);
 
-	private Process decryptFile(Path cryptedFile, Path decryptedFile) throws IOException, InterruptedException {
-		Files.deleteIfExists(decryptedFile);
-		List<String> unpackCmd = List.of(
-				USR_BIN_GPG,
-				"--homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME,
-				"-o", decryptedFile.toString(),
-				"-d", cryptedFile.toString());
-		Process p = new ProcessBuilder(unpackCmd)
-				.redirectErrorStream(true)
-				.start();
-		p.waitFor(5, TimeUnit.SECONDS);
-		return p;
-	}
+        assertThat(decryptedFile)
+                .hasSameTextualContentAs(originFile);
+
+        assertThat(p.exitValue())
+                .isEqualTo(0);
+    }
+
+    private void printProcessOutput(Process p) throws IOException {
+        System.out.println(new String(p.getInputStream().readAllBytes()));
+    }
+
+    private Process decryptFile(Path cryptedFile, Path decryptedFile) throws IOException, InterruptedException {
+        Files.deleteIfExists(decryptedFile);
+        List<String> unpackCmd = List.of(
+                USR_BIN_GPG,
+                "--homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME,
+                "-o", decryptedFile.toString(),
+                "-d", cryptedFile.toString());
+        Process p = new ProcessBuilder(unpackCmd)
+                .redirectErrorStream(true)
+                .start();
+        p.waitFor(5, TimeUnit.SECONDS);
+        return p;
+    }
 }

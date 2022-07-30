@@ -14,37 +14,36 @@ import org.apache.commons.compress.archivers.examples.Expander;
 /**
  * Prepares test data.
  * 
- * Test data is in an archive, because Git does not retain
- * empty directories.
- * Test data files are reset to a (arbitrary) static date so that
- * test results do not change over time.
+ * Test data is in an archive, because Git does not retain empty directories.
+ * Test data files are reset to a (arbitrary) static date so that test results
+ * do not change over time.
  */
 public class TestDataPrepper {
-	private static final FileTime ARBITRARY_KNOWN_TIME = FileTime.fromMillis(1561574109070L);
+    private static final FileTime ARBITRARY_KNOWN_TIME = FileTime.fromMillis(1561574109070L);
 
-	public static Path prepareTestInputTree(String name) throws IOException, ArchiveException {
-		Path srcDir = Paths.get("build/backup-src");
-		Files.createDirectories(srcDir);
-		
-		Path testSetDir = srcDir.resolve(name);
-		DirectoryDeleter.delete(testSetDir);
+    public static Path prepareTestInputTree(String name) throws IOException, ArchiveException {
+        Path srcDir = Paths.get("build/backup-src");
+        Files.createDirectories(srcDir);
 
-		Path tar = Paths.get("src/test/data").resolve(name+".tar");
-		new Expander().expand(tar.toFile(), srcDir.toFile());
-		setTimeOfTestFiles(srcDir);
+        Path testSetDir = srcDir.resolve(name);
+        DirectoryDeleter.delete(testSetDir);
 
-		return testSetDir;
-	}
-	
-	private static void setTimeOfTestFiles(Path srcDir) throws IOException {
-		try (Stream<Path> files = Files.walk(srcDir)) {
-			files.forEach(p -> {
-				try {
-					Files.setLastModifiedTime(p, ARBITRARY_KNOWN_TIME);
-				} catch (IOException e) {
-					throw new UncheckedIOException(e);
-				}
-			});
-		}
-	}
+        Path tar = Paths.get("src/test/data").resolve(name + ".tar");
+        new Expander().expand(tar.toFile(), srcDir.toFile());
+        setTimeOfTestFiles(srcDir);
+
+        return testSetDir;
+    }
+
+    private static void setTimeOfTestFiles(Path srcDir) throws IOException {
+        try (Stream<Path> files = Files.walk(srcDir)) {
+            files.forEach(p -> {
+                try {
+                    Files.setLastModifiedTime(p, ARBITRARY_KNOWN_TIME);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
+        }
+    }
 }

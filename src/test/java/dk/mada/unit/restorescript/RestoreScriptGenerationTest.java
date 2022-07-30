@@ -21,43 +21,42 @@ import dk.mada.fixture.DisplayNameCamelCase;
 
 @DisplayNameGeneration(DisplayNameCamelCase.class)
 class RestoreScriptGenerationTest {
-	@TempDir Path dir;
+    @TempDir
+    Path dir;
 
-	/**
-	 * The restore script contains sections for each backup
-	 * element type. These should all be expanded during copy.
-	 */
-	@Test
-	void allThreeFileInfoBlocksAreFilled() throws IOException {
-		RestoreScriptWriter sut = new RestoreScriptWriter();
-		
-		Map<VariableName, String> vars = Map.of(
-				VariableName.VERSION, "1.2.7"
-				);
+    /**
+     * The restore script contains sections for each backup element type. These
+     * should all be expanded during copy.
+     */
+    @Test
+    void allThreeFileInfoBlocksAreFilled() throws IOException {
+        RestoreScriptWriter sut = new RestoreScriptWriter();
 
-		List<BackupElement> crypts = toBackupElements("backup.tar");
-		List<BackupElement> tars = toBackupElements("fun.tar", "sun.tar");
-		List<BackupElement> files = toBackupElements("fun/photo1.jpg", "sun/photo2.jpg");
-		
-		Path script = dir.resolve("script.sh");
-		sut.write(script, vars, crypts, tars, files);
-		
-		
-		List<String> lines = Files.readAllLines(script);
-		assertThat(lines)
-			.containsSequence("crypts=(", "backup.tar", ")")
-			.containsSequence("archives=(", "fun.tar", "sun.tar", ")")
-			.containsSequence("files=(", "fun/photo1.jpg", "sun/photo2.jpg", ")")
-			.doesNotContain("CRYPTS#", "ARCHIVES#", "FILES#");
+        Map<VariableName, String> vars = Map.of(
+                VariableName.VERSION, "1.2.7");
 
-		String fullText = String.join("\n", lines);
-		assertThat(fullText)
-			.contains("made with backup version 1.2.7");
-	}
+        List<BackupElement> crypts = toBackupElements("backup.tar");
+        List<BackupElement> tars = toBackupElements("fun.tar", "sun.tar");
+        List<BackupElement> files = toBackupElements("fun/photo1.jpg", "sun/photo2.jpg");
 
-	List<BackupElement> toBackupElements(String... strings) {
-		return Arrays.stream(strings)
-			.map(s -> (BackupElement)() -> s)
-			.collect(Collectors.toList());
-	}
+        Path script = dir.resolve("script.sh");
+        sut.write(script, vars, crypts, tars, files);
+
+        List<String> lines = Files.readAllLines(script);
+        assertThat(lines)
+                .containsSequence("crypts=(", "backup.tar", ")")
+                .containsSequence("archives=(", "fun.tar", "sun.tar", ")")
+                .containsSequence("files=(", "fun/photo1.jpg", "sun/photo2.jpg", ")")
+                .doesNotContain("CRYPTS#", "ARCHIVES#", "FILES#");
+
+        String fullText = String.join("\n", lines);
+        assertThat(fullText)
+                .contains("made with backup version 1.2.7");
+    }
+
+    List<BackupElement> toBackupElements(String... strings) {
+        return Arrays.stream(strings)
+                .map(s -> (BackupElement) () -> s)
+                .collect(Collectors.toList());
+    }
 }
