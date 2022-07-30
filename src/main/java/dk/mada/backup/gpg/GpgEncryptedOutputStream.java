@@ -36,14 +36,6 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     private AtomicReference<String> stderrMessageRef = new AtomicReference<>();
     private AtomicReference<IOException> sinkException = new AtomicReference<>();
 
-    private GpgEncryptedOutputStream() {
-        super(null);
-    }
-
-    private GpgEncryptedOutputStream(OutputStream out) {
-        super(null);
-    }
-
     public GpgEncryptedOutputStream(OutputStream out, String recipientKeyId, Map<String, String> envOverrides)
             throws GpgEncrypterException {
         super(out);
@@ -68,7 +60,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     }
 
     @Override
-    public void write(byte b[]) throws IOException {
+    public void write(byte[] b) throws IOException {
         try {
             gpgSink.write(b, 0, b.length);
         } catch (IOException e) {
@@ -78,7 +70,7 @@ public class GpgEncryptedOutputStream extends FilterOutputStream {
     }
 
     @Override
-    public void write(byte b[], int off, int len) throws IOException {
+    public void write(byte[] b, int off, int len) throws IOException {
         try {
             gpgSink.write(b, off, len);
         } catch (IOException e) {

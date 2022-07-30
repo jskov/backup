@@ -11,11 +11,30 @@ import java.util.Map;
  * Executes a restore script.
  */
 public class RestoreExecutor {
+    
+    private RestoreExecutor() {}
 
+    /**
+     * Runs restore script.
+     *
+     * @param script the restore script
+     * @param envOverrides provided environment overrides
+     * @param args restore script arguments
+     * @return the result of executing the script
+     */
     public static Result runRestoreScript(Path script, Map<String, String> envOverrides, String... args) {
         return runCmd(script, envOverrides, args);
     }
 
+    /**
+     * Runs restore script.
+     *
+     * @param avoidSystemExit flag to disable use of System.exit. Used from tests
+     * @param script the restore script
+     * @param envOverrides provided environment overrides
+     * @param args restore script arguments
+     * @return the result of executing the script
+     */
     public static String runRestoreScriptExitOnFail(boolean avoidSystemExit, Path script,
             Map<String, String> envOverrides, String... args) {
         Result res = runCmd(script, envOverrides, args);

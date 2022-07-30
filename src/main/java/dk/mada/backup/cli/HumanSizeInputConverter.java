@@ -30,6 +30,10 @@ public class HumanSizeInputConverter implements IStringConverter<Long> {
             case "G":
                 multiplier = 1024 * 1024 * 1024L;
                 break;
+            case "":
+                break;
+            default:
+                throw new IllegalStateException("Unexpected modifier: '" + mod + "'");
             }
         }
         return base * multiplier;

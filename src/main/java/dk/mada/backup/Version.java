@@ -14,11 +14,15 @@ import java.util.Properties;
 public class Version {
     private static Properties appProperties = new Properties();
 
+    private Version() {}
+
+    /** {@return the version of the application} */
     public static String getBackupVersion() {
         readProperties();
         return appProperties.getProperty("version", "version-undefined");
     }
 
+    /** {@return the build time of the application} */
     public static String getBuildTime() {
         readProperties();
         return appProperties.getProperty("builtOn", "build-time-undefined");
