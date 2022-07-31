@@ -21,8 +21,8 @@ import dk.mada.backup.splitter.SplitterOutputStream;
  * Splitter splits stream into several files.
  */
 class SplitterTest {
-    @TempDir
-    Path targetDir;
+    /** Temp output directory. */
+    private @TempDir Path targetDir;
 
     /**
      * Should fail if backup is going to overwrite an existing
@@ -39,8 +39,9 @@ class SplitterTest {
     @Test
     void shouldSplitStreamOverSeveralFiles() throws IOException {
         String text = "Test text to be split";
+        int splitLength = 7; // NOSONAR - causes split of text into three
 
-        writeSplitterOutput(text, 7);
+        writeSplitterOutput(text, splitLength);
 
         List<Path> files = getListOfGeneratedFiles();
 
@@ -58,7 +59,7 @@ class SplitterTest {
             os.write(text.getBytes());
         }
     }
-    
+
     private String reassembleText(List<Path> files) {
         String assembledText = files.stream()
                 .map(this::readFile)
