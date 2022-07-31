@@ -30,7 +30,7 @@ public final class MakeBackup {
         CliMain.main(new String[] {
                 "--running-tests",
                 "-n", "test",
-                "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID,
+                "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),
                 "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME,
                 srcDir.toAbsolutePath().toString(),
                 targetDir.toAbsolutePath().toString()

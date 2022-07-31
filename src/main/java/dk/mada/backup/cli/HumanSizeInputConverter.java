@@ -3,12 +3,12 @@ package dk.mada.backup.cli;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.beust.jcommander.IStringConverter;
+import picocli.CommandLine.ITypeConverter;
 
 /**
  * Converts sizes with suffixes to actual number.
  */
-public final class HumanSizeInputConverter implements IStringConverter<Long> {
+public final class HumanSizeInputConverter implements ITypeConverter<Long> {
     /** One binary kilo. */
     private static final long ONE_K = 1024L;
     /** Accepted input patterns. */

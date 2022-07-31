@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import dk.mada.backup.MainExplore;
+import dk.mada.backup.types.GpgId;
 
 /**
  * API for the backup operation.
@@ -22,7 +23,7 @@ public class BackupApi {
      * @param gpgEnvOverrides   Environment overrides (for testing).
      * @param maxCryptFileSize  Maximum crypt file output size.
      */
-    public BackupApi(String gpgRecipientKeyId, Map<String, String> gpgEnvOverrides, long maxCryptFileSize) {
+    public BackupApi(GpgId gpgRecipientKeyId, Map<String, String> gpgEnvOverrides, long maxCryptFileSize) {
         spikeCode = new MainExplore(gpgRecipientKeyId, gpgEnvOverrides, maxCryptFileSize);
     }
 
@@ -32,7 +33,7 @@ public class BackupApi {
      * @param gpgRecipientKeyId GPG recipient key id.
      * @param gpgEnvOverrides   Environment overrides (for testing).
      */
-    public BackupApi(String gpgRecipientKeyId, Map<String, String> gpgEnvOverrides) {
+    public BackupApi(GpgId gpgRecipientKeyId, Map<String, String> gpgEnvOverrides) {
         this(gpgRecipientKeyId, gpgEnvOverrides, DEFAULT_MAX_CRYPT_FILE_SIZE);
     }
 
@@ -42,7 +43,7 @@ public class BackupApi {
      *
      * @param gpgRecipientKeyId GPG recipient key id.
      */
-    public BackupApi(String gpgRecipientKeyId) {
+    public BackupApi(GpgId gpgRecipientKeyId) {
         this(gpgRecipientKeyId, Collections.emptyMap());
     }
 
