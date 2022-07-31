@@ -32,43 +32,53 @@ import picocli.CommandLine.Spec;
     description = "Makes a backup of a file tree. Results in a restore script plus a number of encrypted data files."
 )
 public final class CliMain implements Callable<Integer> {
-    public static final String OPT_MAX_SIZE = "--max-size";
-    public static final String OPT_RECIPIENT = "-r";
     private static final Logger logger = LoggerFactory.getLogger(CliMain.class);
-    private Map<String, String> envOverrides;
+
+    /** Name of option for max backup file size. */
+    public static final String OPT_MAX_SIZE = "--max-size";
+    /** Name of option for GPG recipient identity. */
+    public static final String OPT_RECIPIENT = "-r";
 
     /** The picoCli spec. */
     @Spec private CommandSpec spec;
 
+    /** GPG recipient identity option. */
     @Option(names = OPT_RECIPIENT, required = true, converter = GpgRecipientConverter.class,
             description = "GPG recipient key id", paramLabel = "ID")
     private GpgId gpgRecipientId;
+    /** Backup name option. */
     @Option(names = { "-n", "--name" },
             description = "backup name (default to source folder name)", paramLabel = "NAME")
     private String backupName;
+    /** GPG home dir option. */
     @Option(names = "--gpg-homedir", description = "alternative GPG home dir", paramLabel = "DIR")
     private Path gpgHomeDir;
+    /** Flag to skip verification after backup has been created. */
     @Option(names = "--skip-verify", description = "skip verification after creating backup")
     private boolean skipVerify;
+    /** Maximum backup file size option. */
     @Option(names = OPT_MAX_SIZE, converter = HumanSizeInputConverter.class,
             description = "max file size", paramLabel = "SIZE")
     private long maxFileSize;
-    @Option(names = "--running-tests", description = "used for testing to avoid System.exit")
+    /** Flag to signal invocation from tests. */
+    @Option(names = "--running-tests", hidden = true, description = "used for testing to avoid System.exit")
     private boolean testingAvoidSystemExit;
+    /** Flag to print version. */
     @Option(names = { "-V", "--version" }, versionHelp = true, description = "print version information and exit")
     private boolean printVersion;
+    /** Flag to print help. */
     @Option(names = "--help", description = "print this help and exit", help = true)
     private boolean printHelp;
 
+    /** Backup source directory option. */
     @Parameters(index = "0", description = "backup source directory", paramLabel = "source-dir")
     private Path sourceDir;
+    /** Backup target directory option. */
     @Parameters(index = "1", description = "target directory", paramLabel = "target-dir")
     private Path targetDir;
 
     /**
      * Creates new instance for a single invocation from CLI.
-     *
-     * @param args the command line arguments
      */
     public Integer call() {
         if (!Files.isDirectory(sourceDir)) {
@@ -78,20 +88,19 @@ public final class CliMain implements Callable<Integer> {
             argumentFail("The target directory must either not exist, or be a folder!");
         }
 
-        if (gpgHomeDir == null) {
-            envOverrides = Map.of();
-        } else {
+        Map<String, String> envOverrides = Map.of();
+        if (gpgHomeDir != null) {
             envOverrides = Map.of("GNUPGHOME", gpgHomeDir.toAbsolutePath().toString());
         }
-        
-        Path restoreScript = makeBackup();
+
+        Path restoreScript = makeBackup(envOverrides);
 
         if (skipVerify) {
             logger.info("Backup *not* verified!");
         } else {
-            verifyBackup(restoreScript);
+            verifyBackup(envOverrides, restoreScript);
         }
-        
+
         return 0;
     }
 
@@ -99,7 +108,7 @@ public final class CliMain implements Callable<Integer> {
         throw new CommandLine.ParameterException(spec.commandLine(), message);
     }
 
-    private Path makeBackup() {
+    private Path makeBackup(Map<String, String> envOverrides) {
         try {
             BackupApi backupApi = new BackupApi(gpgRecipientId, envOverrides, maxFileSize);
             return backupApi.makeBackup(backupName, sourceDir, targetDir);
@@ -111,7 +120,7 @@ public final class CliMain implements Callable<Integer> {
         }
     }
 
-    private void verifyBackup(Path script) {
+    private void verifyBackup(Map<String, String> envOverrides, Path script) {
         try {
             logger.info("Verifying backup...");
             RestoreExecutor.runRestoreScriptExitOnFail(testingAvoidSystemExit, script, envOverrides, "verify");

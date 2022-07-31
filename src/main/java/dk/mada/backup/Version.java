@@ -21,7 +21,7 @@ public final class Version implements IVersionProvider {
 
     @Override
     public String[] getVersion() {
-        return new String[] { "Version " + getBackupVersion(), "Built " + getBuildTime() };
+        return new String[] {"Version " + getBackupVersion(), "Built " + getBuildTime()};
     }
 
     /** {@return the version of the application} */

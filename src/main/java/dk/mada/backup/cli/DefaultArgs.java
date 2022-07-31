@@ -19,7 +19,7 @@ public final class DefaultArgs implements IDefaultValueProvider {
         }
         return null;
     }
-        
+
     /**
      * Determine if argument spec has the specified name.
      *
