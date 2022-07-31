@@ -13,14 +13,23 @@ import org.apache.commons.compress.archivers.examples.Expander;
 
 /**
  * Prepares test data.
- * 
+ *
  * Test data is in an archive, because Git does not retain empty directories.
  * Test data files are reset to a (arbitrary) static date so that test results
  * do not change over time.
  */
-public class TestDataPrepper {
+public final class TestDataPrepper {
+    /** Time used for data time to ensure stability in tests. */
     private static final FileTime ARBITRARY_KNOWN_TIME = FileTime.fromMillis(1561574109070L);
 
+    private TestDataPrepper() { }
+
+    /**
+     * Prepares a directory with known contents.
+     *
+     * @param name the test set name
+     * @return a prepared build folder containing the extracted test set with file times set
+     */
     public static Path prepareTestInputTree(String name) throws IOException, ArchiveException {
         Path srcDir = Paths.get("build/backup-src");
         Files.createDirectories(srcDir);

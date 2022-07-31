@@ -13,33 +13,32 @@ import java.util.Properties;
  */
 public final class Version {
     /** The application properties. */
-    private static Properties appProperties = new Properties();
+    private static Properties appProperties;
 
     private Version() { }
 
     /** {@return the version of the application} */
     public static String getBackupVersion() {
-        readProperties();
-        return appProperties.getProperty("version", "version-undefined");
+        return loadProperties().getProperty("version", "version-undefined");
     }
 
     /** {@return the build time of the application} */
     public static String getBuildTime() {
-        readProperties();
-        return appProperties.getProperty("builtOn", "build-time-undefined");
+        return loadProperties().getProperty("builtOn", "build-time-undefined");
     }
 
-    private static void readProperties() {
-        if (appProperties != null) {
-            return;
+    private static synchronized Properties loadProperties() {
+        if (appProperties == null) {
+            appProperties = new Properties();
+            try (InputStream is = Version.class.getResourceAsStream("/backup-version.properties");
+                    InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+                    BufferedReader br = new BufferedReader(isr)) {
+    
+                appProperties.load(br);
+            } catch (IOException e) {
+                throw new UncheckedIOException("Unable to read application properties!", e);
+            }
         }
-        try (InputStream is = Version.class.getResourceAsStream("/backup-version.properties");
-                InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
-                BufferedReader br = new BufferedReader(isr)) {
-
-            appProperties.load(br);
-        } catch (IOException e) {
-            throw new UncheckedIOException("Unable to read application properties!", e);
-        }
+        return appProperties;
     }
 }

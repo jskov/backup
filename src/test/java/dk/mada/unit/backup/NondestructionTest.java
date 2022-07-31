@@ -23,10 +23,12 @@ import dk.mada.fixture.TestDataPrepper;
  * The backup program must not overwrite any files - it should fail instead.
  */
 class NondestructionTest {
-    @TempDir
-    Path targetDir;
-    private BackupApi api;
+    /** Directory to backup of. */
     private static Path srcDir;
+    /** The backup api - sut. */
+    private BackupApi api;
+    /** Target directory for test.*/
+    private @TempDir Path targetDir;
 
     @BeforeAll
     static void prepSource() throws IOException, ArchiveException {

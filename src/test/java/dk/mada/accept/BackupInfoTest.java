@@ -21,6 +21,11 @@ import dk.mada.fixture.TestCertificateInfo;
  * Makes a backup, checks info in backup.
  */
 class BackupInfoTest {
+    /** Minimal expected size of backup. */
+    private static final long SIZE_LOWER_BOUND = 22100L;
+    /** Maximal expected size of backup. */
+    private static final long SIZE_UPPER_BOUND = 22300L;
+    /** Restore script for created backup. */
     private static Path restoreScript;
 
     @BeforeAll
@@ -65,7 +70,7 @@ class BackupInfoTest {
                 .first()
                 .satisfies(i -> {
                     assertThat(i.filename()).isEqualTo("test-01.crypt");
-                    assertThat(i.size()).isBetween(22100L, 22300L);
+                    assertThat(i.size()).isBetween(SIZE_LOWER_BOUND, SIZE_UPPER_BOUND);
                 });
     }
 

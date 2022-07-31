@@ -45,7 +45,7 @@ public final class CliArgs {
             case OPT_RECIPIENT:
                 return System.getenv("BACKUP_RECIPIENT");
             case OPT_MAX_SIZE:
-                return Long.toString(BackupApi.DEFAULT_MAX_FILE_SIZE);
+                return Long.toString(BackupApi.DEFAULT_MAX_CRYPT_FILE_SIZE);
             default:
                 return null;
             }

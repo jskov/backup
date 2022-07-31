@@ -18,8 +18,8 @@ import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.restore.VariableName;
 
 class RestoreScriptGenerationTest {
-    @TempDir
-    Path dir;
+    /** Temp output directory. */
+    private @TempDir Path dir;
 
     /**
      * The restore script contains sections for each backup element type. These

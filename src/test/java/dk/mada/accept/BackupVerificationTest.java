@@ -22,6 +22,7 @@ import dk.mada.fixture.TestCertificateInfo;
  * Makes a backup, runs multiple checks on the restore of this backup.
  */
 class BackupVerificationTest {
+    /** Restore script for created backup. */
     private static Path restoreScript;
 
     @BeforeAll
@@ -46,7 +47,7 @@ class BackupVerificationTest {
      * (Middle) archive checksums should be unchanged over time, as long as the
      * input (backup) files are not touched. I.e. wall clock time when the backup is
      * made should not affect checksums.
-     * 
+     *
      * The entire backup checksum should be stable over time.
      */
     @Test
@@ -142,7 +143,7 @@ class BackupVerificationTest {
     /**
      * Tests that the a faulty file in the backup set can be found by the streaming
      * verifier.
-     * 
+     *
      * Done by breaking the checksum in the restore script before running verify.
      */
     @Test
