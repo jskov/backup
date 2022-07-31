@@ -1,4 +1,4 @@
-package dk.mada.backup.digest;
+package dk.mada.backup.types;
 
 import java.util.Objects;
 import java.util.regex.Pattern;

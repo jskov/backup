@@ -5,6 +5,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
+import dk.mada.backup.types.GpgId;
+
 /**
  * Contains information about the no-password test certificate in
  * src/test/data/gpghome.
@@ -27,7 +29,7 @@ public final class TestCertificateInfo {
     /** The absolute GPG home to use. */
     public static final String ABS_TEST_GNUPG_HOME = TEST_GNUPG_HOME.toAbsolutePath().toString();
     /** Key of the test certificate. */
-    public static final String TEST_RECIPIEND_KEY_ID = /* KEYID */"115CC9CF450EC9B03BDAEE97632B7DE57279F497"/* KEYID */;
+    public static final GpgId TEST_RECIPIEND_KEY_ID = new GpgId(/* KEYID */"115CC9CF450EC9B03BDAEE97632B7DE57279F497"/* KEYID */);
     /** Environment overrides necessary for the GPG process. */
     public static final Map<String, String> TEST_KEY_ENVIRONMENT_OVERRIDES = Map.of("GNUPGHOME", ABS_TEST_GNUPG_HOME);
 

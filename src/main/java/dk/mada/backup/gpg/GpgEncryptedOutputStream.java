@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import dk.mada.backup.api.BackupException;
 import dk.mada.backup.api.BackupTargetExistsException;
+import dk.mada.backup.types.GpgId;
 
 /**
  * OutputStream filter that GPG-encrypts the outgoing stream.
@@ -42,7 +43,7 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
     private static final int GPG_STDERR_MAX_WAIT_SECONDS = 5;
 
     /** GPG recipient key id. */
-    private final String recipientKeyId;
+    private final GpgId recipientKeyId;
     /** Environment overrides. */
     private final Map<String, String> envOverrides;
     /** Latch signaling completion of the (stdout) GPG process. */
@@ -69,7 +70,7 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
      *
      * @throws GpgEncrypterException if the GPG process fails
      */
-    public GpgEncryptedOutputStream(OutputStream out, String recipientKeyId, Map<String, String> envOverrides)
+    public GpgEncryptedOutputStream(OutputStream out, GpgId recipientKeyId, Map<String, String> envOverrides)
             throws GpgEncrypterException {
         super(out);
         this.recipientKeyId = recipientKeyId;
@@ -86,7 +87,7 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
      *
      * @throws GpgEncrypterException if the GPG process fails
      */
-    public GpgEncryptedOutputStream(OutputStream out, String recipientKeyId) throws GpgEncrypterException {
+    public GpgEncryptedOutputStream(OutputStream out, GpgId recipientKeyId) throws GpgEncrypterException {
         this(out, recipientKeyId, Collections.emptyMap());
     }
 
@@ -192,7 +193,7 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
                     "--with-colons",
                     "--cipher-algo", "AES256",
                     "--batch", "--no-tty",
-                    "--recipient", recipientKeyId,
+                    "--recipient", recipientKeyId.id(),
                     "--encrypt");
             ProcessBuilder pb = new ProcessBuilder()
                     .command(cmd)

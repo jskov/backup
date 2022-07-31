@@ -36,6 +36,7 @@ import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.restore.VariableName;
 import dk.mada.backup.splitter.SplitterOutputStream;
+import dk.mada.backup.types.GpgId;
 
 /**
  * Code from the original spike exploration of the solution.
@@ -54,7 +55,7 @@ public class MainExplore {
     /** Information about the directories included in the backup. */
     private List<DirInfo> fileElements = new ArrayList<>();
     /** GPG key used for encryption of the backup. */
-    private final String recipientKeyId;
+    private final GpgId recipientKeyId;
     /** Environment overrides used when invoking external GPG process. */
     private final Map<String, String> gpgEnvOverrides;
     /** Size limit for crypt-files. */
@@ -69,7 +70,7 @@ public class MainExplore {
      * @param gpgEnvOverrides the environment overrides used when invoking external GPG process
      * @param maxCryptFileSize the size limit for crypt-files
      */
-    public MainExplore(String recipientKeyId, Map<String, String> gpgEnvOverrides, long maxCryptFileSize) {
+    public MainExplore(GpgId recipientKeyId, Map<String, String> gpgEnvOverrides, long maxCryptFileSize) {
         this.recipientKeyId = recipientKeyId;
         this.gpgEnvOverrides = gpgEnvOverrides;
         this.maxCryptFileSize = maxCryptFileSize;
@@ -137,7 +138,7 @@ public class MainExplore {
                 VariableName.BACKUP_DATE_TIME, backupTime,
                 VariableName.BACKUP_NAME, name,
                 VariableName.BACKUP_INPUT_SIZE, HumanByteCount.humanReadableByteCount(totalInputSize),
-                VariableName.BACKUP_KEY_ID, recipientKeyId
+                VariableName.BACKUP_KEY_ID, recipientKeyId.id()
 
         );
         new RestoreScriptWriter().write(restoreScript, vars, cryptElements, archiveElements, fileElements);

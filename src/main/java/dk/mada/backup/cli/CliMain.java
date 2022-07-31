@@ -12,6 +12,7 @@ import dk.mada.backup.Version;
 import dk.mada.backup.api.BackupApi;
 import dk.mada.backup.api.BackupTargetExistsException;
 import dk.mada.backup.restore.RestoreExecutor;
+import dk.mada.backup.types.GpgId;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
@@ -39,16 +40,18 @@ public final class CliMain implements Callable<Integer> {
     /** The picoCli spec. */
     @Spec private CommandSpec spec;
 
-    // FIXME: make proper type: validateWith = GpgRecipientValidator.class
-    @Option(names = OPT_RECIPIENT, description = "GPG recipient key id", required = true, paramLabel = "ID")
-    private String gpgRecipientId;
-    @Option(names = { "-n", "--name" }, description = "backup name (default to source folder name)", paramLabel = "NAME")
+    @Option(names = OPT_RECIPIENT, required = true, converter = GpgRecipientConverter.class,
+            description = "GPG recipient key id", paramLabel = "ID")
+    private GpgId gpgRecipientId;
+    @Option(names = { "-n", "--name" },
+            description = "backup name (default to source folder name)", paramLabel = "NAME")
     private String backupName;
     @Option(names = "--gpg-homedir", description = "alternative GPG home dir", paramLabel = "DIR")
     private Path gpgHomeDir;
     @Option(names = "--skip-verify", description = "skip verification after creating backup")
     private boolean skipVerify;
-    @Option(names = OPT_MAX_SIZE, description = "max file size", converter = HumanSizeInputConverter.class, paramLabel = "SIZE")
+    @Option(names = OPT_MAX_SIZE, converter = HumanSizeInputConverter.class,
+            description = "max file size", paramLabel = "SIZE")
     private long maxFileSize;
     @Option(names = "--running-tests", description = "used for testing to avoid System.exit")
     private boolean testingAvoidSystemExit;

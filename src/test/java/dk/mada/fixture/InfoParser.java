@@ -2,7 +2,7 @@ package dk.mada.fixture;
 
 import java.util.List;
 
-import dk.mada.backup.digest.Sha256sum;
+import dk.mada.backup.types.Sha256sum;
 
 /**
  * Code to parse lines of info output from script.
