@@ -33,8 +33,8 @@ public final class FileInfo implements BackupElement {
         this.md5Checksum = md5;
     }
 
-    /** {@return the file's path relative to the backup root directory.} */
-    public String getPathName() {
+    @Override
+    public String path() {
         return pathName;
     }
 
@@ -138,7 +138,7 @@ public final class FileInfo implements BackupElement {
             sb.append(md5Checksum);
         }
         sb.append(',');
-        sb.append(pathName);
+        sb.append(ShellEscaper.toSafeShellString(pathName));
         sb.append('"');
         return sb.toString();
     }

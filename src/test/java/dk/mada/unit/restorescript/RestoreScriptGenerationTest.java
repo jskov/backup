@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dk.mada.backup.BackupElement;
+import dk.mada.backup.ShellEscaper;
 import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.restore.VariableName;
 
@@ -51,9 +52,45 @@ class RestoreScriptGenerationTest {
                 .contains("made with backup version 1.2.7");
     }
 
+    @Test
+    void fileListsAreSorted() throws IOException {
+        RestoreScriptWriter sut = new RestoreScriptWriter();
+
+        List<BackupElement> files = toBackupElements("but/first.txt", "a/b/aa.txt", "a/a/aa.txt");
+
+        Path script = dir.resolve("script.sh");
+        sut.write(script, Map.of(), List.of(), List.of(), files);
+
+        List<String> lines = Files.readAllLines(script);
+        assertThat(lines)
+                .containsSequence("a/a/aa.txt", "a/b/aa.txt", "but/first.txt");
+    }
+
+    @Test
+    void specialCharsAreEscaped() throws IOException {
+        RestoreScriptWriter sut = new RestoreScriptWriter();
+
+        List<BackupElement> files = toBackupElements(
+                "Annie Lennox/Medusa/01. Annie Lennox - No More \"I Love You's\".opus");
+
+        Path script = dir.resolve("script.sh");
+        sut.write(script, Map.of(), List.of(), List.of(), files);
+
+        List<String> lines = Files.readAllLines(script);
+        assertThat(lines)
+                .contains("Annie Lennox/Medusa/01. Annie Lennox - No More \\\"I Love You's\\\".opus");
+    }
+
     List<BackupElement> toBackupElements(String... strings) {
         return Arrays.stream(strings)
-                .map(s -> (BackupElement) () -> s)
+                .map(TestBackupElement::new)
                 .collect(Collectors.toList());
+    }
+    
+    record TestBackupElement(String path) implements BackupElement {
+        @Override
+        public String toBackupSummary() {
+            return ShellEscaper.toSafeShellString(path());
+        }
     }
 }
