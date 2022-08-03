@@ -150,11 +150,12 @@ jacocoTestReport {
     dependsOn acceptTest // tests are required to run before generating the report
 }
 
-System.setProperty("org.checkstyle.sun.suppressionfilter.config", 
-    project.projectDir.toString()+"/config/checkstyle/suppressions.xml")
- 
 checkstyle {
     ignoreFailures = true
+}
+
+checkstyleMain {
+    exclude "**/HumanByteCount.java"
 }
 
 sonarqube {
