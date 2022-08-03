@@ -53,20 +53,6 @@ class RestoreScriptGenerationTest {
     }
 
     @Test
-    void fileListsAreSorted() throws IOException {
-        RestoreScriptWriter sut = new RestoreScriptWriter();
-
-        List<BackupElement> files = toBackupElements("but/first.txt", "a/b/aa.txt", "a/a/aa.txt");
-
-        Path script = dir.resolve("script.sh");
-        sut.write(script, Map.of(), List.of(), List.of(), files);
-
-        List<String> lines = Files.readAllLines(script);
-        assertThat(lines)
-                .containsSequence("a/a/aa.txt", "a/b/aa.txt", "but/first.txt");
-    }
-
-    @Test
     void specialCharsAreEscaped() throws IOException {
         RestoreScriptWriter sut = new RestoreScriptWriter();
 

@@ -33,16 +33,6 @@ public final class FileInfo implements BackupElement {
         this.md5Checksum = md5;
     }
 
-    @Override
-    public String path() {
-        return pathName;
-    }
-
-    /** {@return the file's size} */
-    public long getSize() {
-        return size;
-    }
-
     /** {@return the file's SHA-256 checksum} */
     public String getChecksum() {
         return checksum;

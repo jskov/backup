@@ -30,11 +30,6 @@ public final class DirInfo implements BackupElement {
         return new DirInfo(rootDir.relativize(dir).toString(), files);
     }
 
-    @Override
-    public String path() {
-        return pathName;
-    }
-
     /** {@return the file information} */
     public List<FileInfo> getFiles() {
         return files;

@@ -105,7 +105,7 @@ public class MainExplore {
                 TarArchiveOutputStream tarOs = makeTarOutputStream(eos)) {
 
             archiveElements = files
-                    .sorted(filenameSorter())
+                    .sorted(filenameSorter(rootDir))
                     .map(p -> processRootElement(tarOs, p))
                     .toList();
 
@@ -146,8 +146,12 @@ public class MainExplore {
         return restoreScript;
     }
 
-    private Comparator<? super Path> filenameSorter() {
-        return (a, b) -> a.getFileName().toString().compareToIgnoreCase(b.getFileName().toString());
+    private Comparator<? super Path> filenameSorter(Path rootDir) {
+        return (a, b) -> {
+            String pathA = rootDir.relativize(a).toString();
+            String pathB = rootDir.relativize(b).toString();
+            return pathA.compareToIgnoreCase(pathB);
+        };
     }
 
     private BackupElement processRootElement(TarArchiveOutputStream tarOs, Path p) {
@@ -190,7 +194,7 @@ public class MainExplore {
 
             try (Stream<Path> files = Files.walk(dir)) {
                 List<FileInfo> containedFiles = files
-                        .sorted(filenameSorter())
+                        .sorted(filenameSorter(rootDir))
                         .filter(Files::isRegularFile)
                         .map(f -> copyToTar(f, tarForDirOs))
                         .toList();
