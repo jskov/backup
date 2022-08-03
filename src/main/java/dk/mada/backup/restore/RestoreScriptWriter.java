@@ -103,6 +103,7 @@ public final class RestoreScriptWriter {
 
     private String elementsToText(List<? extends BackupElement> elements) {
         return elements.stream()
+                .sorted((a, b) -> a.path().compareToIgnoreCase(b.path()))
                 .map(BackupElement::toBackupSummary)
                 .collect(Collectors.joining("\n"));
     }

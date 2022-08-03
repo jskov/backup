@@ -36,8 +36,8 @@ public final class FileInfo implements BackupElement {
         this.md5Checksum = md5;
     }
 
-    /** {@return the file's path relative to the backup root directory.} */
-    public String getPathName() {
+    @Override
+    public String path() {
         return pathName;
     }
 

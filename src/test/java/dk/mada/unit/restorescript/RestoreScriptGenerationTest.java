@@ -26,15 +26,15 @@ class RestoreScriptGenerationTest {
      * should all be expanded during copy.
      */
     @Test
-    void allThreeFileInfoBlocksAreFilled() throws IOException {
+    void allThreeFileInfoBlocksAreFilledAndSorted() throws IOException {
         RestoreScriptWriter sut = new RestoreScriptWriter();
 
         Map<VariableName, String> vars = Map.of(
                 VariableName.VERSION, "1.2.7");
 
         List<BackupElement> crypts = toBackupElements("backup.tar");
-        List<BackupElement> tars = toBackupElements("fun.tar", "sun.tar");
-        List<BackupElement> files = toBackupElements("fun/photo1.jpg", "sun/photo2.jpg");
+        List<BackupElement> tars = toBackupElements("sun.tar", "fun.tar");
+        List<BackupElement> files = toBackupElements("fun/photo2.jpg", "sun/photo1.jpg");
 
         Path script = dir.resolve("script.sh");
         sut.write(script, vars, crypts, tars, files);
@@ -43,7 +43,7 @@ class RestoreScriptGenerationTest {
         assertThat(lines)
                 .containsSequence("crypts=(", "backup.tar", ")")
                 .containsSequence("archives=(", "fun.tar", "sun.tar", ")")
-                .containsSequence("files=(", "fun/photo1.jpg", "sun/photo2.jpg", ")")
+                .containsSequence("files=(", "fun/photo2.jpg", "sun/photo1.jpg", ")")
                 .doesNotContain("CRYPTS#", "ARCHIVES#", "FILES#");
 
         String fullText = String.join("\n", lines);
@@ -53,7 +53,9 @@ class RestoreScriptGenerationTest {
 
     List<BackupElement> toBackupElements(String... strings) {
         return Arrays.stream(strings)
-                .map(s -> (BackupElement) () -> s)
+                .map(s -> new TestBackupElement(s, s))
                 .collect(Collectors.toList());
     }
+    
+    record TestBackupElement(String path, String toBackupSummary) implements BackupElement { }
 }
