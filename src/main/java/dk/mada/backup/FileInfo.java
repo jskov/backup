@@ -141,7 +141,7 @@ public final class FileInfo implements BackupElement {
             sb.append(md5Checksum);
         }
         sb.append(',');
-        sb.append(pathName);
+        sb.append(ShellEscaper.toSafeShellString(pathName));
         sb.append('"');
         return sb.toString();
     }

@@ -21,7 +21,6 @@ import dk.mada.backup.api.BackupTargetExistsException;
  * Copies out the restore script, replacing backup information as it goes.
  */
 public final class RestoreScriptWriter {
-
     /**
      * Constructs and writes restore script.
      *
