@@ -3,7 +3,7 @@ package dk.mada.backup;
 /**
  * Escapes strings for shell.
  */
-public class ShellEscaper {
+public final class ShellEscaper {
     private ShellEscaper() { }
 
     /**
