@@ -87,6 +87,7 @@ public final class CliMain implements Callable<Integer> {
         if (Files.exists(targetDir) && !Files.isDirectory(targetDir)) {
             argumentFail("The target directory must either not exist, or be a folder!");
         }
+        ensureBackupName();
 
         Map<String, String> envOverrides = Map.of();
         if (gpgHomeDir != null) {
@@ -102,6 +103,12 @@ public final class CliMain implements Callable<Integer> {
         }
 
         return 0;
+    }
+
+    private void ensureBackupName() {
+        if (backupName == null) {
+            backupName = sourceDir.getFileName().toString();
+        }
     }
 
     private void argumentFail(String message) {
