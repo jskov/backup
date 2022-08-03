@@ -24,6 +24,9 @@ public final class RestoreScriptWriter {
     /**
      * Constructs and writes restore script.
      *
+     * Note that the lists are added to the script in the
+     * order provided.
+     *
      * @param script the destination path for the script
      * @param vars the variables to expand in the script template
      * @param crypts the information about crypted files
@@ -102,7 +105,6 @@ public final class RestoreScriptWriter {
 
     private String elementsToText(List<? extends BackupElement> elements) {
         return elements.stream()
-                .sorted((a, b) -> a.path().compareToIgnoreCase(b.path()))
                 .map(BackupElement::toBackupSummary)
                 .collect(Collectors.joining("\n"));
     }
