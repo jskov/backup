@@ -5,13 +5,9 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import dk.mada.backup.Version;
-import dk.mada.backup.api.BackupApi;
-import dk.mada.backup.api.BackupTargetExistsException;
-import dk.mada.backup.restore.RestoreExecutor;
+import dk.mada.backup.api.BackupArguments;
+import dk.mada.backup.impl.BackupApplication;
 import dk.mada.backup.types.GpgId;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -22,6 +18,9 @@ import picocli.CommandLine.Spec;
 
 /**
  * Main class for command line invocation.
+ *
+ * Contains argument handling, delegates actual
+ * application execution to backup.
  */
 @Command(
     name = "mba",
@@ -32,9 +31,6 @@ import picocli.CommandLine.Spec;
     description = "Makes a backup of a file tree. Results in a restore script plus a number of encrypted data files."
 )
 public final class CliMain implements Callable<Integer> {
-
-    private static final Logger logger = LoggerFactory.getLogger(CliMain.class);
-
     /** Name of option for max backup file size. */
     public static final String OPT_MAX_SIZE = "--max-size";
     /** Name of option for GPG recipient identity. */
@@ -87,6 +83,12 @@ public final class CliMain implements Callable<Integer> {
      * Creates new instance for a single invocation from CLI.
      */
     public Integer call() {
+        BackupArguments args = buildBackupArguments();
+        new BackupApplication(args).makeBackup();
+        return 0;
+    }
+
+    public BackupArguments buildBackupArguments() {
         if (!Files.isDirectory(sourceDir)) {
             argumentFail("The source directory must be an existing directory!");
         }
@@ -94,23 +96,15 @@ public final class CliMain implements Callable<Integer> {
             argumentFail("The target directory must either not exist, or be a folder!");
         }
         ensureBackupName();
-
+        
         Map<String, String> envOverrides = Map.of();
         if (gpgHomeDir != null) {
             envOverrides = Map.of("GNUPGHOME", gpgHomeDir.toAbsolutePath().toString());
         }
 
-        Path restoreScript = makeBackup(envOverrides);
-
-        if (skipVerify) {
-            logger.info("Backup *not* verified!");
-        } else {
-            verifyBackup(envOverrides, restoreScript);
-        }
-
-        return 0;
+        return new BackupArguments(gpgRecipientId, envOverrides, backupName, sourceDir, targetDir, maxFileSize, skipVerify, testingAvoidSystemExit);
     }
-
+    
     private void ensureBackupName() {
         if (backupName == null) {
             backupName = sourceDir.getFileName().toString();
@@ -119,53 +113,6 @@ public final class CliMain implements Callable<Integer> {
 
     private void argumentFail(String message) {
         throw new CommandLine.ParameterException(spec.commandLine(), message);
-    }
-
-    private Path makeBackup(Map<String, String> envOverrides) {
-        try {
-            BackupApi backupApi = new BackupApi(gpgRecipientId, envOverrides, maxFileSize);
-            return backupApi.makeBackup(backupName, sourceDir, targetDir);
-        } catch (BackupTargetExistsException e) {
-            logger.info("Failed to create backup: {}", e.getMessage());
-            logger.debug("Failure", e);
-            systemExit(1);
-            return null; // WTF?
-        }
-    }
-
-    private void verifyBackup(Map<String, String> envOverrides, Path script) {
-        try {
-            logger.info("Verifying backup...");
-            RestoreExecutor.runRestoreScriptExitOnFail(testingAvoidSystemExit, script, envOverrides, "verify");
-            RestoreExecutor.runRestoreScriptExitOnFail(testingAvoidSystemExit, script, envOverrides, "verify", "-s");
-            logger.info("Backup verified.");
-        } catch (Exception e) {
-            Console.println("");
-            Console.println("**********************************************");
-            Console.println("**  WARNING WARNING WARNING WARNING WARNING **");
-            Console.println("**                                          **");
-            Console.println("**   !Backup restore verification failed!   **");
-            Console.println("**                                          **");
-            Console.println("**  WARNING WARNING WARNING WARNING WARNING **");
-            Console.println("**********************************************");
-            Console.println("");
-            throw new IllegalStateException("Failed to run verify script " + script, e);
-        }
-    }
-
-    /**
-     * Handle system exit.
-     *
-     * When running tests, this would kill the Gradle daemon which it dislikes very
-     * much. So when test flag is set, throw an exception instead.
-     *
-     * @param exitCode the code to exit with
-     */
-    private void systemExit(int exitCode) {
-        if (testingAvoidSystemExit) {
-            throw new IllegalStateException("Backup/restore failed, would system exit: " + exitCode);
-        }
-        System.exit(exitCode);
     }
 
     /**
