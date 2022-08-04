@@ -1,4 +1,4 @@
-package dk.mada.unit.backup;
+package dk.mada.unit.arguments;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -7,12 +7,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import dk.mada.backup.api.BackupApi;
 import dk.mada.backup.api.BackupTargetExistsException;
@@ -23,6 +26,7 @@ import dk.mada.fixture.TestDataPrepper;
  * The backup program must not overwrite any files - it should fail instead.
  */
 class NondestructionTest {
+    private static final Logger logger = LoggerFactory.getLogger(NondestructionTest.class);
     /** Directory to backup of. */
     private static Path srcDir;
     /** The backup api - sut. */
@@ -73,6 +77,7 @@ class NondestructionTest {
     private void runBackup(String name) throws IOException {
         api.makeBackup(name, srcDir, targetDir);
 
-        Files.list(targetDir).forEach(p -> System.out.println("SEE " + p));
+        List<Path> filesInBackupFolder = Files.list(targetDir).toList();
+        logger.info("See backup files: {}", filesInBackupFolder);
     }
 }
