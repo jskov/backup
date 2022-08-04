@@ -93,7 +93,7 @@ class BackupVerificationTest {
                         " - (3/9) dir-c.tar... ok",
                         " - (4/9) dir-d with space.tar... ok",
                         " - (5/9) dir-e.tar... ok",
-                        " - (6/9) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.tar... ok",
+                        " - (6/9) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.tar... ok", // NOSONAR
                         " - (7/9) dir-m-with-[brackets]-and-(parens)-dir.tar... ok",
                         " - (8/9) file-root1.bin... ok",
                         " - (9/9) file-root2 with space.bin... ok",
@@ -114,10 +114,10 @@ class BackupVerificationTest {
                 .contains(" - (1/9) dir-a/file-a1.bin... ok",
                         " - (2/9) dir-a/file-a2.bin... ok",
                         " - (3/9) dir-b/file-b1.bin... ok",
-                        " - (4/9) dir-c/file-c-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.bin... ok",
+                        " - (4/9) dir-c/file-c-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.bin... ok", // NOSONAR
                         " - (5/9) dir-d with space/file-d1.bin... ok",
                         " - (6/9) dir-e/file-e with space.bin... ok",
-                        " - (7/9) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890/file-long1.bin... ok",
+                        " - (7/9) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890/file-long1.bin... ok", // NOSONAR
                         " - (8/9) dir-m-with-[brackets]-and-(parens)-dir/empty-file... ok",
                         " - (9/9) dir-m-with-[brackets]-and-(parens)-dir/text-file.txt... ok",
                         "Success!");

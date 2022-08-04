@@ -31,7 +31,8 @@ class RestoreScriptGenerationTest {
         RestoreScriptWriter sut = new RestoreScriptWriter();
 
         Map<VariableName, String> vars = Map.of(
-                VariableName.VERSION, "1.2.7");
+                VariableName.VERSION, "1.2.7",
+                VariableName.DATA_FORMAT_VERSION, "777");
 
         List<BackupElement> crypts = toBackupElements("backup.tar");
         List<BackupElement> tars = toBackupElements("fun.tar", "sun.tar");
@@ -49,7 +50,9 @@ class RestoreScriptGenerationTest {
 
         String fullText = String.join("\n", lines);
         assertThat(fullText)
-                .contains("made with backup version 1.2.7");
+                .contains("made with backup version 1.2.7",
+                        "@version: 1.2.7",
+                        "@data_format_version: 777");
     }
 
     @Test
@@ -74,7 +77,7 @@ class RestoreScriptGenerationTest {
                 .map(TestBackupElement::new)
                 .collect(Collectors.toList());
     }
-    
+
     record TestBackupElement(String path) implements BackupElement {
         @Override
         public String toBackupSummary() {

@@ -39,7 +39,7 @@ class SplitterTest {
     @Test
     void shouldSplitStreamOverSeveralFiles() throws IOException {
         String text = "Test text to be split";
-        int splitLength = 7; // NOSONAR - causes split of text into three
+        int splitLength = 7; // NOSONAR - causes split of text into three parts
 
         writeSplitterOutput(text, splitLength);
 

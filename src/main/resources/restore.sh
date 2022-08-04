@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# @version: @@VERSION@@
+# @data_format_version: @@DATA_FORMAT_VERSION@@
+
 set -e
 
 crypts=(
@@ -11,7 +14,6 @@ archives=(
 #BEGIN_ARCHIVES#
 #END_ARCHIVES#
 )
-
 
 files=(
 #BEGIN_FILES#

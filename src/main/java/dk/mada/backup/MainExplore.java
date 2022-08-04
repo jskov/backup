@@ -43,9 +43,11 @@ import dk.mada.backup.types.GpgId;
  * TODO: Needs to be rewritten/split up.
  */
 public class MainExplore {
+    private static final Logger logger = LoggerFactory.getLogger(MainExplore.class);
     /** File scanning buffer size. */
     private static final int FILE_SCAN_BUFFER_SIZE = 8192;
-    private static final Logger logger = LoggerFactory.getLogger(MainExplore.class);
+    /** The version of the data format used for file information. */
+    private static final String FILE_DATA_FORMAT_VERSION = "1";
     /** File permissions used for temporary files used while creating backup. */
     private static final FileAttribute<Set<PosixFilePermission>> ATTR_PRIVATE_TO_USER = PosixFilePermissions
             .asFileAttribute(PosixFilePermissions.fromString("rwx------"));
@@ -138,8 +140,8 @@ public class MainExplore {
                 VariableName.BACKUP_DATE_TIME, backupTime,
                 VariableName.BACKUP_NAME, name,
                 VariableName.BACKUP_INPUT_SIZE, HumanByteCount.humanReadableByteCount(totalInputSize),
-                VariableName.BACKUP_KEY_ID, recipientKeyId.id()
-
+                VariableName.BACKUP_KEY_ID, recipientKeyId.id(),
+                VariableName.DATA_FORMAT_VERSION, FILE_DATA_FORMAT_VERSION
         );
         new RestoreScriptWriter().write(restoreScript, vars, cryptElements, archiveElements, fileElements);
 
