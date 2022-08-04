@@ -13,5 +13,7 @@ public enum VariableName {
     /** The (original) size of the backed up data. */
     BACKUP_INPUT_SIZE,
     /** The version of the application that created the backup. */
-    VERSION
+    VERSION,
+    /** The version of the format used for file data. */
+    DATA_FORMAT_VERSION
 }
