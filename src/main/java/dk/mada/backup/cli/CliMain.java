@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 import dk.mada.backup.Version;
 import dk.mada.backup.api.BackupArguments;
@@ -79,12 +80,23 @@ public final class CliMain implements Callable<Integer> {
     @Parameters(index = "1", description = "target directory", paramLabel = "target-dir")
     private Path targetDir;
 
+    /** The Backup application to execute after processing arguments. */
+    private final Consumer<BackupArguments> backupApp;
+
+    /**
+     * Create a new instance.
+     *
+     * @param backupApp the backup application to execute
+     */
+    public CliMain(Consumer<BackupArguments> backupApp) {
+        this.backupApp = backupApp;
+    }
+    
     /**
      * Creates new instance for a single invocation from CLI.
      */
     public Integer call() {
-        BackupArguments args = buildBackupArguments();
-        new BackupApplication(args).makeBackup();
+        backupApp.accept(buildBackupArguments());
         return 0;
     }
 
@@ -121,7 +133,7 @@ public final class CliMain implements Callable<Integer> {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        int exitCode = new CommandLine(new CliMain()).execute(args);
+        int exitCode = new CommandLine(new CliMain(BackupApplication::run)).execute(args);
         if (exitCode != 0) {
             System.exit(exitCode);
         }

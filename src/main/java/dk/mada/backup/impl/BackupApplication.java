@@ -30,6 +30,15 @@ public class BackupApplication {
     }
 
     /**
+     * Runs the backup application with the provided arguments.
+     *
+     * @param args the backup arguments
+     */
+    public static void run(BackupArguments args) {
+        new BackupApplication(args).makeBackup();
+    }
+    
+    /**
      * Makes backup from the provided arguments.
      */
     public void makeBackup() {
