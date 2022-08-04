@@ -17,6 +17,9 @@ public final class DefaultArgs implements IDefaultValueProvider {
         if (isNamedOption(arg, CliMain.OPT_MAX_SIZE)) {
             return Long.toString(BackupApi.DEFAULT_MAX_CRYPT_FILE_SIZE);
         }
+        if (isNamedOption(arg, CliMain.OPT_REPOSITORY_DIR)) {
+            return System.getenv("BACKUP_REPOSITORY_DIR");
+        }
         return null;
     }
 

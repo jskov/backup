@@ -32,12 +32,15 @@ import picocli.CommandLine.Spec;
     description = "Makes a backup of a file tree. Results in a restore script plus a number of encrypted data files."
 )
 public final class CliMain implements Callable<Integer> {
+
     private static final Logger logger = LoggerFactory.getLogger(CliMain.class);
 
     /** Name of option for max backup file size. */
     public static final String OPT_MAX_SIZE = "--max-size";
     /** Name of option for GPG recipient identity. */
     public static final String OPT_RECIPIENT = "-r";
+    /** Name of option for repository directory. */
+    public static final String OPT_REPOSITORY_DIR = "--repository";
 
     /** The picoCli spec. */
     @Spec private CommandSpec spec;
@@ -69,6 +72,9 @@ public final class CliMain implements Callable<Integer> {
     /** Flag to print help. */
     @Option(names = "--help", description = "print this help and exit", help = true)
     private boolean printHelp;
+    /** Repository location. */
+    @Option(names = OPT_REPOSITORY_DIR, description = "repository for restore scripts")
+    private Path repositoryDir;
 
     /** Backup source directory option. */
     @Parameters(index = "0", description = "backup source directory", paramLabel = "source-dir")

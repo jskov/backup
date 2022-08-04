@@ -19,8 +19,10 @@ import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.restore.VariableName;
 
 class RestoreScriptGenerationTest {
-    /** Temp output directory. */
+    /** Temporary output directory. */
     private @TempDir Path dir;
+    /** Temporary repository directory. */
+    private @TempDir Path repositoryDir;
 
     /**
      * The restore script contains sections for each backup element type. These
@@ -72,6 +74,22 @@ class RestoreScriptGenerationTest {
                           "På slaget 12/Hjem til Århus/12 Li\\`e Midt I Mellen.ogg");
     }
 
+    @Test
+    void restoreScriptIsWrittenToRepository() {
+        RestoreScriptWriter sut = new RestoreScriptWriter();
+
+        List<BackupElement> files = toBackupElements("not-relevant.txt");
+
+        String backupTargetPath = "script.sh";
+        Path script = dir.resolve(backupTargetPath);
+        sut.write(script, Map.of(), List.of(), List.of(), files);
+        
+        assertThat(script)
+            .exists();
+        assertThat(repositoryDir.resolve(backupTargetPath))
+            .exists();
+    }
+    
     List<BackupElement> toBackupElements(String... strings) {
         return Arrays.stream(strings)
                 .map(TestBackupElement::new)
