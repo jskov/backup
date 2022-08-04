@@ -13,6 +13,6 @@ public final class ShellEscaper {
      * @return s with problematic characters escaped
      */
     public static String toSafeShellString(String s) {
-        return s.replace("\"", "\\\"").replace('`', '\'');
+        return s.replace("\"", "\\\"").replace("`", "\\`");
     }
 }
