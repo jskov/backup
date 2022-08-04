@@ -69,7 +69,7 @@ class RestoreScriptGenerationTest {
         List<String> lines = Files.readAllLines(script);
         assertThat(lines)
                 .contains("Annie Lennox/Medusa/01. Annie Lennox - No More \\\"I Love You's\\\".opus",
-                          "På slaget 12/Hjem til Århus/12 Li'e Midt I Mellen.ogg");
+                          "På slaget 12/Hjem til Århus/12 Li\\`e Midt I Mellen.ogg");
     }
 
     List<BackupElement> toBackupElements(String... strings) {

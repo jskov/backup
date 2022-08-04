@@ -134,6 +134,15 @@ public final class CliMain implements Callable<Integer> {
             RestoreExecutor.runRestoreScriptExitOnFail(testingAvoidSystemExit, script, envOverrides, "verify", "-s");
             logger.info("Backup verified.");
         } catch (Exception e) {
+            Console.println("");
+            Console.println("**********************************************");
+            Console.println("**  WARNING WARNING WARNING WARNING WARNING **");
+            Console.println("**                                          **");
+            Console.println("**   !Backup restore verification failed!   **");
+            Console.println("**                                          **");
+            Console.println("**  WARNING WARNING WARNING WARNING WARNING **");
+            Console.println("**********************************************");
+            Console.println("");
             throw new IllegalStateException("Failed to run verify script " + script, e);
         }
     }
