@@ -57,14 +57,16 @@ class RestoreScriptGenerationTest {
         RestoreScriptWriter sut = new RestoreScriptWriter();
 
         List<BackupElement> files = toBackupElements(
-                "Annie Lennox/Medusa/01. Annie Lennox - No More \"I Love You's\".opus");
+                "Annie Lennox/Medusa/01. Annie Lennox - No More \"I Love You's\".opus",
+                "På slaget 12/Hjem til Århus/12 Li`e Midt I Mellen.ogg");
 
         Path script = dir.resolve("script.sh");
         sut.write(script, Map.of(), List.of(), List.of(), files);
 
         List<String> lines = Files.readAllLines(script);
         assertThat(lines)
-                .contains("Annie Lennox/Medusa/01. Annie Lennox - No More \\\"I Love You's\\\".opus");
+                .contains("Annie Lennox/Medusa/01. Annie Lennox - No More \\\"I Love You's\\\".opus",
+                          "På slaget 12/Hjem til Århus/12 Li'e Midt I Mellen.ogg");
     }
 
     List<BackupElement> toBackupElements(String... strings) {
