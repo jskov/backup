@@ -1,5 +1,8 @@
 package dk.mada.backup.impl;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.slf4j.Logger;
@@ -44,10 +47,25 @@ public class BackupApplication {
     public void makeBackup() {
         Path restoreScript = createBackup();
 
+        makeRepositoryCopy(restoreScript);
+
         if (args.skipVerify()) {
             logger.info("Backup *not* verified!");
         } else {
             verifyBackup(restoreScript);
+        }
+    }
+
+    private void makeRepositoryCopy(Path restoreScript) {
+        if (args.repositoryDir() != null) {
+            Path repoFile = args.repositoryDir().resolve(args.repositoryScriptPath());
+            logger.info("Writing restore script to {}", repoFile);
+            try {
+                Files.createDirectories(repoFile.getParent());
+                Files.copy(restoreScript, repoFile);
+            } catch (IOException e) {
+                throw new UncheckedIOException("Failed to copy restore script to " + repoFile, e);
+            }
         }
     }
 

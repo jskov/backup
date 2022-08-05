@@ -89,7 +89,7 @@ class NameAndDestinationTests {
         assertThat(args.targetDir())
             .isEqualTo(targetDir);
     }
-    
+
     /**
      * If source is relative the (source) parent-dir path will
      * be used to extend the target dir and also for the
@@ -102,22 +102,22 @@ class NameAndDestinationTests {
     @Test
     void sourceAndTargetMayBeRelative() throws IOException {
         BackupArguments args = runBackup("./dir-deep/dir-sub-a", targetDir.toString());
-        
+
         assertThat(args.name())
             .isEqualTo("dir-deep-dir-sub-a");
         assertThat(args.targetDir())
             .isEqualTo(targetDir.resolve("dir-deep"));
     }
-    
+
     private BackupArguments runBackup(String... args) throws IOException {
         List<String> combinedArgs = new ArrayList<>();
         combinedArgs.addAll(List.of("--running-tests",
                 "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),
                 "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME));
         combinedArgs.addAll(List.of(args));
-        
+
         AtomicReference<BackupArguments> ref = new AtomicReference<>();
-        
+
         new CommandLine(new CliMain(envAtRootOfSrc, ref::set))
                 .setDefaultValueProvider(new DefaultArgs(envAtRootOfSrc))
                 .execute(combinedArgs.toArray(new String[combinedArgs.size()]));
@@ -126,7 +126,7 @@ class NameAndDestinationTests {
         assertThat(returned)
             .withFailMessage("Failed processing arguments?!")
             .isNotNull();
-        
+
         return returned;
     }
 }

@@ -22,7 +22,8 @@ public final class MakeBackup {
      */
     public static Path makeBackup() throws IOException, ArchiveException {
         Path srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree");
-        Path targetDir = Paths.get("build/backup-dest");
+        Path targetDir = Paths.get("build/backup-dest").toAbsolutePath();
+        Path repositoryDir = targetDir.resolve("_repository");
 
         DirectoryDeleter.delete(targetDir);
 
@@ -30,10 +31,11 @@ public final class MakeBackup {
         CliMain.main(new String[] {
                 "--running-tests",
                 "-n", "test",
+                "--repository", repositoryDir.toString(),
                 "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),
                 "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME,
-                srcDir.toAbsolutePath().toString(),
-                targetDir.toAbsolutePath().toString()
+                srcDir.toString(),
+                targetDir.toString()
         });
 
         return restoreScript;
