@@ -32,7 +32,6 @@ import picocli.CommandLine.Spec;
     header = "",
     mixinStandardHelpOptions = true,
     versionProvider = Version.class,
-//    defaultValueProvider = DefaultArgs.class,
     description = "Makes a backup of a file tree. Results in a restore script plus a number of encrypted data files."
 )
 public final class CliMain implements Callable<Integer> {
@@ -113,13 +112,7 @@ public final class CliMain implements Callable<Integer> {
      * Creates new instance for a single invocation from CLI.
      */
     public Integer call() {
-        try {
-            backupApp.accept(buildBackupArguments());
-        } catch (RuntimeException e) {
-            System.out.println("FAILED");
-            e.printStackTrace();
-            throw e;
-        }
+        backupApp.accept(buildBackupArguments());
         return 0;
     }
 

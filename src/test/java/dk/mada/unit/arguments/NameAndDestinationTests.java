@@ -111,17 +111,14 @@ class NameAndDestinationTests {
     
     private BackupArguments runBackup(String... args) throws IOException {
         List<String> combinedArgs = new ArrayList<>();
-        combinedArgs.addAll(List.of("--running-tests", "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME));
+        combinedArgs.addAll(List.of("--running-tests",
+                "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),
+                "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME));
         combinedArgs.addAll(List.of(args));
         
         AtomicReference<BackupArguments> ref = new AtomicReference<>();
         
-        
-        new CommandLine(new CliMain(envAtRootOfSrc, parsedArgs -> {
-            System.out.println("GOT parsed ARGS " + parsedArgs);
-            ref.set(parsedArgs);
-            System.out.println("Was set!");
-        }))
+        new CommandLine(new CliMain(envAtRootOfSrc, ref::set))
                 .setDefaultValueProvider(new DefaultArgs(envAtRootOfSrc))
                 .execute(combinedArgs.toArray(new String[combinedArgs.size()]));
 
@@ -129,8 +126,6 @@ class NameAndDestinationTests {
         assertThat(returned)
             .withFailMessage("Failed processing arguments?!")
             .isNotNull();
-
-        System.out.println("Returning " + returned);
         
         return returned;
     }
