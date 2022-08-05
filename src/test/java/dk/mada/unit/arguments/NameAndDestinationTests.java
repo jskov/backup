@@ -117,7 +117,11 @@ class NameAndDestinationTests {
         AtomicReference<BackupArguments> ref = new AtomicReference<>();
         
         
-        new CommandLine(new CliMain(envAtRootOfSrc, parsedArgs -> ref.set(parsedArgs)))
+        new CommandLine(new CliMain(envAtRootOfSrc, parsedArgs -> {
+            System.out.println("GOT parsed ARGS " + parsedArgs);
+            ref.set(parsedArgs);
+            System.out.println("Was set!");
+        }))
                 .setDefaultValueProvider(new DefaultArgs(envAtRootOfSrc))
                 .execute(combinedArgs.toArray(new String[combinedArgs.size()]));
 
