@@ -116,13 +116,18 @@ class NameAndDestinationTests {
         
         AtomicReference<BackupArguments> ref = new AtomicReference<>();
         
+        
         new CommandLine(new CliMain(envAtRootOfSrc, parsedArgs -> ref.set(parsedArgs)))
                 .setDefaultValueProvider(new DefaultArgs(envAtRootOfSrc))
                 .execute(combinedArgs.toArray(new String[combinedArgs.size()]));
 
-        assertThat(ref.get())
+        BackupArguments returned = ref.get();
+        assertThat(returned)
             .withFailMessage("Failed processing arguments?!")
             .isNotNull();
-        return ref.get();
+
+        System.out.println("Returning " + returned);
+        
+        return returned;
     }
 }
