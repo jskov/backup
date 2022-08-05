@@ -140,8 +140,12 @@ public final class CliMain implements Runnable {
             envOverrides = Map.of("GNUPGHOME", gpgHomeDir.toAbsolutePath().toString());
         }
 
+        Path repositoryScriptPath = adjustment.targetPath().resolve(backupName + ".sh");
+
         return new BackupArguments(gpgRecipientId, envOverrides, backupName,
-                sourceDir, targetDir, maxFileSize, skipVerify, testingAvoidSystemExit);
+                sourceDir, targetDir,
+                repositoryDir, repositoryScriptPath,
+                maxFileSize, skipVerify, testingAvoidSystemExit);
     }
 
     private Path makeRelativeToCwd(Path dir) {
@@ -190,7 +194,7 @@ public final class CliMain implements Runnable {
         Path targetChange = relativeSrcDir.getParent();
         return new NameAjustment(name, targetChange);
     }
-    
+
     private boolean containsRelativeElements(Path p) {
         for (Iterator<Path> ix = p.iterator(); ix.hasNext();) {
             String el = ix.next().toString();

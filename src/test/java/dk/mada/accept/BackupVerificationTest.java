@@ -169,6 +169,12 @@ class BackupVerificationTest {
                 .isNotZero();
     }
 
+    @Test
+    void restoreScriptIsWrittenToRepository() {
+        assertThat(restoreScript)
+            .hasSameTextualContentAs(restoreScript.getParent().resolve("_repository/test.sh"));
+    }
+
     private Result runRestoreCmd(String... args) throws IOException {
         return runRestoreCmd(restoreScript, args);
     }

@@ -31,7 +31,7 @@ public final class TestDataPrepper {
      * @return a prepared build folder containing the extracted test set with file times set
      */
     public static Path prepareTestInputTree(String name) throws IOException, ArchiveException {
-        Path srcDir = Paths.get("build/backup-src");
+        Path srcDir = Paths.get("build/backup-src").toAbsolutePath();
         Files.createDirectories(srcDir);
 
         Path testSetDir = srcDir.resolve(name);

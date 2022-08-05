@@ -85,13 +85,13 @@ class RestoreScriptGenerationTest {
         String backupTargetPath = "script.sh";
         Path script = dir.resolve(backupTargetPath);
         sut.write(script, Map.of(), List.of(), List.of(), files);
-        
+
         assertThat(script)
             .exists();
         assertThat(repositoryDir.resolve(backupTargetPath))
             .exists();
     }
-    
+
     List<BackupElement> toBackupElements(String... strings) {
         return Arrays.stream(strings)
                 .map(TestBackupElement::new)
