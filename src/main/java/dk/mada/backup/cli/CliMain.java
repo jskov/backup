@@ -113,7 +113,13 @@ public final class CliMain implements Callable<Integer> {
      * Creates new instance for a single invocation from CLI.
      */
     public Integer call() {
-        backupApp.accept(buildBackupArguments());
+        try {
+            backupApp.accept(buildBackupArguments());
+        } catch (RuntimeException e) {
+            System.out.println("FAILED");
+            e.printStackTrace();
+            throw e;
+        }
         return 0;
     }
 
