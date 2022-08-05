@@ -47,13 +47,13 @@ public class BackupApplication {
     public void makeBackup() {
         Path restoreScript = createBackup();
 
-        makeRepositoryCopy(restoreScript);
-
         if (args.skipVerify()) {
             logger.info("Backup *not* verified!");
         } else {
             verifyBackup(restoreScript);
         }
+
+        makeRepositoryCopy(restoreScript);
     }
 
     private void makeRepositoryCopy(Path restoreScript) {
