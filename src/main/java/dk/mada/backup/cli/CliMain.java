@@ -1,5 +1,7 @@
 package dk.mada.backup.cli;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -28,7 +30,7 @@ import picocli.CommandLine.Spec;
     header = "",
     mixinStandardHelpOptions = true,
     versionProvider = Version.class,
-    defaultValueProvider = DefaultArgs.class,
+//    defaultValueProvider = DefaultArgs.class,
     description = "Makes a backup of a file tree. Results in a restore script plus a number of encrypted data files."
 )
 public final class CliMain implements Callable<Integer> {
@@ -80,6 +82,8 @@ public final class CliMain implements Callable<Integer> {
     @Parameters(index = "1", description = "target directory", paramLabel = "target-dir")
     private Path targetDir;
 
+    /** The environment inputs. */
+    private final EnvironmentInputs envInputs;
     /** The Backup application to execute after processing arguments. */
     private final Consumer<BackupArguments> backupApp;
 
@@ -89,9 +93,20 @@ public final class CliMain implements Callable<Integer> {
      * @param backupApp the backup application to execute
      */
     public CliMain(Consumer<BackupArguments> backupApp) {
-        this.backupApp = backupApp;
+        this(new EnvironmentInputs(), backupApp);
     }
     
+    /**
+     * Create a new instance.
+     *
+     * @param envInputs the environment inputs
+     * @param backupApp the backup application to execute
+     */
+    public CliMain(EnvironmentInputs envInputs, Consumer<BackupArguments> backupApp) {
+        this.envInputs = envInputs;
+        this.backupApp = backupApp;
+    }
+
     /**
      * Creates new instance for a single invocation from CLI.
      */
@@ -101,12 +116,18 @@ public final class CliMain implements Callable<Integer> {
     }
 
     public BackupArguments buildBackupArguments() {
+        Path relativeSrcDir = sourceDir;
+
+        sourceDir = makeRelativeToCwd(sourceDir);
+        targetDir = makeRelativeToCwd(targetDir);
+
         if (!Files.isDirectory(sourceDir)) {
             argumentFail("The source directory must be an existing directory!");
         }
         if (Files.exists(targetDir) && !Files.isDirectory(targetDir)) {
             argumentFail("The target directory must either not exist, or be a folder!");
         }
+        
         ensureBackupName();
         
         Map<String, String> envOverrides = Map.of();
@@ -117,12 +138,32 @@ public final class CliMain implements Callable<Integer> {
         return new BackupArguments(gpgRecipientId, envOverrides, backupName, sourceDir, targetDir, maxFileSize, skipVerify, testingAvoidSystemExit);
     }
     
-    private void ensureBackupName() {
-        if (backupName == null) {
-            backupName = sourceDir.getFileName().toString();
+    private Path makeRelativeToCwd(Path dir) {
+        if (dir.isAbsolute()) {
+            return toRealPath(dir);
+        } else {
+            return toRealPath(envInputs.getCurrentWorkingDirectory().resolve(dir));
         }
     }
 
+    private void ensureBackupName() {
+        if (backupName == null) {
+            backupName = toRealPath(sourceDir).getFileName().toString();
+        }
+    }
+
+    private Path toRealPath(Path p) {
+        try {
+            if (Files.exists(p)) {
+                return p.toRealPath();
+            } else {
+                return p;
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to convert path " + p + " to real path", e);
+        }
+    }
+    
     private void argumentFail(String message) {
         throw new CommandLine.ParameterException(spec.commandLine(), message);
     }
@@ -133,7 +174,9 @@ public final class CliMain implements Callable<Integer> {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        int exitCode = new CommandLine(new CliMain(BackupApplication::run)).execute(args);
+        int exitCode = new CommandLine(new CliMain(BackupApplication::run))
+                .setDefaultValueProvider(new DefaultArgs())
+                .execute(args);
         if (exitCode != 0) {
             System.exit(exitCode);
         }

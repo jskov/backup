@@ -17,6 +17,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dk.mada.backup.api.BackupArguments;
 import dk.mada.backup.cli.CliMain;
+import dk.mada.backup.cli.DefaultArgs;
+import dk.mada.backup.cli.EnvironmentInputs;
 import dk.mada.fixture.TestCertificateInfo;
 import dk.mada.fixture.TestDataPrepper;
 import picocli.CommandLine;
@@ -27,12 +29,49 @@ import picocli.CommandLine;
 class NameAndDestinationTests {
     /** Directory to backup of. */
     private static Path srcDir;
+    /** Environment inputs with CWD at root of srcDir. */
+    private static EnvironmentInputs envAtRootOfSrc;
     /** Target directory for test.*/
     private @TempDir Path targetDir;
 
     @BeforeAll
     static void prepSource() throws IOException, ArchiveException {
-        srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree");
+        srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree").toAbsolutePath();
+
+        envAtRootOfSrc = new EnvironmentInputs() {
+            public Path getCurrentWorkingDirectory() {
+                return srcDir;
+            }
+        };
+    }
+
+    /**
+     * Source and target paths are relative to CWD.
+     */
+    @Test
+    void sourceAndTargetDirsAreRelativeToCurrentDir() throws IOException {
+        BackupArguments args = runBackup("dir-a", "output-test");
+
+        assertThat(args.sourceDir())
+            .isEqualTo(srcDir.resolve("dir-a"));
+        assertThat(args.targetDir())
+            .isEqualTo(srcDir.resolve("output-test"));
+    }
+
+    /**
+     * Unnamed source input gets translated to actual directory
+     * name.
+     */
+    @Test
+    void translatesDotSrcDir() throws IOException {
+        BackupArguments args = runBackup(".", targetDir.toString());
+
+        assertThat(args.name())
+            .isEqualTo("simple-input-tree");
+        assertThat(args.sourceDir())
+            .isEqualTo(srcDir.toAbsolutePath());
+        assertThat(args.targetDir())
+            .isEqualTo(targetDir);
     }
 
     /**
@@ -43,19 +82,16 @@ class NameAndDestinationTests {
      */
     @Test
     void absolutePathsOverrideChanges() throws IOException {
-        
-        Path absSrc = srcDir.toAbsolutePath();
-        Path absTarget = targetDir.toAbsolutePath();
-        BackupArguments args = runBackup(absSrc.toString(), absTarget.toString());
-        
-        assertThat(args.targetDir())
-            .isEqualTo(absTarget);
-        assertThat(args.sourceDir())
-            .isEqualTo(absSrc);
-    }
+        BackupArguments args = runBackup(srcDir.toString(), targetDir.toString());
 
+        assertThat(args.sourceDir())
+            .isEqualTo(srcDir);
+        assertThat(args.targetDir())
+            .isEqualTo(targetDir);
+    }
+    
     /**
-     * If source is relative the parent-dir path will
+     * If source is relative the (source) parent-dir path will
      * be used to extend the target dir and also for the
      * name.
      *
@@ -64,9 +100,9 @@ class NameAndDestinationTests {
      * "dst/music" (not "dst")
      */
     @Test
-    @Disabled("FIXME: not done yet")
     void sourceAndTargetMayBeRelative() throws IOException {
-        BackupArguments args = runBackup(srcDir.toAbsolutePath().toString(), targetDir.toAbsolutePath().toString());
+        
+        BackupArguments args = runBackup(".", targetDir.toAbsolutePath().toString());
         
         System.out.println("ARGS: " + args);
         
@@ -96,7 +132,8 @@ class NameAndDestinationTests {
         
         AtomicReference<BackupArguments> ref = new AtomicReference<>();
         
-        new CommandLine(new CliMain(parsedArgs -> ref.set(parsedArgs)))
+        new CommandLine(new CliMain(envAtRootOfSrc, parsedArgs -> ref.set(parsedArgs)))
+                .setDefaultValueProvider(new DefaultArgs(envAtRootOfSrc))
                 .execute(combinedArgs.toArray(new String[combinedArgs.size()]));
 
         return ref.get();

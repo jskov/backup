@@ -9,6 +9,7 @@ import picocli.CommandLine.Model.OptionSpec;
  * Default arguments provider.
  */
 public final class DefaultArgs implements IDefaultValueProvider {
+    /** The environment inputs. */
     private final EnvironmentInputs envInputs;
     
     /**
