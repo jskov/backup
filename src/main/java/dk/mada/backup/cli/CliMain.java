@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 import dk.mada.backup.Version;
@@ -34,7 +33,7 @@ import picocli.CommandLine.Spec;
     versionProvider = Version.class,
     description = "Makes a backup of a file tree. Results in a restore script plus a number of encrypted data files."
 )
-public final class CliMain implements Callable<Integer> {
+public final class CliMain implements Runnable {
     /** Name of option for max backup file size. */
     public static final String OPT_MAX_SIZE = "--max-size";
     /** Name of option for GPG recipient identity. */
@@ -109,11 +108,10 @@ public final class CliMain implements Callable<Integer> {
     }
 
     /**
-     * Creates new instance for a single invocation from CLI.
+     * Runs backup application with processed CLI arguments.
      */
-    public Integer call() {
+    public void run() {
         backupApp.accept(buildBackupArguments());
-        return 0;
     }
 
     /**
