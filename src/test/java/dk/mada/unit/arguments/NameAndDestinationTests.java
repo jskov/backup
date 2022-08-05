@@ -1,7 +1,6 @@
 package dk.mada.unit.arguments;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -11,7 +10,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -111,23 +109,6 @@ class NameAndDestinationTests {
             .isEqualTo(targetDir.resolve("dir-deep"));
     }
     
-    /**
-     * Specifying a relative path as input (e.g. "./music/S") should
-     * result in changes to name and destination directory.
-     * Name should be "music-S" and destination should be targetDir/music
-     */
-    @Disabled("still not done")
-    @Test
-    void relativeSourceDirElementsShouldAffectNameAndTarget() {
-        Path restoreScript = targetDir.resolve("test.sh");
-
-        assertThatCode(() -> runBackup("-h"))
-                .doesNotThrowAnyException();
-
-        assertThat(restoreScript)
-                .exists();
-    }
-
     private BackupArguments runBackup(String... args) throws IOException {
         List<String> combinedArgs = new ArrayList<>();
         combinedArgs.addAll(List.of("--running-tests", "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME));
