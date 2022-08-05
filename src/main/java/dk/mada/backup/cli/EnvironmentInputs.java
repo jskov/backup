@@ -21,7 +21,7 @@ public class EnvironmentInputs {
     public String getBackupRepositoryDir() {
         return System.getenv("BACKUP_REPOSITORY_DIR");
     }
-    
+
     /** {@return the current working directory} */
     public Path getCurrentWorkingDirectory() {
         return Paths.get("").toAbsolutePath();

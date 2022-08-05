@@ -11,7 +11,7 @@ import picocli.CommandLine.Model.OptionSpec;
 public final class DefaultArgs implements IDefaultValueProvider {
     /** The environment inputs. */
     private final EnvironmentInputs envInputs;
-    
+
     /**
      * Constructs a new instance with default
      * environment inputs.
@@ -28,7 +28,7 @@ public final class DefaultArgs implements IDefaultValueProvider {
     public DefaultArgs(EnvironmentInputs envInputs) {
         this.envInputs = envInputs;
     }
-     
+
     @Override
     public String defaultValue(ArgSpec arg) {
         if (isNamedOption(arg, CliMain.OPT_RECIPIENT)) {

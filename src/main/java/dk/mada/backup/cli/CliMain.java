@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -95,7 +97,7 @@ public final class CliMain implements Callable<Integer> {
     public CliMain(Consumer<BackupArguments> backupApp) {
         this(new EnvironmentInputs(), backupApp);
     }
-    
+
     /**
      * Create a new instance.
      *
@@ -115,29 +117,36 @@ public final class CliMain implements Callable<Integer> {
         return 0;
     }
 
+    /**
+     * Build backup arguments from parsed CLI arguments.
+     *
+     * @return the backup arguments
+     */
     public BackupArguments buildBackupArguments() {
         Path relativeSrcDir = sourceDir;
 
         sourceDir = makeRelativeToCwd(sourceDir);
-        targetDir = makeRelativeToCwd(targetDir);
-
         if (!Files.isDirectory(sourceDir)) {
             argumentFail("The source directory must be an existing directory!");
         }
+
+        NameAjustment adjustment = ensureBackupName(relativeSrcDir);
+
+        backupName = adjustment.name();
+        targetDir = makeRelativeToCwd(targetDir.resolve(adjustment.targetPath()));
         if (Files.exists(targetDir) && !Files.isDirectory(targetDir)) {
             argumentFail("The target directory must either not exist, or be a folder!");
         }
-        
-        ensureBackupName();
-        
+
         Map<String, String> envOverrides = Map.of();
         if (gpgHomeDir != null) {
             envOverrides = Map.of("GNUPGHOME", gpgHomeDir.toAbsolutePath().toString());
         }
 
-        return new BackupArguments(gpgRecipientId, envOverrides, backupName, sourceDir, targetDir, maxFileSize, skipVerify, testingAvoidSystemExit);
+        return new BackupArguments(gpgRecipientId, envOverrides, backupName,
+                sourceDir, targetDir, maxFileSize, skipVerify, testingAvoidSystemExit);
     }
-    
+
     private Path makeRelativeToCwd(Path dir) {
         if (dir.isAbsolute()) {
             return toRealPath(dir);
@@ -146,10 +155,53 @@ public final class CliMain implements Callable<Integer> {
         }
     }
 
-    private void ensureBackupName() {
-        if (backupName == null) {
-            backupName = toRealPath(sourceDir).getFileName().toString();
+    /**
+     * Name adjustment computed from the source folder.
+     *
+     * @param name the backup name
+     * @param targetPath the extra target path
+     */
+    record NameAjustment(String name, Path targetPath) { }
+
+    private NameAjustment ensureBackupName(Path relativeSrcDir) {
+        Path noTargetChange = Paths.get("");
+
+        // User specified name always takes precedence
+        if (backupName != null) {
+            return new NameAjustment(backupName, noTargetChange);
         }
+
+        // Trim initial ./
+        if (relativeSrcDir.getNameCount() > 1
+                && relativeSrcDir.startsWith(Paths.get("."))) {
+            relativeSrcDir = relativeSrcDir.subpath(1, relativeSrcDir.getNameCount());
+        }
+
+        // Just use source folder name if
+        //  - absolute path
+        //  - single-element path
+        //  - contains any relative elements
+        if (relativeSrcDir.isAbsolute()
+                || relativeSrcDir.getNameCount() == 1
+                || containsRelativeElements(relativeSrcDir)) {
+            return new NameAjustment(sourceDir.getFileName().toString(), noTargetChange);
+        }
+
+        // If relative source directory, any extra path elements get included
+        // in name and target directory
+        String name = relativeSrcDir.toString().replace("/", "-");
+        Path targetChange = relativeSrcDir.getParent();
+        return new NameAjustment(name, targetChange);
+    }
+    
+    private boolean containsRelativeElements(Path p) {
+        for (Iterator<Path> ix = p.iterator(); ix.hasNext();) {
+            String el = ix.next().toString();
+            if (".".equals(el) || "..".equals(el) || "~".equals(el)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Path toRealPath(Path p) {
@@ -163,7 +215,7 @@ public final class CliMain implements Callable<Integer> {
             throw new UncheckedIOException("Failed to convert path " + p + " to real path", e);
         }
     }
-    
+
     private void argumentFail(String message) {
         throw new CommandLine.ParameterException(spec.commandLine(), message);
     }

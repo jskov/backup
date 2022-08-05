@@ -37,7 +37,7 @@ public class BackupApplication {
     public static void run(BackupArguments args) {
         new BackupApplication(args).makeBackup();
     }
-    
+
     /**
      * Makes backup from the provided arguments.
      */

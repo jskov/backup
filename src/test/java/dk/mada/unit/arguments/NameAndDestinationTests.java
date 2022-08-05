@@ -84,6 +84,8 @@ class NameAndDestinationTests {
     void absolutePathsOverrideChanges() throws IOException {
         BackupArguments args = runBackup(srcDir.toString(), targetDir.toString());
 
+        assertThat(args.name())
+            .isEqualTo("simple-input-tree");
         assertThat(args.sourceDir())
             .isEqualTo(srcDir);
         assertThat(args.targetDir())
@@ -101,11 +103,12 @@ class NameAndDestinationTests {
      */
     @Test
     void sourceAndTargetMayBeRelative() throws IOException {
+        BackupArguments args = runBackup("./dir-deep/dir-sub-a", targetDir.toString());
         
-        BackupArguments args = runBackup(".", targetDir.toAbsolutePath().toString());
-        
-        System.out.println("ARGS: " + args);
-        
+        assertThat(args.name())
+            .isEqualTo("dir-deep-dir-sub-a");
+        assertThat(args.targetDir())
+            .isEqualTo(targetDir.resolve("dir-deep"));
     }
     
     /**
