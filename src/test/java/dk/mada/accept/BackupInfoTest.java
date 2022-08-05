@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import dk.mada.backup.restore.RestoreExecutor;
@@ -20,11 +21,12 @@ import dk.mada.fixture.TestCertificateInfo;
 /**
  * Makes a backup, checks info in backup.
  */
+@Tag("accept")
 class BackupInfoTest {
     /** Minimal expected size of backup. */
-    private static final long SIZE_LOWER_BOUND = 22100L;
+    private static final long SIZE_LOWER_BOUND = 24500L;
     /** Maximal expected size of backup. */
-    private static final long SIZE_UPPER_BOUND = 22300L;
+    private static final long SIZE_UPPER_BOUND = 24900L;
     /** Restore script for created backup. */
     private static Path restoreScript;
 

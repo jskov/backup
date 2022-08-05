@@ -24,7 +24,7 @@ public final class DirInfo implements BackupElement {
      * @param rootDir the backup root directory
      * @param dir the directory this instance represents
      * @param files the file information for the directory
-     * @return
+     * @return new instance
      */
     public static DirInfo from(Path rootDir, Path dir, List<FileInfo> files) {
         return new DirInfo(rootDir.relativize(dir).toString(), files);

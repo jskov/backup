@@ -1,17 +1,17 @@
 package dk.mada.backup.cli;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.Callable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.function.Consumer;
 
 import dk.mada.backup.Version;
-import dk.mada.backup.api.BackupApi;
-import dk.mada.backup.api.BackupTargetExistsException;
-import dk.mada.backup.restore.RestoreExecutor;
+import dk.mada.backup.api.BackupArguments;
+import dk.mada.backup.impl.BackupApplication;
 import dk.mada.backup.types.GpgId;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -22,22 +22,24 @@ import picocli.CommandLine.Spec;
 
 /**
  * Main class for command line invocation.
+ *
+ * Contains argument handling, delegates actual
+ * application execution to backup.
  */
 @Command(
     name = "mba",
     header = "",
     mixinStandardHelpOptions = true,
     versionProvider = Version.class,
-    defaultValueProvider = DefaultArgs.class,
     description = "Makes a backup of a file tree. Results in a restore script plus a number of encrypted data files."
 )
-public final class CliMain implements Callable<Integer> {
-    private static final Logger logger = LoggerFactory.getLogger(CliMain.class);
-
+public final class CliMain implements Runnable {
     /** Name of option for max backup file size. */
     public static final String OPT_MAX_SIZE = "--max-size";
     /** Name of option for GPG recipient identity. */
     public static final String OPT_RECIPIENT = "-r";
+    /** Name of option for repository directory. */
+    public static final String OPT_REPOSITORY_DIR = "--repository";
 
     /** The picoCli spec. */
     @Spec private CommandSpec spec;
@@ -69,6 +71,9 @@ public final class CliMain implements Callable<Integer> {
     /** Flag to print help. */
     @Option(names = "--help", description = "print this help and exit", help = true)
     private boolean printHelp;
+    /** Repository location. */
+    @Option(names = OPT_REPOSITORY_DIR, description = "repository for restore scripts")
+    private Path repositoryDir;
 
     /** Backup source directory option. */
     @Parameters(index = "0", description = "backup source directory", paramLabel = "source-dir")
@@ -77,89 +82,139 @@ public final class CliMain implements Callable<Integer> {
     @Parameters(index = "1", description = "target directory", paramLabel = "target-dir")
     private Path targetDir;
 
+    /** The environment inputs. */
+    private final EnvironmentInputs envInputs;
+    /** The Backup application to execute after processing arguments. */
+    private final Consumer<BackupArguments> backupApp;
+
     /**
-     * Creates new instance for a single invocation from CLI.
+     * Create a new instance.
+     *
+     * @param backupApp the backup application to execute
      */
-    public Integer call() {
+    public CliMain(Consumer<BackupArguments> backupApp) {
+        this(new EnvironmentInputs(), backupApp);
+    }
+
+    /**
+     * Create a new instance.
+     *
+     * @param envInputs the environment inputs
+     * @param backupApp the backup application to execute
+     */
+    public CliMain(EnvironmentInputs envInputs, Consumer<BackupArguments> backupApp) {
+        this.envInputs = envInputs;
+        this.backupApp = backupApp;
+    }
+
+    /**
+     * Runs backup application with processed CLI arguments.
+     */
+    public void run() {
+        backupApp.accept(buildBackupArguments());
+    }
+
+    /**
+     * Build backup arguments from parsed CLI arguments.
+     *
+     * @return the backup arguments
+     */
+    public BackupArguments buildBackupArguments() {
+        Path relativeSrcDir = sourceDir;
+
+        sourceDir = makeRelativeToCwd(sourceDir);
         if (!Files.isDirectory(sourceDir)) {
             argumentFail("The source directory must be an existing directory!");
         }
+
+        NameAjustment adjustment = ensureBackupName(relativeSrcDir);
+
+        backupName = adjustment.name();
+        targetDir = makeRelativeToCwd(targetDir.resolve(adjustment.targetPath()));
         if (Files.exists(targetDir) && !Files.isDirectory(targetDir)) {
             argumentFail("The target directory must either not exist, or be a folder!");
         }
-        ensureBackupName();
 
         Map<String, String> envOverrides = Map.of();
         if (gpgHomeDir != null) {
             envOverrides = Map.of("GNUPGHOME", gpgHomeDir.toAbsolutePath().toString());
         }
 
-        Path restoreScript = makeBackup(envOverrides);
-
-        if (skipVerify) {
-            logger.info("Backup *not* verified!");
-        } else {
-            verifyBackup(envOverrides, restoreScript);
-        }
-
-        return 0;
+        return new BackupArguments(gpgRecipientId, envOverrides, backupName,
+                sourceDir, targetDir, maxFileSize, skipVerify, testingAvoidSystemExit);
     }
 
-    private void ensureBackupName() {
-        if (backupName == null) {
-            backupName = sourceDir.getFileName().toString();
+    private Path makeRelativeToCwd(Path dir) {
+        if (dir.isAbsolute()) {
+            return toRealPath(dir);
+        } else {
+            return toRealPath(envInputs.getCurrentWorkingDirectory().resolve(dir));
+        }
+    }
+
+    /**
+     * Name adjustment computed from the source folder.
+     *
+     * @param name the backup name
+     * @param targetPath the extra target path
+     */
+    record NameAjustment(String name, Path targetPath) { }
+
+    private NameAjustment ensureBackupName(Path relativeSrcDir) {
+        Path noTargetChange = Paths.get("");
+
+        // User specified name always takes precedence
+        if (backupName != null) {
+            return new NameAjustment(backupName, noTargetChange);
+        }
+
+        // Trim initial ./
+        if (relativeSrcDir.getNameCount() > 1
+                && relativeSrcDir.startsWith(Paths.get("."))) {
+            relativeSrcDir = relativeSrcDir.subpath(1, relativeSrcDir.getNameCount());
+        }
+
+        // Just use source folder name if
+        //  - absolute path
+        //  - single-element path
+        //  - contains any relative elements
+        if (relativeSrcDir.isAbsolute()
+                || relativeSrcDir.getNameCount() == 1
+                || containsRelativeElements(relativeSrcDir)) {
+            return new NameAjustment(sourceDir.getFileName().toString(), noTargetChange);
+        }
+
+        // If relative source directory, any extra path elements get included
+        // in name and target directory
+        String name = relativeSrcDir.toString().replace("/", "-");
+        Path targetChange = relativeSrcDir.getParent();
+        return new NameAjustment(name, targetChange);
+    }
+    
+    private boolean containsRelativeElements(Path p) {
+        for (Iterator<Path> ix = p.iterator(); ix.hasNext();) {
+            String el = ix.next().toString();
+            if (".".equals(el) || "..".equals(el) || "~".equals(el)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Path toRealPath(Path p) {
+        try {
+            if (Files.exists(p)) {
+                return p.toRealPath();
+            } else {
+                return p;
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to convert path " + p + " to real path", e);
         }
     }
 
     private void argumentFail(String message) {
         throw new CommandLine.ParameterException(spec.commandLine(), message);
-    }
-
-    private Path makeBackup(Map<String, String> envOverrides) {
-        try {
-            BackupApi backupApi = new BackupApi(gpgRecipientId, envOverrides, maxFileSize);
-            return backupApi.makeBackup(backupName, sourceDir, targetDir);
-        } catch (BackupTargetExistsException e) {
-            logger.info("Failed to create backup: {}", e.getMessage());
-            logger.debug("Failure", e);
-            systemExit(1);
-            return null; // WTF?
-        }
-    }
-
-    private void verifyBackup(Map<String, String> envOverrides, Path script) {
-        try {
-            logger.info("Verifying backup...");
-            RestoreExecutor.runRestoreScriptExitOnFail(testingAvoidSystemExit, script, envOverrides, "verify");
-            RestoreExecutor.runRestoreScriptExitOnFail(testingAvoidSystemExit, script, envOverrides, "verify", "-s");
-            logger.info("Backup verified.");
-        } catch (Exception e) {
-            Console.println("");
-            Console.println("**********************************************");
-            Console.println("**  WARNING WARNING WARNING WARNING WARNING **");
-            Console.println("**                                          **");
-            Console.println("**   !Backup restore verification failed!   **");
-            Console.println("**                                          **");
-            Console.println("**  WARNING WARNING WARNING WARNING WARNING **");
-            Console.println("**********************************************");
-            Console.println("");
-            throw new IllegalStateException("Failed to run verify script " + script, e);
-        }
-    }
-
-    /**
-     * Handle system exit.
-     *
-     * When running tests, this would kill the Gradle daemon which it dislikes very
-     * much. So when test flag is set, throw an exception instead.
-     *
-     * @param exitCode the code to exit with
-     */
-    private void systemExit(int exitCode) {
-        if (testingAvoidSystemExit) {
-            throw new IllegalStateException("Backup/restore failed, would system exit: " + exitCode);
-        }
-        System.exit(exitCode);
     }
 
     /**
@@ -168,7 +223,9 @@ public final class CliMain implements Callable<Integer> {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        int exitCode = new CommandLine(new CliMain()).execute(args);
+        int exitCode = new CommandLine(new CliMain(BackupApplication::run))
+                .setDefaultValueProvider(new DefaultArgs())
+                .execute(args);
         if (exitCode != 0) {
             System.exit(exitCode);
         }

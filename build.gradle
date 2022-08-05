@@ -108,6 +108,8 @@ test {
     }  
     ignoreFailures = true
 
+    testLogging.showStandardStreams = false
+
     afterTest { td, tr ->
         if (tr.resultType == org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE) {
             successMarker.delete()
@@ -119,13 +121,11 @@ task acceptTest(type: Test) {
     shouldRunAfter(test)
     dependsOn(makeSuccessMarker)
     dependsOn(prepareActionsGpgTestHome)
-    finalizedBy jacocoTestReport // report is always generated after tests run
 
     useJUnitPlatform {
-          includeTags "accept"
+        includeTags "accept"
     }
     ignoreFailures = true
-    forkEvery = 1
 
     afterTest { td, tr ->
         if (tr.resultType == org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE) {
@@ -136,6 +136,7 @@ task acceptTest(type: Test) {
 
 tasks.check {
     dependsOn(acceptTest)
+    finalizedBy jacocoTestReport // report is always generated after tests run
     doLast {
         if (!successMarker.exists()) {
             throw new IllegalStateException("Tests failed")

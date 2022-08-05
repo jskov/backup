@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -19,8 +20,10 @@ import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.restore.VariableName;
 
 class RestoreScriptGenerationTest {
-    /** Temp output directory. */
+    /** Temporary output directory. */
     private @TempDir Path dir;
+    /** Temporary repository directory. */
+    private @TempDir Path repositoryDir;
 
     /**
      * The restore script contains sections for each backup element type. These
@@ -72,6 +75,23 @@ class RestoreScriptGenerationTest {
                           "På slaget 12/Hjem til Århus/12 Li\\`e Midt I Mellen.ogg");
     }
 
+    @Disabled("FIXME: still not done")
+    @Test
+    void restoreScriptIsWrittenToRepository() {
+        RestoreScriptWriter sut = new RestoreScriptWriter();
+
+        List<BackupElement> files = toBackupElements("not-relevant.txt");
+
+        String backupTargetPath = "script.sh";
+        Path script = dir.resolve(backupTargetPath);
+        sut.write(script, Map.of(), List.of(), List.of(), files);
+        
+        assertThat(script)
+            .exists();
+        assertThat(repositoryDir.resolve(backupTargetPath))
+            .exists();
+    }
+    
     List<BackupElement> toBackupElements(String... strings) {
         return Arrays.stream(strings)
                 .map(TestBackupElement::new)

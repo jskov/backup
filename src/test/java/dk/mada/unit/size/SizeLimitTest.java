@@ -59,7 +59,7 @@ class SizeLimitTest {
 
         assertThat(crypted)
             .map(CryptFile::filename)
-            .containsExactlyInAnyOrder("test.sh", "test-01.crypt", "test-02.crypt", "test-03.crypt");
+            .containsExactlyInAnyOrder("test.sh", "test-01.crypt", "test-02.crypt", "test-03.crypt", "test-04.crypt");
 
         // the parts should split at the requested size
         assertThat(crypted)
