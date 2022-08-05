@@ -120,6 +120,9 @@ class NameAndDestinationTests {
                 .setDefaultValueProvider(new DefaultArgs(envAtRootOfSrc))
                 .execute(combinedArgs.toArray(new String[combinedArgs.size()]));
 
+        assertThat(ref.get())
+            .withFailMessage("Failed processing arguments?!")
+            .isNotNull();
         return ref.get();
     }
 }
