@@ -96,8 +96,7 @@ class BackupInfoTest {
                         "dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.tar 006e8260325290418ad66d8ae8f5338b097663218b4c54eee213916646ffab51        2560",
                         "dir-m-with-[brackets]-and-(parens)-dir.tar a49d85c6255891ce8b674f1261137408ca56baa966f422163bacacf318cb6a23        2560",
                         "file-root1.bin e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855           0",
-                        "file-root2 with space.bin e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855           0",
-                        "file-root1.bin");
+                        "file-root2 with space.bin e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855           0");
     }
 
     /**
