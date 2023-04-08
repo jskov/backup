@@ -17,6 +17,7 @@ import dk.mada.backup.types.GpgId;
  * @param repositoryScriptPath the path of the restore script in the repository
  * @param maxFileSize the maximum backup output file size
  * @param skipVerify flag to skip verification of backup after its creation
+ * @param clearUserGroup flag to clear user and group information for files
  * @param testingAvoidSystemExit flag to skip system exit - used in testing
  */
 public record BackupArguments(
@@ -29,4 +30,5 @@ public record BackupArguments(
         Path repositoryScriptPath,
         long maxFileSize,
         boolean skipVerify,
+        boolean clearUserGroup,
         boolean testingAvoidSystemExit) { }

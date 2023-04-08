@@ -3,6 +3,8 @@ package dk.mada.fixture;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 
@@ -21,6 +23,20 @@ public final class MakeBackup {
      * @return restore script
      */
     public static Path makeBackup() throws IOException, ArchiveException {
+        return makeBackup(false);
+    }
+
+    /**
+     * Create backup from test data, but exclude user and group information
+     * from archive entries.
+     *
+     * @return restore script
+     */
+    public static Path makeBackupWoUserGroup() throws IOException, ArchiveException {
+        return makeBackup(true);
+    }
+    
+    private static Path makeBackup(boolean clearUserGroup) throws IOException, ArchiveException {
         Path srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree");
         Path targetDir = Paths.get("build/backup-dest").toAbsolutePath();
         Path repositoryDir = targetDir.resolve("_repository");
@@ -28,15 +44,23 @@ public final class MakeBackup {
         DirectoryDeleter.delete(targetDir);
 
         Path restoreScript = targetDir.resolve("test.sh");
-        CliMain.main(new String[] {
-                "--running-tests",
-                "-n", "test",
-                "--repository", repositoryDir.toString(),
-                "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),
-                "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME,
-                srcDir.toString(),
-                targetDir.toString()
-        });
+        
+        List<String> args = new ArrayList<>();
+        if (clearUserGroup) {
+            args.add("--clear-user-group");
+        }
+        
+        args.addAll(List.of(
+            "--running-tests",
+            "-n", "test",
+            "--repository", repositoryDir.toString(),
+            "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),
+            "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME,
+            srcDir.toString(),
+            targetDir.toString()
+            ));
+        
+        CliMain.main(args.toArray(new String[args.size()]));
 
         return restoreScript;
     }
