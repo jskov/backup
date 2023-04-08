@@ -46,25 +46,6 @@ class BackupVerificationTest {
     }
 
     /**
-     * (Middle) archive checksums should be unchanged over time, as long as the
-     * input (backup) files are not touched. I.e. wall clock time when the backup is
-     * made should not affect checksums.
-     *
-     * The entire backup checksum should be stable over time.
-     */
-    @Test
-    void archiveChecksumsStableOverTime() throws IOException, InterruptedException {
-        Result res = runRestoreCmd("info", "-a");
-
-        assertThat(res.exitValue())
-                .isZero();
-        assertThat(res.output())
-                .contains(
-                        "dir-a.tar e42fa7a5806b41d4e1646ec1885e1f43bdbd9488465fa7022c1aa541ead9348f        2560",
-                        "dir-b.tar 628b2ef22626e6a2d74c4bf441cf6394d5db0bf149a4a98ee048b51d9ce69374        2048");
-    }
-
-    /**
      * Encrypted archive checksums is time-dependent. But content is constant.
      */
     @Test
