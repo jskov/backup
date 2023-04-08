@@ -2,10 +2,11 @@
 
 # backup
 
-Application that makes a secure backup of photo/music files.
+Application that makes an encrypted backup of photo/music files.
 
 The output is encrypted with GPG and includes a restore script that can verify backup integrity.
 
+The script is intended for personal use. You are welcome to use it, but do not expect support in any form.
 
 # Actions Build Pipeline
 
