@@ -11,6 +11,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Captures information about a file.
  */
@@ -24,9 +26,9 @@ public final class FileInfo implements BackupElement {
     /** SHA-256 sum of the file. */
     private final String checksum;
     /** Optional MD5 sum of the file - only computed/captured for crypt-files. */
-    private final String md5Checksum;
+    @Nullable private final String md5Checksum;
 
-    private FileInfo(String pathName, long size, String checksum, String md5) {
+    private FileInfo(String pathName, long size, String checksum, @Nullable String md5) {
         this.pathName = pathName;
         this.size = size;
         this.checksum = checksum;

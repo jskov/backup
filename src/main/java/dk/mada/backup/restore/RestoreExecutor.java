@@ -2,7 +2,9 @@ package dk.mada.backup.restore;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,10 +57,14 @@ public final class RestoreExecutor {
     }
 
     private static Result runCmd(Path script, Map<String, String> envOverrides, String... args) {
+        Path runInDir = script.getParent();
+        if (runInDir == null) {
+            runInDir = Paths.get(".");
+        }
         List<String> cmd = new ArrayList<>(List.of("/bin/bash", script.toAbsolutePath().toString()));
         cmd.addAll(List.of(args));
         ProcessBuilder pb = new ProcessBuilder(cmd)
-                .directory(script.getParent().toFile())
+                .directory(runInDir.toFile())
                 .redirectErrorStream(true);
 
         pb.environment().putAll(envOverrides);
@@ -78,7 +84,7 @@ public final class RestoreExecutor {
 
     private static String readOutput(Process p) throws IOException {
         try (InputStream in = p.getInputStream()) {
-            return new String(in.readAllBytes());
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 

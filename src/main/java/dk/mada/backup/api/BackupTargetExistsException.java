@@ -1,5 +1,7 @@
 package dk.mada.backup.api;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Thrown if the backup operation needs to write to any existing files.
  */
@@ -30,7 +32,7 @@ public class BackupTargetExistsException extends BackupException {
      * @param message the exception message
      * @param cause   the exception cause
      */
-    public BackupTargetExistsException(String message, Throwable cause) {
+    public BackupTargetExistsException(@Nullable String message, Throwable cause) {
         super(message, cause);
     }
 }

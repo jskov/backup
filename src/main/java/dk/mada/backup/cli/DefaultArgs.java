@@ -1,5 +1,7 @@
 package dk.mada.backup.cli;
 
+import org.jspecify.annotations.Nullable;
+
 import dk.mada.backup.api.BackupApi;
 import picocli.CommandLine.IDefaultValueProvider;
 import picocli.CommandLine.Model.ArgSpec;
@@ -30,7 +32,7 @@ public final class DefaultArgs implements IDefaultValueProvider {
     }
 
     @Override
-    public String defaultValue(ArgSpec arg) {
+    @Nullable public String defaultValue(ArgSpec arg) {
         if (isNamedOption(arg, CliMain.OPT_RECIPIENT)) {
             return envInputs.getBackupRecipient();
         }

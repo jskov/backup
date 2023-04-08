@@ -6,6 +6,7 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,9 +59,9 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
     /** The output stream (sink) connecting to the GPG process's stdin. */
     private OutputStream gpgSink;
     /** Exception captured in thread copying GPG stdout (the crypted data), or null. */
-    private Exception stdoutException;
+    @Nullable private Exception stdoutException;
     /** Exception captured in thread copying GPG stderr, or null. */
-    private Exception stderrException;
+    @Nullable private Exception stderrException;
 
     /**
      * Creates new instance.
@@ -144,8 +146,8 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
         awaitLatch(gpgStderrDone, GPG_STDERR_MAX_WAIT_SECONDS,
                 "GPG stderr output");
 
-        String stderrMessage = stderrMessageRef.get();
-        if (!stderrMessage.isEmpty()) {
+        @Nullable String stderrMessage = stderrMessageRef.get();
+        if (stderrMessage != null && !stderrMessage.isEmpty()) {
             logger.warn("GPG error message: {}", stderrMessage);
         }
 
@@ -166,9 +168,10 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
         }
     }
 
-    private void throwOnFailure(Exception e) throws GpgEncrypterException {
+    private void throwOnFailure(@Nullable Exception e) throws GpgEncrypterException {
         if (e != null) {
             // Let specific exception through - but do not rethrow, as this causes problem with JDK
+            // FIXME: Test on Java 20
             if (e instanceof BackupTargetExistsException) {
                 throw new BackupTargetExistsException(e.getMessage(), e);
             }
@@ -217,7 +220,7 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
 
     private void copyErrMessage(InputStream errorStream) {
         try (BufferedInputStream bis = new BufferedInputStream(errorStream)) {
-            String msg = new String(bis.readAllBytes());
+            String msg = new String(bis.readAllBytes(), StandardCharsets.UTF_8);
             stderrMessageRef.set(msg);
             if (!msg.isEmpty()) {
                 logger.warn("GPG error:\n{}", msg);

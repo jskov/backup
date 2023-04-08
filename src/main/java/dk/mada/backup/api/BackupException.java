@@ -1,5 +1,7 @@
 package dk.mada.backup.api;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Parent exception for all application exceptions.
  */
@@ -30,7 +32,7 @@ public class BackupException extends RuntimeException {
      * @param message the exception message
      * @param cause   the exception cause
      */
-    public BackupException(String message, Throwable cause) {
+    public BackupException(@Nullable String message, Throwable cause) {
         super(message, cause);
     }
 }

@@ -7,7 +7,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
+
+import org.jspecify.annotations.Nullable;
 
 import dk.mada.backup.Version;
 import dk.mada.backup.api.BackupArguments;
@@ -42,25 +45,22 @@ public final class CliMain implements Runnable {
     public static final String OPT_REPOSITORY_DIR = "--repository";
 
     /** The picoCli spec. */
-    @Spec private CommandSpec spec;
+    @Nullable @Spec private CommandSpec spec;
 
     /** GPG recipient identity option. */
     @Option(names = OPT_RECIPIENT, required = true, converter = GpgRecipientConverter.class,
             description = "GPG recipient key id", paramLabel = "ID")
-    private GpgId gpgRecipientId;
+    @Nullable private GpgId gpgRecipientId;
     /** Backup name option. */
     @Option(names = { "-n", "--name" },
             description = "backup name (default to source folder name)", paramLabel = "NAME")
-    private String backupName;
+    @Nullable private String backupName;
     /** GPG home dir option. */
     @Option(names = "--gpg-homedir", description = "alternative GPG home dir", paramLabel = "DIR")
-    private Path gpgHomeDir;
+    @Nullable private Path gpgHomeDir;
     /** Flag to skip verification after backup has been created. */
     @Option(names = "--skip-verify", description = "skip verification after creating backup")
     private boolean skipVerify;
-    /** Flag to clear tar entry gid, group name, uid, and user name. */
-    @Option(names = "--clear-user-group", description = "clear user and group information for files")
-    private boolean clearUserGroup;
     /** Maximum backup file size option. */
     @Option(names = OPT_MAX_SIZE, converter = HumanSizeInputConverter.class,
             description = "max file size", paramLabel = "SIZE")
@@ -70,20 +70,22 @@ public final class CliMain implements Runnable {
     private boolean testingAvoidSystemExit;
     /** Flag to print version. */
     @Option(names = { "-V", "--version" }, versionHelp = true, description = "print version information and exit")
+    @SuppressWarnings("UnusedVariable")
     private boolean printVersion;
     /** Flag to print help. */
     @Option(names = "--help", description = "print this help and exit", help = true)
+    @SuppressWarnings("UnusedVariable")
     private boolean printHelp;
     /** Repository location. */
     @Option(names = OPT_REPOSITORY_DIR, description = "repository for restore scripts")
-    private Path repositoryDir;
+    @Nullable private Path repositoryDir;
 
     /** Backup source directory option. */
     @Parameters(index = "0", description = "backup source directory", paramLabel = "source-dir")
-    private Path sourceDir;
+    @Nullable private Path sourceDir;
     /** Backup target directory option. */
     @Parameters(index = "1", description = "target directory", paramLabel = "target-dir")
-    private Path targetDir;
+    @Nullable private Path targetDir;
 
     /** The environment inputs. */
     private final EnvironmentInputs envInputs;
@@ -113,6 +115,7 @@ public final class CliMain implements Runnable {
     /**
      * Runs backup application with processed CLI arguments.
      */
+    @Override
     public void run() {
         backupApp.accept(buildBackupArguments());
     }
@@ -123,18 +126,19 @@ public final class CliMain implements Runnable {
      * @return the backup arguments
      */
     public BackupArguments buildBackupArguments() {
-        Path relativeSrcDir = sourceDir;
-
-        sourceDir = makeRelativeToCwd(sourceDir);
-        if (!Files.isDirectory(sourceDir)) {
+        Path src = Objects.requireNonNull(sourceDir, "Source dir null");
+        Path target = Objects.requireNonNull(targetDir, "Target dir null");
+        Path relativeSrcDir = src;
+        Path cwdRelativeSrcDir = makeRelativeToCwd(src);
+        if (!Files.isDirectory(src)) {
             argumentFail("The source directory must be an existing directory!");
         }
 
-        NameAjustment adjustment = ensureBackupName(relativeSrcDir);
+        NameAjustment adjustment = ensureBackupName(relativeSrcDir, cwdRelativeSrcDir.getFileName().toString());
 
         backupName = adjustment.name();
-        targetDir = makeRelativeToCwd(targetDir.resolve(adjustment.targetPath()));
-        if (Files.exists(targetDir) && !Files.isDirectory(targetDir)) {
+        targetDir = makeRelativeToCwd(target.resolve(adjustment.targetPath()));
+        if (Files.exists(target) && !Files.isDirectory(target)) {
             argumentFail("The target directory must either not exist, or be a folder!");
         }
 
@@ -145,9 +149,12 @@ public final class CliMain implements Runnable {
 
         Path repositoryScriptPath = adjustment.targetPath().resolve(backupName + ".sh");
 
-        return new BackupArguments(gpgRecipientId, envOverrides, backupName,
-                sourceDir, targetDir,
-                repositoryDir, repositoryScriptPath,
+        return new BackupArguments(
+                Objects.requireNonNull(gpgRecipientId, "GPG recipient id null"),
+                envOverrides, backupName,
+                src, target,
+                Objects.requireNonNull(repositoryDir, "repository dir null"),
+                repositoryScriptPath,
                 maxFileSize, skipVerify, testingAvoidSystemExit);
     }
 
@@ -167,7 +174,7 @@ public final class CliMain implements Runnable {
      */
     record NameAjustment(String name, Path targetPath) { }
 
-    private NameAjustment ensureBackupName(Path relativeSrcDir) {
+    private NameAjustment ensureBackupName(Path relativeSrcDir, String srcDirName) {
         Path noTargetChange = Paths.get("");
 
         // User specified name always takes precedence
@@ -188,13 +195,16 @@ public final class CliMain implements Runnable {
         if (relativeSrcDir.isAbsolute()
                 || relativeSrcDir.getNameCount() == 1
                 || containsRelativeElements(relativeSrcDir)) {
-            return new NameAjustment(sourceDir.getFileName().toString(), noTargetChange);
+            return new NameAjustment(srcDirName, noTargetChange);
         }
 
         // If relative source directory, any extra path elements get included
         // in name and target directory
         String name = relativeSrcDir.toString().replace("/", "-");
         Path targetChange = relativeSrcDir.getParent();
+        if (targetChange == null) {
+            throw new IllegalArgumentException("Target directory " + relativeSrcDir + " has no parent");
+        }
         return new NameAjustment(name, targetChange);
     }
 
@@ -221,7 +231,8 @@ public final class CliMain implements Runnable {
     }
 
     private void argumentFail(String message) {
-        throw new CommandLine.ParameterException(spec.commandLine(), message);
+        CommandLine cmdLine = Objects.requireNonNull(spec, "Missing spec").commandLine();
+        throw new CommandLine.ParameterException(cmdLine, message);
     }
 
     /**

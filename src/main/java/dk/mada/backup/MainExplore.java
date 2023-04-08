@@ -53,8 +53,6 @@ public class MainExplore {
     private static final FileAttribute<Set<PosixFilePermission>> ATTR_PRIVATE_TO_USER = PosixFilePermissions
             .asFileAttribute(PosixFilePermissions.fromString("rwx------"));
 
-    /** The backup root directory. */
-    private Path rootDir;
     /** Information about the directories included in the backup. */
     private List<DirInfo> fileElements = new ArrayList<>();
     /** GPG key used for encryption of the backup. */
@@ -87,12 +85,11 @@ public class MainExplore {
      * @param name the backup name
      * @return the generated restore script
      */
-    public Path packDir(Path srcDir, Path targetDir, String name) {
-        rootDir = srcDir;
+    public Path packDir(Path rootDir, Path targetDir, String name) {
         if (!Files.isDirectory(rootDir)) {
             throw new IllegalArgumentException("Must be dir, was " + rootDir);
         }
-        logger.info("Create backup from {}", srcDir);
+        logger.info("Create backup from {}", rootDir);
 
         try {
             Files.createDirectories(targetDir);
@@ -109,7 +106,7 @@ public class MainExplore {
 
             archiveElements = files
                     .sorted(pathSorter(rootDir))
-                    .map(p -> processRootElement(tarOs, p))
+                    .map(p -> processRootElement(rootDir, tarOs, p))
                     .toList();
 
             outputFilesFuture = sos.getOutputFiles();
@@ -165,23 +162,23 @@ public class MainExplore {
         };
     }
 
-    private BackupElement processRootElement(TarArchiveOutputStream tarOs, Path p) {
+    private BackupElement processRootElement(Path rootDir, TarArchiveOutputStream tarOs, Path p) {
         logger.debug("Process {}", p);
         if (Files.isDirectory(p)) {
-            return processDir(tarOs, p);
+            return processDir(rootDir, tarOs, p);
         } else {
-            return processFile(tarOs, p);
+            return processFile(rootDir, tarOs, p);
         }
     }
 
-    private FileInfo processFile(TarArchiveOutputStream tarOs, Path file) {
-        return copyToTar(file, tarOs);
+    private FileInfo processFile(Path rootDir, TarArchiveOutputStream tarOs, Path file) {
+        return copyToTar(rootDir, file, tarOs);
     }
 
-    private FileInfo processDir(TarArchiveOutputStream tarOs, Path dir) {
+    private FileInfo processDir(Path rootDir, TarArchiveOutputStream tarOs, Path dir) {
         try {
             Path tempArchiveFile = Files.createTempFile("backup", "tmp", ATTR_PRIVATE_TO_USER);
-            DirInfo dirInfo = createArchiveFromDir(dir, tempArchiveFile);
+            DirInfo dirInfo = createArchiveFromDir(rootDir, dir, tempArchiveFile);
             fileElements.add(dirInfo);
 
             String inArchiveName = dir.getFileName().toString() + ".tar";
@@ -194,8 +191,8 @@ public class MainExplore {
         }
     }
 
-    // Note: destructs target - which is a temp file, so is OK
-    private DirInfo createArchiveFromDir(Path dir, Path archive) {
+    // Note: destroys target - which is a temporary file, so is OK
+    private DirInfo createArchiveFromDir(Path rootDir, Path dir, Path archive) {
         try (OutputStream os = Files.newOutputStream(archive, StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
                 BufferedOutputStream bos = new BufferedOutputStream(os);
@@ -207,7 +204,7 @@ public class MainExplore {
                 List<FileInfo> containedFiles = files
                         .sorted(pathSorter(rootDir))
                         .filter(Files::isRegularFile)
-                        .map(f -> copyToTar(f, tarForDirOs))
+                        .map(f -> copyToTar(rootDir, f, tarForDirOs))
                         .toList();
 
                 return DirInfo.from(rootDir, dir, containedFiles);
@@ -223,7 +220,7 @@ public class MainExplore {
         return taos;
     }
 
-    private FileInfo copyToTar(Path file, TarArchiveOutputStream tos) {
+    private FileInfo copyToTar(Path rootDir, Path file, TarArchiveOutputStream tos) {
         String archivePath = rootDir.relativize(file).toString();
         return copyToTar(file, archivePath, tos, true);
     }

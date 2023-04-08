@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -40,7 +41,7 @@ public final class RestoreScriptWriter {
         }
 
         try (InputStream is = getClass().getResourceAsStream("/restore.sh");
-                InputStreamReader isr = new InputStreamReader(is);
+                InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
                 BufferedReader br = new BufferedReader(isr);
                 BufferedWriter bw = Files.newBufferedWriter(script, StandardOpenOption.CREATE_NEW,
                         StandardOpenOption.WRITE)) {

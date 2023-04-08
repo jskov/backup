@@ -77,7 +77,7 @@ public class BackupApplication {
             logger.info("Failed to create backup: {}", e.getMessage());
             logger.debug("Failure", e);
             systemExit(1);
-            return null; // WTF?
+            throw new IllegalStateException("Should not be necessary after systemExit?!");
         }
     }
 
