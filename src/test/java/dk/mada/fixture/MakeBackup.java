@@ -35,7 +35,7 @@ public final class MakeBackup {
     public static Path makeBackupWoUserGroup() throws IOException, ArchiveException {
         return makeBackup(true);
     }
-    
+
     private static Path makeBackup(boolean clearUserGroup) throws IOException, ArchiveException {
         Path srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree");
         Path targetDir = Paths.get("build/backup-dest").toAbsolutePath();
@@ -44,12 +44,12 @@ public final class MakeBackup {
         DirectoryDeleter.delete(targetDir);
 
         Path restoreScript = targetDir.resolve("test.sh");
-        
+
         List<String> args = new ArrayList<>();
         if (clearUserGroup) {
             args.add("--clear-user-group");
         }
-        
+
         args.addAll(List.of(
             "--running-tests",
             "-n", "test",
@@ -59,7 +59,7 @@ public final class MakeBackup {
             srcDir.toString(),
             targetDir.toString()
             ));
-        
+
         CliMain.main(args.toArray(new String[args.size()]));
 
         return restoreScript;
