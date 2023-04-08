@@ -58,6 +58,9 @@ public final class CliMain implements Runnable {
     /** Flag to skip verification after backup has been created. */
     @Option(names = "--skip-verify", description = "skip verification after creating backup")
     private boolean skipVerify;
+    /** Flag to clear tar entry gid, group name, uid, and user name. */
+    @Option(names = "--clear-user-group", description = "clear user and group information for files")
+    private boolean clearUserGroup;
     /** Maximum backup file size option. */
     @Option(names = OPT_MAX_SIZE, converter = HumanSizeInputConverter.class,
             description = "max file size", paramLabel = "SIZE")

@@ -27,6 +27,7 @@ import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -247,6 +248,15 @@ public class MainExplore {
             String humanSize = HumanByteCount.humanReadableByteCount(size);
             logger.info(" {} {} {}", type, inArchiveName, humanSize);
             ArchiveEntry archiveEntry = tos.createArchiveEntry(file.toFile(), inArchiveName);
+
+            // Apache commons 1.21+ includes user and group information that was
+            // not present before. Clear it, similar to the 
+            if (archiveEntry instanceof TarArchiveEntry tae) {
+                tae.setUserId(0);
+                tae.setGroupId(0);
+                tae.setGroupName("");
+                tae.setUserName("");
+            }
             tos.putArchiveEntry(archiveEntry);
 
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

@@ -86,9 +86,9 @@ class BackupInfoTest {
         assertThat(res.exitValue())
                 .isZero();
         assertThat(res.output())
-                .contains(
-                        "dir-a.tar e42fa7a5806b41d4e1646ec1885e1f43bdbd9488465fa7022c1aa541ead9348f        2560",
-                        "file-root1.bin");
+                .containsPattern("dir-a.tar [0-9a-f]{64}        2560")
+                .containsPattern("dir-deep.tar [0-9a-f]{64}        2048")
+                .containsPattern("dir-m-with-.brackets.-and-.parens.-dir.tar [0-9a-f]{64}        2560");
     }
 
     /**
