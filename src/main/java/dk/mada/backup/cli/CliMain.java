@@ -148,7 +148,7 @@ public final class CliMain implements Runnable {
         return new BackupArguments(gpgRecipientId, envOverrides, backupName,
                 sourceDir, targetDir,
                 repositoryDir, repositoryScriptPath,
-                maxFileSize, skipVerify, clearUserGroup, testingAvoidSystemExit);
+                maxFileSize, skipVerify, testingAvoidSystemExit);
     }
 
     private Path makeRelativeToCwd(Path dir) {

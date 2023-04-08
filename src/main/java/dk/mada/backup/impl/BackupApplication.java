@@ -71,7 +71,7 @@ public class BackupApplication {
 
     private Path createBackup() {
         try {
-            BackupApi backupApi = new BackupApi(args.gpgRecipientKeyId(), args.envOverrides(), args.maxFileSize(), args.clearUserGroup());
+            BackupApi backupApi = new BackupApi(args.gpgRecipientKeyId(), args.envOverrides(), args.maxFileSize());
             return backupApi.makeBackup(args.name(), args.sourceDir(), args.targetDir());
         } catch (BackupTargetExistsException e) {
             logger.info("Failed to create backup: {}", e.getMessage());

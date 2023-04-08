@@ -22,10 +22,9 @@ public class BackupApi {
      * @param gpgRecipientKeyId GPG recipient key id.
      * @param gpgEnvOverrides   Environment overrides (for testing).
      * @param maxCryptFileSize  Maximum crypt file output size.
-     * @param clearUserGroup flag to clear user and group information from archive entries
      */
-    public BackupApi(GpgId gpgRecipientKeyId, Map<String, String> gpgEnvOverrides, long maxCryptFileSize, boolean clearUserGroup) {
-        spikeCode = new MainExplore(gpgRecipientKeyId, gpgEnvOverrides, maxCryptFileSize, clearUserGroup);
+    public BackupApi(GpgId gpgRecipientKeyId, Map<String, String> gpgEnvOverrides, long maxCryptFileSize) {
+        spikeCode = new MainExplore(gpgRecipientKeyId, gpgEnvOverrides, maxCryptFileSize);
     }
 
     /**
@@ -35,7 +34,7 @@ public class BackupApi {
      * @param gpgEnvOverrides   Environment overrides (for testing).
      */
     public BackupApi(GpgId gpgRecipientKeyId, Map<String, String> gpgEnvOverrides) {
-        this(gpgRecipientKeyId, gpgEnvOverrides, DEFAULT_MAX_CRYPT_FILE_SIZE, false);
+        this(gpgRecipientKeyId, gpgEnvOverrides, DEFAULT_MAX_CRYPT_FILE_SIZE);
     }
 
     /**

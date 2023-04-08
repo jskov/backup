@@ -3,7 +3,6 @@ package dk.mada.fixture;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -26,16 +25,6 @@ public final class MakeBackup {
         return makeBackup(false);
     }
 
-    /**
-     * Create backup from test data, but exclude user and group information
-     * from archive entries.
-     *
-     * @return restore script
-     */
-    public static Path makeBackupWoUserGroup() throws IOException, ArchiveException {
-        return makeBackup(true);
-    }
-
     private static Path makeBackup(boolean clearUserGroup) throws IOException, ArchiveException {
         Path srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree");
         Path targetDir = Paths.get("build/backup-dest").toAbsolutePath();
@@ -45,12 +34,7 @@ public final class MakeBackup {
 
         Path restoreScript = targetDir.resolve("test.sh");
 
-        List<String> args = new ArrayList<>();
-        if (clearUserGroup) {
-            args.add("--clear-user-group");
-        }
-
-        args.addAll(List.of(
+        List<String> args = List.of(
             "--running-tests",
             "-n", "test",
             "--repository", repositoryDir.toString(),
@@ -58,7 +42,7 @@ public final class MakeBackup {
             "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME,
             srcDir.toString(),
             targetDir.toString()
-            ));
+            );
 
         CliMain.main(args.toArray(new String[args.size()]));
 

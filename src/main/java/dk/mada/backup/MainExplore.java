@@ -49,8 +49,6 @@ public class MainExplore {
     private static final int FILE_SCAN_BUFFER_SIZE = 8192;
     /** The version of the data format used for file information. */
     private static final String FILE_DATA_FORMAT_VERSION = "1";
-    /** Flag to control clearing user and group information in tar entries. */
-    private final boolean clearUserGroup;
     /** File permissions used for temporary files used while creating backup. */
     private static final FileAttribute<Set<PosixFilePermission>> ATTR_PRIVATE_TO_USER = PosixFilePermissions
             .asFileAttribute(PosixFilePermissions.fromString("rwx------"));
@@ -74,13 +72,11 @@ public class MainExplore {
      * @param recipientKeyId the GPG key used for encryption of the backup
      * @param gpgEnvOverrides the environment overrides used when invoking external GPG process
      * @param maxCryptFileSize the size limit for crypt-files
-     * @param clearUserGroup flag to clear user and group information from archive entries
      */
-    public MainExplore(GpgId recipientKeyId, Map<String, String> gpgEnvOverrides, long maxCryptFileSize, boolean clearUserGroup) {
+    public MainExplore(GpgId recipientKeyId, Map<String, String> gpgEnvOverrides, long maxCryptFileSize) {
         this.recipientKeyId = recipientKeyId;
         this.gpgEnvOverrides = gpgEnvOverrides;
         this.maxCryptFileSize = maxCryptFileSize;
-        this.clearUserGroup = clearUserGroup;
     }
 
     /**
@@ -254,9 +250,8 @@ public class MainExplore {
             ArchiveEntry archiveEntry = tos.createArchiveEntry(file.toFile(), inArchiveName);
 
             // Apache commons 1.21+ includes user and group information that was
-            // not present before. The flag allows the user to verify how this
-            // impacts archive checksums.
-            if (clearUserGroup && archiveEntry instanceof TarArchiveEntry tae) {
+            // not present before. Clear it, similar to the 
+            if (archiveEntry instanceof TarArchiveEntry tae) {
                 tae.setUserId(0);
                 tae.setGroupId(0);
                 tae.setGroupName("");
