@@ -1,4 +1,4 @@
-![](https://github.com/jskov/backup/workflows/Build%20and%20run%20tests/badge.svg)
+![](https://github.com/jskov/backup/workflows/Build%20and%20Test/badge.svg)
 
 # backup
 
