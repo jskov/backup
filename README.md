@@ -1,11 +1,12 @@
-![](https://github.com/jskov/backup/workflows/Build%20and%20run%20tests/badge.svg)
+![](https://github.com/jskov/backup/workflows/Build%20and%20Test/badge.svg)
 
 # backup
 
-Application that makes a secure backup of photo/music files.
+Application that makes an encrypted backup of photo/music files.
 
 The output is encrypted with GPG and includes a restore script that can verify backup integrity.
 
+The script is intended for personal use. You are welcome to use it, but do not expect support in any form.
 
 # Actions Build Pipeline
 
