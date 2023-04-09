@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,7 @@ public final class SplitterOutputStream extends OutputStream {
     /** Accruing list of files created from the stream. */
     private final List<Path> outputFiles = new ArrayList<>();
     /** The current file being written to. */
-    private OutputStream currentOutputStream = null;
+    @Nullable private OutputStream currentOutputStream = null;
     /** Bytes written to the current file. */
     private long writtenToCurrentFile = 0;
     /** Number of files written. */
@@ -47,8 +48,8 @@ public final class SplitterOutputStream extends OutputStream {
      * Split output stream over a number of files of a given size.
      *
      * @param targetDir the directory to store the files in
-     * @param basename the base name of the files
-     * @param suffix the suffix for the files
+     * @param basename  the base name of the files
+     * @param suffix    the suffix for the files
      * @param sizeLimit the size limit for the files
      */
     public SplitterOutputStream(Path targetDir, String basename, String suffix, long sizeLimit) {
@@ -71,7 +72,7 @@ public final class SplitterOutputStream extends OutputStream {
     public void write(int b) throws IOException {
         if (currentOutputStream == null
                 || writtenToCurrentFile >= openNextFileAtOffset) {
-            openNextFile();
+            currentOutputStream = openNextFile();
         }
         writtenToCurrentFile++;
         currentOutputStream.write(b);
@@ -80,7 +81,7 @@ public final class SplitterOutputStream extends OutputStream {
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
         if (currentOutputStream == null) {
-            openNextFile();
+            currentOutputStream = openNextFile();
         }
 
         // do it piecemeal if limit is reached
@@ -93,7 +94,7 @@ public final class SplitterOutputStream extends OutputStream {
         }
     }
 
-    private void openNextFile() throws IOException {
+    private OutputStream openNextFile() throws IOException {
         closeCurrentFile();
         String name = basename + "-" + String.format("%02d", ++fileCounter) + suffix;
         Path outputFile = targetDir.resolve(name);
@@ -111,8 +112,8 @@ public final class SplitterOutputStream extends OutputStream {
 
         OutputStream fileOutput = Files.newOutputStream(outputFile, StandardOpenOption.CREATE_NEW,
                 StandardOpenOption.WRITE);
-        currentOutputStream = new BufferedOutputStream(fileOutput);
         writtenToCurrentFile = 0;
+        return new BufferedOutputStream(fileOutput);
     }
 
     private void closeCurrentFile() throws IOException {

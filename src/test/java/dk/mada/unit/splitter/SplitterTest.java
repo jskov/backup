@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -21,7 +22,7 @@ import dk.mada.backup.splitter.SplitterOutputStream;
  * Splitter splits stream into several files.
  */
 class SplitterTest {
-    /** Temp output directory. */
+    /** Temporary output directory. */
     private @TempDir Path targetDir;
 
     /**
@@ -56,7 +57,7 @@ class SplitterTest {
 
     private void writeSplitterOutput(String text, long sizeLimit) throws IOException {
         try (OutputStream os = new SplitterOutputStream(targetDir, "basename", ".tar", sizeLimit)) {
-            os.write(text.getBytes());
+            os.write(text.getBytes(StandardCharsets.UTF_8));
         }
     }
 
@@ -79,7 +80,7 @@ class SplitterTest {
 
     private String readFile(Path f) {
         try {
-            return new String(Files.readAllBytes(f));
+            return new String(Files.readAllBytes(f), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

@@ -6,6 +6,7 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,15 +25,12 @@ import dk.mada.backup.types.GpgId;
 /**
  * OutputStream filter that GPG-encrypts the outgoing stream.
  *
- * Writes to this stream instance are passed on to the stdin
- * of an external GPG process.
- * The stdout from the GPG process is passed to the super
- * output stream of this instance.
+ * Writes to this stream instance are passed on to the stdin of an external GPG process. The stdout from the GPG process
+ * is passed to the super output stream of this instance.
  *
  * Stderr from the GPG process is captured separately.
  *
- * When this instance is closed it closes the GPG stdin stream
- * and waits for the GPG process to complete.
+ * When this instance is closed it closes the GPG stdin stream and waits for the GPG process to complete.
  */
 public final class GpgEncryptedOutputStream extends FilterOutputStream {
     private static final Logger logger = LoggerFactory.getLogger(GpgEncryptedOutputStream.class);
@@ -57,16 +56,16 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
     /** The output stream (sink) connecting to the GPG process's stdin. */
     private OutputStream gpgSink;
     /** Exception captured in thread copying GPG stdout (the crypted data), or null. */
-    private Exception stdoutException;
+    @Nullable private Exception stdoutException;
     /** Exception captured in thread copying GPG stderr, or null. */
-    private Exception stderrException;
+    @Nullable private Exception stderrException;
 
     /**
      * Creates new instance.
      *
-     * @param out the stream to write the encoded data to
+     * @param out            the stream to write the encoded data to
      * @param recipientKeyId the recipient GPG key to use for encryption
-     * @param envOverrides the environment overrides to use
+     * @param envOverrides   the environment overrides to use
      *
      * @throws GpgEncrypterException if the GPG process fails
      */
@@ -82,7 +81,7 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
     /**
      * Creates new instance.
      *
-     * @param out the stream to write the encoded data to
+     * @param out            the stream to write the encoded data to
      * @param recipientKeyId the recipient GPG key to use for encryption
      *
      * @throws GpgEncrypterException if the GPG process fails
@@ -144,8 +143,8 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
         awaitLatch(gpgStderrDone, GPG_STDERR_MAX_WAIT_SECONDS,
                 "GPG stderr output");
 
-        String stderrMessage = stderrMessageRef.get();
-        if (!stderrMessage.isEmpty()) {
+        @Nullable String stderrMessage = stderrMessageRef.get();
+        if (stderrMessage != null && !stderrMessage.isEmpty()) {
             logger.warn("GPG error message: {}", stderrMessage);
         }
 
@@ -166,9 +165,10 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
         }
     }
 
-    private void throwOnFailure(Exception e) throws GpgEncrypterException {
+    private void throwOnFailure(@Nullable Exception e) throws GpgEncrypterException {
         if (e != null) {
             // Let specific exception through - but do not rethrow, as this causes problem with JDK
+            // FIXME: Test on Java 20
             if (e instanceof BackupTargetExistsException) {
                 throw new BackupTargetExistsException(e.getMessage(), e);
             }
@@ -177,8 +177,7 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
     }
 
     /**
-     * Starts an external GPG process and two threads to copy
-     * data from its stdout and stderr.
+     * Starts an external GPG process and two threads to copy data from its stdout and stderr.
      *
      * @return output stream connected to GPG process's stdin
      *
@@ -217,7 +216,7 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
 
     private void copyErrMessage(InputStream errorStream) {
         try (BufferedInputStream bis = new BufferedInputStream(errorStream)) {
-            String msg = new String(bis.readAllBytes());
+            String msg = new String(bis.readAllBytes(), StandardCharsets.UTF_8);
             stderrMessageRef.set(msg);
             if (!msg.isEmpty()) {
                 logger.warn("GPG error:\n{}", msg);

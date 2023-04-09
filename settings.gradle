@@ -1,1 +1,8 @@
+pluginManagement {
+    includeBuild('src/build-logic')
+}
+
 rootProject.name = "backup"
+
+includeBuild 'src/build-logic'
+includeBuild 'src/platforms'

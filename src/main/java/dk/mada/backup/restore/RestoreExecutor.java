@@ -2,7 +2,9 @@ package dk.mada.backup.restore;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,14 +15,15 @@ import dk.mada.backup.cli.Console;
  * Executes a restore script.
  */
 public final class RestoreExecutor {
-    private RestoreExecutor() { }
+    private RestoreExecutor() {
+    }
 
     /**
      * Runs restore script.
      *
-     * @param script the restore script
+     * @param script       the restore script
      * @param envOverrides provided environment overrides
-     * @param args restore script arguments
+     * @param args         restore script arguments
      * @return the result of executing the script
      */
     public static Result runRestoreScript(Path script, Map<String, String> envOverrides, String... args) {
@@ -31,9 +34,9 @@ public final class RestoreExecutor {
      * Runs restore script.
      *
      * @param avoidSystemExit flag to disable use of System.exit. Used from tests
-     * @param script the restore script
-     * @param envOverrides provided environment overrides
-     * @param args restore script arguments
+     * @param script          the restore script
+     * @param envOverrides    provided environment overrides
+     * @param args            restore script arguments
      * @return the result of executing the script
      */
     public static String runRestoreScriptExitOnFail(boolean avoidSystemExit, Path script,
@@ -55,10 +58,14 @@ public final class RestoreExecutor {
     }
 
     private static Result runCmd(Path script, Map<String, String> envOverrides, String... args) {
+        Path runInDir = script.getParent();
+        if (runInDir == null) {
+            runInDir = Paths.get(".");
+        }
         List<String> cmd = new ArrayList<>(List.of("/bin/bash", script.toAbsolutePath().toString()));
         cmd.addAll(List.of(args));
         ProcessBuilder pb = new ProcessBuilder(cmd)
-                .directory(script.getParent().toFile())
+                .directory(runInDir.toFile())
                 .redirectErrorStream(true);
 
         pb.environment().putAll(envOverrides);
@@ -78,7 +85,7 @@ public final class RestoreExecutor {
 
     private static String readOutput(Process p) throws IOException {
         try (InputStream in = p.getInputStream()) {
-            return new String(in.readAllBytes());
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 
@@ -86,7 +93,8 @@ public final class RestoreExecutor {
      * Result from running external process.
      *
      * @param exitValue the process exit value
-     * @param output the (combined) stdout and stderr output
+     * @param output    the (combined) stdout and stderr output
      */
-    public record Result(int exitValue, String output) { }
+    public record Result(int exitValue, String output) {
+    }
 }

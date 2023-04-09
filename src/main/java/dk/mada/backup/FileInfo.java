@@ -11,6 +11,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Captures information about a file.
  */
@@ -24,9 +26,9 @@ public final class FileInfo implements BackupElement {
     /** SHA-256 sum of the file. */
     private final String checksum;
     /** Optional MD5 sum of the file - only computed/captured for crypt-files. */
-    private final String md5Checksum;
+    @Nullable private final String md5Checksum;
 
-    private FileInfo(String pathName, long size, String checksum, String md5) {
+    private FileInfo(String pathName, long size, String checksum, @Nullable String md5) {
         this.pathName = pathName;
         this.size = size;
         this.checksum = checksum;
@@ -47,8 +49,8 @@ public final class FileInfo implements BackupElement {
      * Creates new instance.
      *
      * @param pathName the path of the file relative to the backup root directory
-     * @param size the size of the file
-     * @param digest the digest computed for the file
+     * @param size     the size of the file
+     * @param digest   the digest computed for the file
      * @return an instance capturing the file information for the backup
      */
     public static FileInfo of(String pathName, long size, MessageDigest digest) {
@@ -59,7 +61,7 @@ public final class FileInfo implements BackupElement {
      * Creates new instance by examining the file.
      *
      * @param rootDir the backup root directory
-     * @param file the file to examine
+     * @param file    the file to examine
      * @return an instance capturing the file information for the backup
      */
     public static FileInfo from(Path rootDir, Path file) {
@@ -67,11 +69,10 @@ public final class FileInfo implements BackupElement {
     }
 
     /**
-     * Creates new instance by examining a crypt-file. This includes
-     * generating MD5 checksum.
+     * Creates new instance by examining a crypt-file. This includes generating MD5 checksum.
      *
      * @param rootDir the backup root directory
-     * @param file the file to examine
+     * @param file    the file to examine
      * @return an instance capturing the file information for the backup
      */
     public static FileInfo fromCryptFile(Path rootDir, Path file) {

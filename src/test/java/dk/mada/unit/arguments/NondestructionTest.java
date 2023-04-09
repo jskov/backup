@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.BeforeAll;
@@ -29,7 +30,7 @@ class NondestructionTest {
     private static final Logger logger = LoggerFactory.getLogger(NondestructionTest.class);
     /** Directory to backup of. */
     private static Path srcDir;
-    /** The backup api - sut. */
+    /** The backup API - SUT. */
     private BackupApi api;
     /** Target directory for test.*/
     private @TempDir Path targetDir;
@@ -77,7 +78,9 @@ class NondestructionTest {
     private void runBackup(String name) throws IOException {
         api.makeBackup(name, srcDir, targetDir);
 
-        List<Path> filesInBackupFolder = Files.list(targetDir).toList();
-        logger.info("See backup files: {}", filesInBackupFolder);
+        try (Stream<Path> fileStream = Files.list(targetDir)) {
+            List<Path> filesInBackupFolder = fileStream.toList();
+            logger.info("See backup files: {}", filesInBackupFolder);
+        }
     }
 }

@@ -22,10 +22,6 @@ public final class MakeBackup {
      * @return restore script
      */
     public static Path makeBackup() throws IOException, ArchiveException {
-        return makeBackup(false);
-    }
-
-    private static Path makeBackup(boolean clearUserGroup) throws IOException, ArchiveException {
         Path srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree");
         Path targetDir = Paths.get("build/backup-dest").toAbsolutePath();
         Path repositoryDir = targetDir.resolve("_repository");

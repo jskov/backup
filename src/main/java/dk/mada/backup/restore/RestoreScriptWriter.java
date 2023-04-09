@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -24,14 +25,13 @@ public final class RestoreScriptWriter {
     /**
      * Constructs and writes restore script.
      *
-     * Note that the lists are added to the script in the
-     * order provided.
+     * Note that the lists are added to the script in the order provided.
      *
      * @param script the destination path for the script
-     * @param vars the variables to expand in the script template
+     * @param vars   the variables to expand in the script template
      * @param crypts the information about crypted files
-     * @param tars the information about tar files
-     * @param files the information about the origin files
+     * @param tars   the information about tar files
+     * @param files  the information about the origin files
      */
     public void write(Path script, Map<VariableName, String> vars, List<? extends BackupElement> crypts,
             List<? extends BackupElement> tars, List<? extends BackupElement> files) {
@@ -40,7 +40,7 @@ public final class RestoreScriptWriter {
         }
 
         try (InputStream is = getClass().getResourceAsStream("/restore.sh");
-                InputStreamReader isr = new InputStreamReader(is);
+                InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
                 BufferedReader br = new BufferedReader(isr);
                 BufferedWriter bw = Files.newBufferedWriter(script, StandardOpenOption.CREATE_NEW,
                         StandardOpenOption.WRITE)) {

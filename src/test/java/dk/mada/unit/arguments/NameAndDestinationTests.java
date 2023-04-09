@@ -37,6 +37,7 @@ class NameAndDestinationTests {
         srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree").toAbsolutePath();
 
         envAtRootOfSrc = new EnvironmentInputs() {
+            @Override
             public Path getCurrentWorkingDirectory() {
                 return srcDir;
             }
@@ -118,6 +119,8 @@ class NameAndDestinationTests {
 
         AtomicReference<BackupArguments> ref = new AtomicReference<>();
 
+        System.out.println("From: " + srcDir);
+        System.out.println("Args: " + combinedArgs);
         new CommandLine(new CliMain(envAtRootOfSrc, ref::set))
                 .setDefaultValueProvider(new DefaultArgs(envAtRootOfSrc))
                 .execute(combinedArgs.toArray(new String[combinedArgs.size()]));

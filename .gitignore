@@ -1,6 +1,7 @@
-/build/
+**/build/
 /bin/
 /dist/
-/.gradle/
+**/.gradle/
 /.classpath
 /.settings/
+/.factorypath
