@@ -23,11 +23,11 @@ import dk.mada.fixture.TestDataPrepper;
  * It should be possible to size limit the output files.
  */
 class SizeLimitTest {
-    /** Crypt file size limit. */
-    private static final long MAX_CRYPT_FILE_SIZE = 8000L;
-    /** Temp output directory. */
+    /** Encryption file size limit. */
+    private static final long MAX_ENCRYPT_FILE_SIZE = 8000L;
+    /** Temporary output directory. */
     private @TempDir Path targetDir;
-    /** The backup api - sut */
+    /** The backup API - SUT */
     private BackupApi api;
     /** The prepared backup input tree. */
     private static Path srcDir;
@@ -40,7 +40,7 @@ class SizeLimitTest {
     @BeforeEach
     void createBackupApi() {
         api = new BackupApi(TestCertificateInfo.TEST_RECIPIEND_KEY_ID,
-                TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES, MAX_CRYPT_FILE_SIZE);
+                TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES, MAX_ENCRYPT_FILE_SIZE);
     }
 
     /**
@@ -64,8 +64,8 @@ class SizeLimitTest {
         // the parts should split at the requested size
         assertThat(crypted)
             .filteredOn(cf -> cf.filename().endsWith(".crypt"))
-            .map(cf -> cf.size())
-            .contains(MAX_CRYPT_FILE_SIZE);
+            .map(CryptFile::size)
+            .contains(MAX_ENCRYPT_FILE_SIZE);
     }
 
     private List<CryptFile> getCryptFileInfos() throws IOException {

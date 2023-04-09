@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,7 +26,7 @@ class EncryptionOutputStreamTest {
     private static final int MAX_GPG_WAIT_TIME_SECONDS = 5;
     /** System path of GPG. */
     private static final String USR_BIN_GPG = "/usr/bin/gpg";
-    /** Temp output directory. */
+    /** Temporary output directory. */
     private @TempDir Path dir;
 
     /**
@@ -61,7 +62,7 @@ class EncryptionOutputStreamTest {
     }
 
     private void printProcessOutput(Process p) throws IOException {
-        System.out.println(new String(p.getInputStream().readAllBytes()));
+        System.out.println(new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
     }
 
     private Process decryptFile(Path cryptedFile, Path decryptedFile) throws IOException, InterruptedException {

@@ -80,7 +80,7 @@ public class MainExplore {
     /**
      * Create a backup from a directory.
      *
-     * @param srcDir the backup root directory
+     * @param rootDir the backup root directory
      * @param targetDir the target directory for the encrypted backup files
      * @param name the backup name
      * @return the generated restore script
@@ -247,7 +247,7 @@ public class MainExplore {
             ArchiveEntry archiveEntry = tos.createArchiveEntry(file.toFile(), inArchiveName);
 
             // Apache commons 1.21+ includes user and group information that was
-            // not present before. Clear it, similar to the 
+            // not present before. Clear it, similar to the time information.
             if (archiveEntry instanceof TarArchiveEntry tae) {
                 tae.setUserId(0);
                 tae.setGroupId(0);
