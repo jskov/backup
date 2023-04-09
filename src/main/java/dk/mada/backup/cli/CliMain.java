@@ -128,17 +128,17 @@ public final class CliMain implements Runnable {
     public BackupArguments buildBackupArguments() {
         Path src = Objects.requireNonNull(sourceDir, "Source dir null");
         Path target = Objects.requireNonNull(targetDir, "Target dir null");
-        Path relativeSrcDir = src;
-        Path cwdRelativeSrcDir = makeRelativeToCwd(src);
-        if (!Files.isDirectory(src)) {
-            argumentFail("The source directory must be an existing directory!");
+        Path realSrcDir = makeRealRelativeToCwd(src);
+        if (!Files.isDirectory(realSrcDir)) {
+            argumentFail("The source directory must be an existing directory! " + realSrcDir);
         }
 
-        NameAjustment adjustment = ensureBackupName(relativeSrcDir, cwdRelativeSrcDir.getFileName().toString());
+        String srcDirName = realSrcDir.getFileName().toString();
+        NameAjustment adjustment = ensureBackupName(src, srcDirName);
 
         backupName = adjustment.name();
-        targetDir = makeRelativeToCwd(target.resolve(adjustment.targetPath()));
-        if (Files.exists(target) && !Files.isDirectory(target)) {
+        Path relativeTargetDir = makeRealRelativeToCwd(target.resolve(adjustment.targetPath()));
+        if (Files.exists(relativeTargetDir) && !Files.isDirectory(relativeTargetDir)) {
             argumentFail("The target directory must either not exist, or be a folder!");
         }
 
@@ -152,13 +152,13 @@ public final class CliMain implements Runnable {
         return new BackupArguments(
                 Objects.requireNonNull(gpgRecipientId, "GPG recipient id null"),
                 envOverrides, backupName,
-                src, target,
+                realSrcDir, relativeTargetDir,
                 Objects.requireNonNull(repositoryDir, "repository dir null"),
                 repositoryScriptPath,
                 maxFileSize, skipVerify, testingAvoidSystemExit);
     }
 
-    private Path makeRelativeToCwd(Path dir) {
+    private Path makeRealRelativeToCwd(Path dir) {
         if (dir.isAbsolute()) {
             return toRealPath(dir);
         } else {
