@@ -37,6 +37,7 @@ class NameAndDestinationTests {
         srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree").toAbsolutePath();
 
         envAtRootOfSrc = new EnvironmentInputs() {
+            @Override
             public Path getCurrentWorkingDirectory() {
                 return srcDir;
             }

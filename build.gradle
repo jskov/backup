@@ -110,7 +110,7 @@ test {
     }  
     ignoreFailures = true
 
-    testLogging.showStandardStreams = false
+    testLogging.showStandardStreams = true
 
     afterTest { td, tr ->
         if (tr.resultType == org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE) {
