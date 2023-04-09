@@ -3,6 +3,8 @@ package dk.mada.backup.api;
 import java.nio.file.Path;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import dk.mada.backup.types.GpgId;
 
 /**
@@ -25,7 +27,7 @@ public record BackupArguments(
         String name,
         Path sourceDir,
         Path targetDir,
-        Path repositoryDir,
+        @Nullable Path repositoryDir,
         Path repositoryScriptPath,
         long maxFileSize,
         boolean skipVerify,

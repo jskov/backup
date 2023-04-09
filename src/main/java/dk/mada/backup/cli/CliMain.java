@@ -161,7 +161,7 @@ public final class CliMain implements Runnable {
                 Objects.requireNonNull(gpgRecipientId, "GPG recipient id null"),
                 envOverrides, backupName,
                 realSrcDir, relativeTargetDir,
-                Objects.requireNonNull(repositoryDir, "repository dir null"),
+                repositoryDir,
                 repositoryScriptPath,
                 maxFileSize, skipVerify, testingAvoidSystemExit);
     }
