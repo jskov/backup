@@ -48,8 +48,8 @@ public final class SplitterOutputStream extends OutputStream {
      * Split output stream over a number of files of a given size.
      *
      * @param targetDir the directory to store the files in
-     * @param basename the base name of the files
-     * @param suffix the suffix for the files
+     * @param basename  the base name of the files
+     * @param suffix    the suffix for the files
      * @param sizeLimit the size limit for the files
      */
     public SplitterOutputStream(Path targetDir, String basename, String suffix, long sizeLimit) {

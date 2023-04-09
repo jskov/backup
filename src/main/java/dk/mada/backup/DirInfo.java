@@ -22,8 +22,8 @@ public final class DirInfo implements BackupElement {
      * Create new instance.
      *
      * @param rootDir the backup root directory
-     * @param dir the directory this instance represents
-     * @param files the file information for the directory
+     * @param dir     the directory this instance represents
+     * @param files   the file information for the directory
      * @return new instance
      */
     public static DirInfo from(Path rootDir, Path dir, List<FileInfo> files) {

@@ -6,9 +6,7 @@ import java.nio.file.Paths;
 /**
  * Inputs to the backup application from the environment.
  *
- * Besides making the external interaction more
- * apparent, this class allows overrides from unit
- * tests.
+ * Besides making the external interaction more apparent, this class allows overrides from unit tests.
  */
 public class EnvironmentInputs {
 

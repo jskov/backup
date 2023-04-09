@@ -6,11 +6,11 @@ package dk.mada.backup.cli;
  * From https://programming.guide/java/formatting-byte-size-to-human-readable-format.html
  */
 public final class HumanByteCount {
-    private HumanByteCount() { }
+    private HumanByteCount() {
+    }
 
     /**
-     * Convert number to value with suffix making it easier to read by
-     * humans.
+     * Convert number to value with suffix making it easier to read by humans.
      *
      * @param number the number to convert
      * @return a string representing the number

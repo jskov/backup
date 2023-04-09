@@ -41,6 +41,7 @@ import dk.mada.backup.types.GpgId;
 
 /**
  * Code from the original spike exploration of the solution.
+ *
  * TODO: Needs to be rewritten/split up.
  */
 public class MainExplore {
@@ -67,8 +68,8 @@ public class MainExplore {
     /**
      * Creates a new instance.
      *
-     * @param recipientKeyId the GPG key used for encryption of the backup
-     * @param gpgEnvOverrides the environment overrides used when invoking external GPG process
+     * @param recipientKeyId   the GPG key used for encryption of the backup
+     * @param gpgEnvOverrides  the environment overrides used when invoking external GPG process
      * @param maxCryptFileSize the size limit for crypt-files
      */
     public MainExplore(GpgId recipientKeyId, Map<String, String> gpgEnvOverrides, long maxCryptFileSize) {
@@ -80,9 +81,9 @@ public class MainExplore {
     /**
      * Create a backup from a directory.
      *
-     * @param rootDir the backup root directory
+     * @param rootDir   the backup root directory
      * @param targetDir the target directory for the encrypted backup files
-     * @param name the backup name
+     * @param name      the backup name
      * @return the generated restore script
      */
     public Path packDir(Path rootDir, Path targetDir, String name) {
@@ -139,8 +140,7 @@ public class MainExplore {
                 VariableName.BACKUP_NAME, name,
                 VariableName.BACKUP_INPUT_SIZE, HumanByteCount.humanReadableByteCount(totalInputSize),
                 VariableName.BACKUP_KEY_ID, recipientKeyId.id(),
-                VariableName.DATA_FORMAT_VERSION, FILE_DATA_FORMAT_VERSION
-        );
+                VariableName.DATA_FORMAT_VERSION, FILE_DATA_FORMAT_VERSION);
         new RestoreScriptWriter().write(restoreScript, vars, cryptElements, archiveElements, fileElements);
 
         return restoreScript;

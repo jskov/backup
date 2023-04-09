@@ -25,15 +25,12 @@ import dk.mada.backup.types.GpgId;
 /**
  * OutputStream filter that GPG-encrypts the outgoing stream.
  *
- * Writes to this stream instance are passed on to the stdin
- * of an external GPG process.
- * The stdout from the GPG process is passed to the super
- * output stream of this instance.
+ * Writes to this stream instance are passed on to the stdin of an external GPG process. The stdout from the GPG process
+ * is passed to the super output stream of this instance.
  *
  * Stderr from the GPG process is captured separately.
  *
- * When this instance is closed it closes the GPG stdin stream
- * and waits for the GPG process to complete.
+ * When this instance is closed it closes the GPG stdin stream and waits for the GPG process to complete.
  */
 public final class GpgEncryptedOutputStream extends FilterOutputStream {
     private static final Logger logger = LoggerFactory.getLogger(GpgEncryptedOutputStream.class);
@@ -66,9 +63,9 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
     /**
      * Creates new instance.
      *
-     * @param out the stream to write the encoded data to
+     * @param out            the stream to write the encoded data to
      * @param recipientKeyId the recipient GPG key to use for encryption
-     * @param envOverrides the environment overrides to use
+     * @param envOverrides   the environment overrides to use
      *
      * @throws GpgEncrypterException if the GPG process fails
      */
@@ -84,7 +81,7 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
     /**
      * Creates new instance.
      *
-     * @param out the stream to write the encoded data to
+     * @param out            the stream to write the encoded data to
      * @param recipientKeyId the recipient GPG key to use for encryption
      *
      * @throws GpgEncrypterException if the GPG process fails
@@ -180,8 +177,7 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
     }
 
     /**
-     * Starts an external GPG process and two threads to copy
-     * data from its stdout and stderr.
+     * Starts an external GPG process and two threads to copy data from its stdout and stderr.
      *
      * @return output stream connected to GPG process's stdin
      *

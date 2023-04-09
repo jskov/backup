@@ -15,8 +15,7 @@ public final class DefaultArgs implements IDefaultValueProvider {
     private final EnvironmentInputs envInputs;
 
     /**
-     * Constructs a new instance with default
-     * environment inputs.
+     * Constructs a new instance with default environment inputs.
      */
     public DefaultArgs() {
         this(new EnvironmentInputs());
@@ -49,7 +48,7 @@ public final class DefaultArgs implements IDefaultValueProvider {
      * Determine if argument specification has the specified name.
      *
      * @param argSpec specification to look for names in
-     * @param name argument name to look for
+     * @param name    argument name to look for
      * @return true if the specification matches the name.
      */
     private static boolean isNamedOption(ArgSpec argSpec, String name) {

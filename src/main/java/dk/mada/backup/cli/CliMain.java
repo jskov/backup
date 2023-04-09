@@ -26,16 +26,14 @@ import picocli.CommandLine.Spec;
 /**
  * Main class for command line invocation.
  *
- * Contains argument handling, delegates actual
- * application execution to backup.
+ * Contains argument handling, delegates actual application execution to backup.
  */
 @Command(
-    name = "mba",
-    header = "",
-    mixinStandardHelpOptions = true,
-    versionProvider = Version.class,
-    description = "Makes a backup of a file tree. Results in a restore script plus a number of encrypted data files."
-)
+        name = "mba",
+        header = "",
+        mixinStandardHelpOptions = true,
+        versionProvider = Version.class,
+        description = "Makes a backup of a file tree. Results in a restore script plus a number of encrypted data files.")
 public final class CliMain implements Runnable {
     /** Name of option for max backup file size. */
     public static final String OPT_MAX_SIZE = "--max-size";
@@ -45,15 +43,22 @@ public final class CliMain implements Runnable {
     public static final String OPT_REPOSITORY_DIR = "--repository";
 
     /** The picoCli spec. */
-    @Nullable @Spec private CommandSpec spec;
+    @Nullable @Spec
+    private CommandSpec spec;
 
     /** GPG recipient identity option. */
-    @Option(names = OPT_RECIPIENT, required = true, converter = GpgRecipientConverter.class,
-            description = "GPG recipient key id", paramLabel = "ID")
+    @Option(
+            names = OPT_RECIPIENT,
+            required = true,
+            converter = GpgRecipientConverter.class,
+            description = "GPG recipient key id",
+            paramLabel = "ID")
     @Nullable private GpgId gpgRecipientId;
     /** Backup name option. */
-    @Option(names = { "-n", "--name" },
-            description = "backup name (default to source folder name)", paramLabel = "NAME")
+    @Option(
+            names = { "-n", "--name" },
+            description = "backup name (default to source folder name)",
+            paramLabel = "NAME")
     @Nullable private String backupName;
     /** GPG home dir option. */
     @Option(names = "--gpg-homedir", description = "alternative GPG home dir", paramLabel = "DIR")
@@ -62,8 +67,11 @@ public final class CliMain implements Runnable {
     @Option(names = "--skip-verify", description = "skip verification after creating backup")
     private boolean skipVerify;
     /** Maximum backup file size option. */
-    @Option(names = OPT_MAX_SIZE, converter = HumanSizeInputConverter.class,
-            description = "max file size", paramLabel = "SIZE")
+    @Option(
+            names = OPT_MAX_SIZE,
+            converter = HumanSizeInputConverter.class,
+            description = "max file size",
+            paramLabel = "SIZE")
     private long maxFileSize;
     /** Flag to signal invocation from tests. */
     @Option(names = "--running-tests", hidden = true, description = "used for testing to avoid System.exit")
@@ -169,10 +177,11 @@ public final class CliMain implements Runnable {
     /**
      * Name adjustment computed from the source folder.
      *
-     * @param name the backup name
+     * @param name       the backup name
      * @param targetPath the extra target path
      */
-    record NameAjustment(String name, Path targetPath) { }
+    record NameAjustment(String name, Path targetPath) {
+    }
 
     private NameAjustment ensureBackupName(Path relativeSrcDir, String srcDirName) {
         Path noTargetChange = Paths.get("");
@@ -189,9 +198,9 @@ public final class CliMain implements Runnable {
         }
 
         // Just use source folder name if
-        //  - absolute path
-        //  - single-element path
-        //  - contains any relative elements
+        // - absolute path
+        // - single-element path
+        // - contains any relative elements
         if (relativeSrcDir.isAbsolute()
                 || relativeSrcDir.getNameCount() == 1
                 || containsRelativeElements(relativeSrcDir)) {

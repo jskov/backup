@@ -38,8 +38,7 @@ public class BackupApi {
     }
 
     /**
-     * Prepare backup with default size limit of 1GiB and no extra environment
-     * settings.
+     * Prepare backup with default size limit of 1GiB and no extra environment settings.
      *
      * @param gpgRecipientKeyId GPG recipient key id.
      */

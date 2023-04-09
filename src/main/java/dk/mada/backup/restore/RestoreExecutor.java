@@ -15,14 +15,15 @@ import dk.mada.backup.cli.Console;
  * Executes a restore script.
  */
 public final class RestoreExecutor {
-    private RestoreExecutor() { }
+    private RestoreExecutor() {
+    }
 
     /**
      * Runs restore script.
      *
-     * @param script the restore script
+     * @param script       the restore script
      * @param envOverrides provided environment overrides
-     * @param args restore script arguments
+     * @param args         restore script arguments
      * @return the result of executing the script
      */
     public static Result runRestoreScript(Path script, Map<String, String> envOverrides, String... args) {
@@ -33,9 +34,9 @@ public final class RestoreExecutor {
      * Runs restore script.
      *
      * @param avoidSystemExit flag to disable use of System.exit. Used from tests
-     * @param script the restore script
-     * @param envOverrides provided environment overrides
-     * @param args restore script arguments
+     * @param script          the restore script
+     * @param envOverrides    provided environment overrides
+     * @param args            restore script arguments
      * @return the result of executing the script
      */
     public static String runRestoreScriptExitOnFail(boolean avoidSystemExit, Path script,
@@ -92,7 +93,8 @@ public final class RestoreExecutor {
      * Result from running external process.
      *
      * @param exitValue the process exit value
-     * @param output the (combined) stdout and stderr output
+     * @param output    the (combined) stdout and stderr output
      */
-    public record Result(int exitValue, String output) { }
+    public record Result(int exitValue, String output) {
+    }
 }

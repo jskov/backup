@@ -104,8 +104,8 @@ public class BackupApplication {
     /**
      * Handle system exit.
      *
-     * When running tests, this would kill the Gradle daemon which it dislikes very
-     * much. So when test flag is set, throw an exception instead.
+     * When running tests, this would kill the Gradle daemon which it dislikes very much. So when test flag is set, throw an
+     * exception instead.
      *
      * @param exitCode the code to exit with
      */
