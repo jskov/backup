@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import dk.mada.backup.cli.Console;
+import dk.mada.backup.impl.ExitHandler;
 
 /**
  * Executes a restore script.
@@ -33,25 +34,18 @@ public final class RestoreExecutor {
     /**
      * Runs restore script.
      *
-     * @param avoidSystemExit flag to disable use of System.exit. Used from tests
-     * @param script          the restore script
-     * @param envOverrides    provided environment overrides
-     * @param args            restore script arguments
+     * @param exitHandler  the exit handler to use
+     * @param script       the restore script
+     * @param envOverrides provided environment overrides
+     * @param args         restore script arguments
      * @return the result of executing the script
      */
-    public static String runRestoreScriptExitOnFail(boolean avoidSystemExit, Path script,
+    public static String runRestoreScriptExitOnFail(ExitHandler exitHandler, Path script,
             Map<String, String> envOverrides, String... args) {
         Result res = runCmd(script, envOverrides, args);
         if (res.exitValue != 0) {
             Console.println("Failed to run " + script + ", returned " + res.exitValue);
-            Console.println(res.output);
-
-            if (avoidSystemExit) {
-                throw new IllegalStateException("Restore operation failed, exit " + res.exitValue
-                        + ", output: " + res.output);
-            } else {
-                System.exit(1);
-            }
+            exitHandler.systemExit(res.exitValue, res.output);
         }
 
         return res.output;

@@ -15,6 +15,7 @@ import org.jspecify.annotations.Nullable;
 import dk.mada.backup.Version;
 import dk.mada.backup.api.BackupArguments;
 import dk.mada.backup.impl.BackupApplication;
+import dk.mada.backup.impl.ExitHandler;
 import dk.mada.backup.types.GpgId;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -73,9 +74,6 @@ public final class CliMain implements Runnable {
             description = "max file size",
             paramLabel = "SIZE")
     private long maxFileSize;
-    /** Flag to signal invocation from tests. */
-    @Option(names = "--running-tests", hidden = true, description = "used for testing to avoid System.exit")
-    private boolean testingAvoidSystemExit;
     /** Flag to print version. */
     @Option(names = { "-V", "--version" }, versionHelp = true, description = "print version information and exit")
     @SuppressWarnings("UnusedVariable")
@@ -163,7 +161,7 @@ public final class CliMain implements Runnable {
                 realSrcDir, relativeTargetDir,
                 repositoryDir,
                 repositoryScriptPath,
-                maxFileSize, skipVerify, testingAvoidSystemExit);
+                maxFileSize, skipVerify);
     }
 
     private Path makeRealRelativeToCwd(Path dir) {
@@ -250,12 +248,20 @@ public final class CliMain implements Runnable {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        int exitCode = new CommandLine(new CliMain(BackupApplication::run))
+        main(new ExitHandler(), args);
+    }
+
+    /**
+     * CLI main entry, allowing for exitHandler override
+     *
+     * @param exitHandler the exit handler to use
+     * @param args        the command line arguments
+     */
+    public static void main(ExitHandler exitHandler, String[] args) {
+        CliMain cliMain = new CliMain(backupArgs -> BackupApplication.run(exitHandler, backupArgs));
+        int exitCode = new CommandLine(cliMain)
                 .setDefaultValueProvider(new DefaultArgs())
                 .execute(args);
-        if (exitCode != 0) {
-            System.exit(exitCode);
-        }
-        // otherwise just fall through
+        exitHandler.systemExit(exitCode);
     }
 }
