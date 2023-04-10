@@ -29,7 +29,8 @@ public class BackupApplication {
     /**
      * Create new instance.
      *
-     * @param args the backup arguments
+     * @param exitHandler the exit handler to use
+     * @param args        the backup arguments
      */
     public BackupApplication(ExitHandler systemExit, BackupArguments args) {
         this.exitHandler = systemExit;
@@ -39,7 +40,8 @@ public class BackupApplication {
     /**
      * Runs the backup application with the provided arguments.
      *
-     * @param args the backup arguments
+     * @param exitHandler the exit handler to use
+     * @param args        the backup arguments
      */
     public static void run(ExitHandler exitHandler, BackupArguments args) {
         new BackupApplication(exitHandler, args).makeBackup();
