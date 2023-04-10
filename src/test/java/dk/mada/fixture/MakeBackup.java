@@ -31,7 +31,6 @@ public final class MakeBackup {
         Path restoreScript = targetDir.resolve("test.sh");
 
         List<String> args = List.of(
-            "--running-tests",
             "-n", "test",
             "--repository", repositoryDir.toString(),
             "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),

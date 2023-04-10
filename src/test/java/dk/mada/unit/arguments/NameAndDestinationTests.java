@@ -112,7 +112,7 @@ class NameAndDestinationTests {
 
     private BackupArguments runBackup(String... args) throws IOException {
         List<String> combinedArgs = new ArrayList<>();
-        combinedArgs.addAll(List.of("--running-tests",
+        combinedArgs.addAll(List.of(
                 "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),
                 "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME));
         combinedArgs.addAll(List.of(args));

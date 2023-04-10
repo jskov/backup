@@ -23,13 +23,16 @@ public class BackupApplication {
 
     /** The backup arguments. */
     private final BackupArguments args;
+    /** The system exit handler. */
+    private final ExitHandler exitHandler;
 
     /**
      * Create new instance.
      *
      * @param args the backup arguments
      */
-    public BackupApplication(BackupArguments args) {
+    public BackupApplication(ExitHandler systemExit, BackupArguments args) {
+        this.exitHandler = systemExit;
         this.args = args;
     }
 
@@ -38,8 +41,8 @@ public class BackupApplication {
      *
      * @param args the backup arguments
      */
-    public static void run(BackupArguments args) {
-        new BackupApplication(args).makeBackup();
+    public static void run(ExitHandler exitHandler, BackupArguments args) {
+        new BackupApplication(exitHandler, args).makeBackup();
     }
 
     /**
@@ -77,7 +80,7 @@ public class BackupApplication {
         } catch (BackupTargetExistsException e) {
             logger.info("Failed to create backup: {}", e.getMessage());
             logger.debug("Failure", e);
-            systemExit(1);
+            exitHandler.systemExit(1);
             throw new IllegalStateException("Should not be necessary after systemExit?!");
         }
     }
@@ -85,8 +88,8 @@ public class BackupApplication {
     private void verifyBackup(Path script) {
         try {
             logger.info("Verifying backup...");
-            RestoreExecutor.runRestoreScriptExitOnFail(args.testingAvoidSystemExit(), script, args.envOverrides(), "verify");
-            RestoreExecutor.runRestoreScriptExitOnFail(args.testingAvoidSystemExit(), script, args.envOverrides(), "verify", "-s");
+            RestoreExecutor.runRestoreScriptExitOnFail(exitHandler, script, args.envOverrides(), "verify");
+            RestoreExecutor.runRestoreScriptExitOnFail(exitHandler, script, args.envOverrides(), "verify", "-s");
             logger.info("Backup verified.");
         } catch (Exception e) {
             Console.println("");
@@ -100,20 +103,5 @@ public class BackupApplication {
             Console.println("");
             throw new IllegalStateException("Failed to run verify script " + script, e);
         }
-    }
-
-    /**
-     * Handle system exit.
-     *
-     * When running tests, this would kill the Gradle daemon which it dislikes very much. So when test flag is set, throw an
-     * exception instead.
-     *
-     * @param exitCode the code to exit with
-     */
-    private void systemExit(int exitCode) {
-        if (args.testingAvoidSystemExit()) {
-            throw new IllegalStateException("Backup/restore failed, would system exit: " + exitCode);
-        }
-        System.exit(exitCode);
     }
 }
