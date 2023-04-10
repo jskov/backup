@@ -32,8 +32,8 @@ public class BackupApplication {
      * @param exitHandler the exit handler to use
      * @param args        the backup arguments
      */
-    public BackupApplication(ExitHandler systemExit, BackupArguments args) {
-        this.exitHandler = systemExit;
+    public BackupApplication(ExitHandler exitHandler, BackupArguments args) {
+        this.exitHandler = exitHandler;
         this.args = args;
     }
 
