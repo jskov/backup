@@ -7,7 +7,7 @@ group = 'dk.mada.backup'
 dependencies {
     constraints {
         api 'net.ltgt.gradle:gradle-errorprone-plugin:3.1.0'
-        api 'com.diffplug.spotless:spotless-plugin-gradle:6.19.0'
+        api 'com.diffplug.spotless:spotless-plugin-gradle:6.20.0'
         api 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:4.2.1.3168'
         api 'com.diffplug.gradle:goomph:3.42.2'
     }
