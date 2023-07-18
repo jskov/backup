@@ -1,5 +1,6 @@
 package dk.mada.backup.types;
 
+import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -18,7 +19,7 @@ public record Sha256sum(String checksum) {
      * @param checksum the checksum, optionally prefixed with "sha256:"
      */
     public Sha256sum(String checksum) {
-        String lc = Objects.requireNonNull(checksum).toLowerCase().replaceAll("^sha256:", "");
+        String lc = Objects.requireNonNull(checksum).toLowerCase(Locale.ROOT).replaceAll("^sha256:", "");
         if (!CHECKSUM_PATTERN.matcher(lc).matches()) {
             throw new IllegalArgumentException("Invalid SHA256 sum: " + checksum);
         }

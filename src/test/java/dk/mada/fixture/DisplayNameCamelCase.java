@@ -1,6 +1,7 @@
 package dk.mada.fixture;
 
 import java.lang.reflect.Method;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -30,8 +31,8 @@ public final class DisplayNameCamelCase extends DisplayNameGenerator.Standard {
     }
 
     private String replaceCapitals(String name) {
-        name = UPPERCASE.matcher(name).replaceAll(m -> " " + m.group().toLowerCase()).trim();
-        name = FIRST.matcher(name).replaceAll(m -> " " + m.group().toUpperCase());
+        name = UPPERCASE.matcher(name).replaceAll(m -> " " + m.group().toLowerCase(Locale.ROOT)).trim();
+        name = FIRST.matcher(name).replaceAll(m -> " " + m.group().toUpperCase(Locale.ROOT));
         name = name.replaceAll("([0-9].)", " $1");
         return name;
     }

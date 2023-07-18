@@ -1,5 +1,6 @@
 package dk.mada.backup.cli;
 
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,7 +27,7 @@ public final class HumanSizeInputConverter implements ITypeConverter<Long> {
         long base = Long.parseLong(m.group(1));
         String mod = m.group(2);
         if (mod != null) {
-            switch (mod.toUpperCase()) {
+            switch (mod.toUpperCase(Locale.ROOT)) {
             case "K":
                 multiplier = ONE_K;
                 break;
