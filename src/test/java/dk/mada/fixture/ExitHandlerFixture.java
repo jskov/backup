@@ -8,7 +8,7 @@ import dk.mada.backup.impl.ExitHandler;
  * When running tests, this would kill the Gradle daemon which it dislikes very much. So when test flag is set, throw an
  * exception instead.
  */
-public class ExitHandlerFixture {
+public final class ExitHandlerFixture {
     private ExitHandlerFixture() {
     }
 
@@ -21,7 +21,7 @@ public class ExitHandlerFixture {
                     throw new IllegalStateException("Backup/restore failed, would system exit: " + exitCode);
                 }
             }
-            
+
             @Override
             public void systemExit(int exitCode, String message) {
                 if (exitCode != 0) {
