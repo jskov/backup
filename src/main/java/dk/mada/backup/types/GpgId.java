@@ -1,5 +1,6 @@
 package dk.mada.backup.types;
 
+import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -18,7 +19,7 @@ public record GpgId(String id) {
      * @param id the GPG identity
      */
     public GpgId(String id) {
-        String lc = Objects.requireNonNull(id).toLowerCase();
+        String lc = Objects.requireNonNull(id).toLowerCase(Locale.ROOT);
         if (!ID_PATTERN.matcher(lc).matches()) {
             throw new IllegalArgumentException("Invalid GPG id: " + id);
         }
