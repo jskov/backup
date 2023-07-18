@@ -190,7 +190,7 @@ match_jotta() {
     local md5="$2"
     local jotta_state="$3"
 
-    /bin/cat $jotta_state | /usr/bin/egrep -q "$file.*$md5"
+    /bin/cat $jotta_state | /usr/bin/grep -E -q "$file.*$md5"
 }
 
 verify_jotta() {
