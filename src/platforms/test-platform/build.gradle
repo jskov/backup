@@ -8,6 +8,6 @@ group = 'dk.mada.backup'
 javaPlatform.allowDependencies()
 
 dependencies {
-    api   (platform('org.junit:junit-bom:5.9.3'))
+    api   (platform('org.junit:junit-bom:5.10.0'))
     api   'org.assertj:assertj-core:3.24.2'
 }
