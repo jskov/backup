@@ -5,7 +5,7 @@ plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'org.gradle.crypto.checksum' version '1.4.0'
-    id 'org.sonarqube' version '4.2.1.3168'
+    id 'org.sonarqube' version '4.4.1.3373'
 
     id 'dk.mada.java'
     id 'dk.mada.eclipse'
