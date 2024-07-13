@@ -1,19 +1,21 @@
 plugins {
-    id 'checkstyle'
     id 'eclipse'
     id 'jacoco'
     id 'java'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
-    id 'org.gradle.crypto.checksum' version '1.4.0'
-    id 'org.sonarqube' version '4.2.1.3168'
 
-    id 'dk.mada.java'
-    id 'dk.mada.eclipse'
+    id 'dk.mada.style' version '1.0.0'
+    id 'dk.mada.reproducible' version '1.0.2'
 }
 
 group "${groupId}"
 
-import org.gradle.crypto.checksum.Checksum
+repositories {
+    repositories {
+        maven { url = uri("https://plugins.gradle.org/m2/") }
+    }
+    mavenCentral()
+}
 
 ext {
     successMarker = project.file("build/all-tests-passed")
@@ -22,21 +24,20 @@ ext {
                 .withNano(0)
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    implementation 'org.slf4j:slf4j-jdk14'
-    implementation 'org.apache.commons:commons-compress'
-    implementation 'info.picocli:picocli'
+    implementation 'org.slf4j:slf4j-jdk14:2.0.13'
+    implementation 'org.apache.commons:commons-compress:1.26.2'
+    implementation 'info.picocli:picocli:4.7.6'
 
+    compileOnly    'org.jspecify:jspecify:0.3.0'
+
+    testImplementation  platform('org.junit:junit-bom:5.10.3')
     testImplementation  'org.junit.jupiter:junit-jupiter'
     testImplementation  'org.junit.jupiter:junit-jupiter-params'
     testImplementation  'org.junit.jupiter:junit-jupiter-engine'
     testImplementation  'org.junit.jupiter:junit-jupiter-api'
     testImplementation  'org.junit.platform:junit-platform-runner'
-    testImplementation  "org.assertj:assertj-core"
+    testImplementation  "org.assertj:assertj-core:3.26.0"
 }
 
 task makeActionsDockerImage() {
@@ -55,8 +56,9 @@ task makeActionsDockerImage() {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
     
     withJavadocJar()
     withSourcesJar()
@@ -124,6 +126,9 @@ task acceptTest(type: Test) {
     dependsOn(makeSuccessMarker)
     dependsOn(prepareActionsGpgTestHome)
 
+    testClassesDirs = testing.suites.test.sources.output.classesDirs
+    classpath = testing.suites.test.sources.runtimeClasspath
+
     useJUnitPlatform {
         includeTags "accept"
     }
@@ -153,25 +158,6 @@ jacocoTestReport {
         xml.required.set(true)
     }
     dependsOn acceptTest // tests are required to run before generating the report
-}
-
-checkstyle {
-    ignoreFailures = true
-}
-
-checkstyleMain {
-    exclude "**/HumanByteCount.java"
-}
-
-sonarqube {
-    properties {
-        property "sonar.inclusions", "src/main/**"
-        property "sonar.java.checkstyle.reportPaths", "build/reports/checkstyle/main.xml"
-
-        property "sonar.projectKey", "jskov_backup"
-        property "sonar.organization", "jskov-github"
-        property "sonar.host.url", "https://sonarcloud.io"
-    }
 }
 
 jar {
