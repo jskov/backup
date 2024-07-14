@@ -39,7 +39,7 @@ class BackupInfoTest {
      * Tests that the backup information is included in the restore script.
      */
     @Test
-    void backupContainsInfo() throws IOException {
+    void backupContainsInfo() {
         Result res = runRestoreCmd("info");
 
         assertThat(res.exitValue())
@@ -60,7 +60,7 @@ class BackupInfoTest {
      * actions) seems to differ from data crypted on Fedora (my dev box).
      */
     @Test
-    void backupInfoCrypted() throws IOException {
+    void backupInfoCrypted() {
         Result res = runRestoreCmd("info", "-c");
 
         assertThat(res.exitValue())
@@ -80,7 +80,7 @@ class BackupInfoTest {
      * Tests that the backup information for tar archives can be printed.
      */
     @Test
-    void backupInfoTars() throws IOException {
+    void backupInfoTars() {
         Result res = runRestoreCmd("info", "-a");
 
         assertThat(res.exitValue())
@@ -95,7 +95,7 @@ class BackupInfoTest {
      * Tests that the backup information for the original files can be printed.
      */
     @Test
-    void backupInfoFiles() throws IOException {
+    void backupInfoFiles() {
         Result res = runRestoreCmd("info", "-f");
 
         assertThat(res.exitValue())

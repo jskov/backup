@@ -36,7 +36,7 @@ class BackupVerificationTest {
      * Tests that the verification of the encrypted archive(s) works.
      */
     @Test
-    void backupCryptFilesCanBeVerified() throws IOException {
+    void backupCryptFilesCanBeVerified() {
         Result res = runRestoreCmd("verify");
 
         assertThat(res.exitValue())
@@ -49,7 +49,7 @@ class BackupVerificationTest {
      * Encrypted archive checksums is time-dependent. But content is constant.
      */
     @Test
-    void cryptContentStableOverTime() throws IOException {
+    void cryptContentStableOverTime() {
         Result res = runRestoreCmd("info", "-c");
 
         assertThat(res.exitValue())
@@ -116,7 +116,7 @@ class BackupVerificationTest {
      * Tests that the files in the archive can be verified by streaming.
      */
     @Test
-    void backupFilesCanBeVerifiedByStream() throws IOException {
+    void backupFilesCanBeVerifiedByStream() {
         Result res = runRestoreCmd("verify", "-s");
 
         assertThat(res.output())
