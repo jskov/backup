@@ -36,7 +36,7 @@ class BackupVerificationTest {
      * Tests that the verification of the encrypted archive(s) works.
      */
     @Test
-    void backupCryptFilesCanBeVerified() throws IOException, InterruptedException {
+    void backupCryptFilesCanBeVerified() {
         Result res = runRestoreCmd("verify");
 
         assertThat(res.exitValue())
@@ -49,7 +49,7 @@ class BackupVerificationTest {
      * Encrypted archive checksums is time-dependent. But content is constant.
      */
     @Test
-    void cryptContentStableOverTime() throws IOException, InterruptedException {
+    void cryptContentStableOverTime() {
         Result res = runRestoreCmd("info", "-c");
 
         assertThat(res.exitValue())
@@ -62,7 +62,7 @@ class BackupVerificationTest {
      * Tests that the contained archives can be decrypted and verified.
      */
     @Test
-    void backupArchivesCanBeRestored() throws IOException, InterruptedException {
+    void backupArchivesCanBeRestored() throws IOException {
         Path restoreDir = Paths.get("build/backup-restored");
         DirectoryDeleter.delete(restoreDir);
 
@@ -88,7 +88,7 @@ class BackupVerificationTest {
      * Tests that the full backup can be decrypted and verified.
      */
     @Test
-    void backupFilesCanBeRestored() throws IOException, InterruptedException {
+    void backupFilesCanBeRestored() throws IOException {
         Path restoreDir = Paths.get("build/backup-restored");
         DirectoryDeleter.delete(restoreDir);
 
@@ -116,7 +116,7 @@ class BackupVerificationTest {
      * Tests that the files in the archive can be verified by streaming.
      */
     @Test
-    void backupFilesCanBeVerifiedByStream() throws IOException, InterruptedException {
+    void backupFilesCanBeVerifiedByStream() {
         Result res = runRestoreCmd("verify", "-s");
 
         assertThat(res.output())
@@ -133,7 +133,7 @@ class BackupVerificationTest {
      * Done by breaking the checksum in the restore script before running verify.
      */
     @Test
-    void brokenBackupFilesCanBeFoundByStreamVerifier() throws IOException, InterruptedException {
+    void brokenBackupFilesCanBeFoundByStreamVerifier() throws IOException {
         // replace last 4 chars of checksum with "dead"
         Path badRestoreScript = restoreScript.getParent().resolve("bad.sh");
         String withBrokenChecksum = Files.readAllLines(restoreScript).stream()
@@ -156,11 +156,11 @@ class BackupVerificationTest {
             .hasSameTextualContentAs(restoreScript.getParent().resolve("_repository/test.sh"));
     }
 
-    private Result runRestoreCmd(String... args) throws IOException {
+    private Result runRestoreCmd(String... args) {
         return runRestoreCmd(restoreScript, args);
     }
 
-    private Result runRestoreCmd(Path script, String... args) throws IOException {
+    private Result runRestoreCmd(Path script, String... args) {
         return RestoreExecutor.runRestoreScript(script, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES, args);
     }
 }
