@@ -39,7 +39,7 @@ class BackupInfoTest {
      * Tests that the backup information is included in the restore script.
      */
     @Test
-    void backupContainsInfo() throws IOException, InterruptedException {
+    void backupContainsInfo() throws IOException {
         Result res = runRestoreCmd("info");
 
         assertThat(res.exitValue())
@@ -60,7 +60,7 @@ class BackupInfoTest {
      * actions) seems to differ from data crypted on Fedora (my dev box).
      */
     @Test
-    void backupInfoCrypted() throws IOException, InterruptedException {
+    void backupInfoCrypted() throws IOException {
         Result res = runRestoreCmd("info", "-c");
 
         assertThat(res.exitValue())
@@ -80,7 +80,7 @@ class BackupInfoTest {
      * Tests that the backup information for tar archives can be printed.
      */
     @Test
-    void backupInfoTars() throws IOException, InterruptedException {
+    void backupInfoTars() throws IOException {
         Result res = runRestoreCmd("info", "-a");
 
         assertThat(res.exitValue())
@@ -95,7 +95,7 @@ class BackupInfoTest {
      * Tests that the backup information for the original files can be printed.
      */
     @Test
-    void backupInfoFiles() throws IOException, InterruptedException {
+    void backupInfoFiles() throws IOException {
         Result res = runRestoreCmd("info", "-f");
 
         assertThat(res.exitValue())
@@ -106,11 +106,11 @@ class BackupInfoTest {
                         "dir-e/file-e with space.bin e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855           0");
     }
 
-    private Result runRestoreCmd(String... args) throws IOException {
+    private Result runRestoreCmd(String... args) {
         return runRestoreCmd(restoreScript, args);
     }
 
-    private Result runRestoreCmd(Path script, String... args) throws IOException {
+    private Result runRestoreCmd(Path script, String... args) {
         return RestoreExecutor.runRestoreScript(script, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES, args);
     }
 }

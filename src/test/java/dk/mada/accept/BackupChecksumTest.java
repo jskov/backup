@@ -30,7 +30,7 @@ class BackupChecksumTest {
      * the checksums. This is how apache-commons worked until version 1.21.
      */
     @Test
-    void archiveChecksumsWithoutUserGroup() throws IOException, InterruptedException, ArchiveException {
+    void archiveChecksumsWithoutUserGroup() throws IOException, ArchiveException {
         Path restoreScript = MakeBackup.makeBackup();
         Result res = runRestoreCmd(restoreScript, "info", "-a");
 
@@ -50,7 +50,7 @@ class BackupChecksumTest {
                     "file-root2 with space.bin e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855           0");
     }
 
-    private Result runRestoreCmd(Path script, String... args) throws IOException {
+    private Result runRestoreCmd(Path script, String... args) {
         return RestoreExecutor.runRestoreScript(script, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES, args);
     }
 }
