@@ -1,4 +1,4 @@
-![](https://github.com/jskov/backup/workflows/Build%20and%20Test/badge.svg)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jskov_backup&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jskov_backup)
 
 # backup
 
