@@ -103,7 +103,8 @@ usage_and_exit() {
     echo "  unpack dir         unpacks all files to dir"
     echo "  unpack -a dir      unpacks (only) archives to dir"
     echo
-    echo "  verify             verifies crypted backup files"
+    echo "  verify             verifies crypted backup files (locally)"
+    echo "  verify -c dir      verifies crypted backup files in dir"
     echo "  verify -a dir      verifies decrypted archive files in dir"
     echo "  verify -f dir      verifies decrypted and unpacked files in dir"
     echo "  verify -s          decrypts and verifies files via streaming - prompts password"
@@ -300,21 +301,28 @@ if [ "$1" == "verify" ]; then
     if [ "$1" == "-j" ]; then
         shift
 
-        verify_jotta $*
+        verify_jotta "$@"
         exit 0
     fi
 
     if [ "$1" == "-a" ]; then
         shift
 
-        verify_files "archives" $*
+        verify_files "archives" "$@"
         exit 0
     fi
 
     if [ "$1" == "-f" ]; then
         shift
 
-        verify_files "files" $*
+        verify_files "files" "$@"
+        exit 0
+    fi
+
+    if [ "$1" == "-c" ]; then
+        shift
+
+        verify_files "crypts" "$@"
         exit 0
     fi
 
@@ -328,12 +336,12 @@ if [ "$1" == "verify" ]; then
 elif [ "$1" == "unpack" ]; then
     shift
 
-    unpack $*
+    unpack "$@"
     exit 0
 elif [ "$1" == info ]; then
     shift
 
-    info_and_exit $*
+    info_and_exit "$@"
 else
     usage_and_exit
 fi
