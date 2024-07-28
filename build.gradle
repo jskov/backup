@@ -38,7 +38,7 @@ dependencies {
     testImplementation  'org.junit.jupiter:junit-jupiter-engine'
     testImplementation  'org.junit.jupiter:junit-jupiter-api'
     testImplementation  'org.junit.platform:junit-platform-runner'
-    testImplementation  "org.assertj:assertj-core:3.26.0"
+    testImplementation  "org.assertj:assertj-core:3.26.3"
 }
 
 task makeActionsDockerImage() {
