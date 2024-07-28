@@ -4,6 +4,7 @@ set -e
 
 rm -rf src/test/data/gpghome
 mkdir -p src/test/data/gpghome
+chmod og-rwx src/test/data/gpghome
 
 gpg --batch --homedir src/test/data/gpghome --passphrase '' --quick-generate-key testKey default default 1y
 gpg --batch --homedir src/test/data/gpghome --output src/test/data/gpghome/exported-public-key.asc --armor --export testKey

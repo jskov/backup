@@ -22,6 +22,7 @@ ext {
     builtOn = LocalDateTime.now()
                 .atZone(ZoneId.of('Europe/Copenhagen'))
                 .withNano(0)
+    testGpgHome = project.file("build/actions-gpg-home")
 }
 
 dependencies {
@@ -87,12 +88,15 @@ processResources {
 
 task prepareActionsGpgTestHome() {
     doFirst {
-        project.mkdir("build/actions-gpg-home")
-         project.exec {
-            commandLine("gpg", "--homedir", "build/actions-gpg-home", "--import", "src/test/data/gpghome/exported-secret-key.asc")
+        project.mkdir(testGpgHome)
+        project.exec {
+            commandLine("chmod", "og-rxw",testGpgHome)
         }
-         project.exec {
-            commandLine("gpg", "--homedir", "build/actions-gpg-home", "--import-ownertrust", "src/test/data/gpghome/exported-owner-trust.asc")
+        project.exec {
+            commandLine("gpg", "--homedir", testGpgHome, "--import", "src/test/data/gpghome/exported-secret-key.asc")
+        }
+        project.exec {
+            commandLine("gpg", "--homedir", testGpgHome, "--import-ownertrust", "src/test/data/gpghome/exported-owner-trust.asc")
         }
     }
 }
