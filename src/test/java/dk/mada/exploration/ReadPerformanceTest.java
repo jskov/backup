@@ -92,13 +92,27 @@ import com.dynatrace.hash4j.hashing.Hashing;
  *  sys     0m1,689s
  * 
  * 
- * Alternative digest algorithms:
+ * Try alternative digest algorithms:
  * 
- *  * SHA512, around 40% faster (java: 6700ish, sha2512sum: 0m7,3s)
+ * SHA512, around 40% faster (java: 6700ish, sha2512sum: 0m7,3s)
+ * Buy cryptographicly secury which is not needed. Just looking to catch file corruption.
  *
- *  * https://github.com/Cyan4973/xxHash (gah! fast!)
- *    Cryptographic security not needed - just looking to catch file corruption, after all.
- *      
+ * https://github.com/Cyan4973/xxHash (specifically XXH3):
+ *
+ *  Using mapping
+ *   : 10082 (9964 digesting)
+ *   : 9888 (9844 digesting)
+ *   : 9959 (9897 digesting)
+ *  Using xxh3Mapping
+ *   : 1330 (1187 digesting)
+ *   : 993 (963 digesting)
+ *   : 1029 (994 digesting)
+ *  Using xxh3Streaming
+ *   : 1498 (554 digesting)
+ *   : 1406 (543 digesting)
+ *   : 1447 (569 digesting)
+ *
+ * So 10 times faster. Even on my old CPU. I think it is a winner!
  */
 class ReadPerformanceTest {
     /** File scanning buffer size. */
@@ -112,11 +126,11 @@ class ReadPerformanceTest {
     @Test
     void shouldAvoidOverwritingFiles() throws IOException, NoSuchAlgorithmException {
         // CORRETTO
-        com.amazon.corretto.crypto.provider.AmazonCorrettoCryptoProvider.install();
+//        com.amazon.corretto.crypto.provider.AmazonCorrettoCryptoProvider.install();
 
         Hasher64 x = Hashing.xxh3_64();
         
-        digest = MessageDigest.getInstance("SHA-512");
+        digest = MessageDigest.getInstance("SHA-256");
         byteBuf = ByteBuffer.allocate(MAX_FILE_SIZE);
 
         Path dir = Paths.get("/opt/music/0-A/");
@@ -126,7 +140,8 @@ class ReadPerformanceTest {
                         // mapping is clearly fastest
 //                        "stream", this::hexChecksum,
 //                        "channel", this::hexChecksumByChannel,
-                        "xxxStream", this::xxxChecksumByStream,
+                        "xxh3Streaming", this::xxxChecksumByStream,
+                        "xxh3Mapping", this::xxxChecksumByMapping,
                         "mapping", this::hexChecksumByMapping
                         );
 
@@ -195,6 +210,33 @@ class ReadPerformanceTest {
         }
     }
 
+    private FileInfo xxxChecksumByMapping(Path rootDir, Path file) {
+        try (RandomAccessFile raf = new RandomAccessFile(file.toFile(), "r");
+                FileChannel channel = raf.getChannel()) {
+
+            MappedByteBuffer mbb =
+                    channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+
+            HashStream64 hashStream = Hashing.xxh3_64().hashStream();
+            
+            long s = System.currentTimeMillis();
+            while (mbb.hasRemaining()) {
+                int copy = mbb.remaining();
+                if (copy > buffer.length) {
+                    copy = buffer.length;
+                }
+                mbb.get(buffer, 0, copy);
+                hashStream.putBytes(buffer, 0, copy);
+            }
+            long total = System.currentTimeMillis() - s;
+            totalDigest += total;
+            
+            return new FileInfo(rootDir.relativize(file), formatter.toHexDigits(hashStream.getAsLong()));
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to compute checksum for " + file, e);
+        }
+    }
+
     private FileInfo xxxChecksumByStream(Path rootDir, Path file) {
         try (InputStream is = Files.newInputStream(file); BufferedInputStream bis = new BufferedInputStream(is)) {
             int read;
@@ -211,7 +253,7 @@ class ReadPerformanceTest {
             throw new UncheckedIOException("Failed to compute checksum for " + file, e);
         }
     }
-    
+
     private FileInfo hexChecksumByChannel(Path rootDir, Path file) {
         byteBuf.clear();
         digest.reset();
