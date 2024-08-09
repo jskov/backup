@@ -45,8 +45,7 @@ import org.junit.jupiter.api.Test;
  * Theory 2: will memory mapping of files for checksum be faster / cache better or worse?
  *  :: hm... mapping is marginally faster. but digesting is slower
  *  
- *  
- * JDK SHA-256 digest implementation:
+ *
  *  Using channel
  *   : 1581 (1361 digesting)
  *   : 1493 (1306 digesting)
@@ -59,21 +58,35 @@ import org.junit.jupiter.api.Test;
  *   : 1246 (1112 digesting)
  *   : 1223 (1108 digesting)
  *   : 1233 (1109 digesting)
+ *
+ * Mapping is clearly fastest.
+ * 
+ * Testing digest implementations:
  *  
+ * JDK SHA-256 digest implementation:
+ * 
+ *  Using mapping
+ *   : 10043 (9937 digesting)
+ *   : 9854 (9804 digesting)
+ *   : 9866 (9824 digesting)
+ *
  * Try https://github.com/corretto/amazon-corretto-crypto-provider
  * (see CORRETTO comment in code):
- *  Using channel
- *   : 1396 (1227 digesting)
- *   : 1364 (1195 digesting)
- *   : 1326 (1155 digesting)
- *  Using mapping
- *   : 1176 (1162 digesting)
- *   : 1159 (1148 digesting)
- *   : 1164 (1156 digesting)
- *  Using stream
- *   : 1263 (1146 digesting)
- *   : 1253 (1135 digesting)
- *   : 1239 (1110 digesting)
+ *
+ * Using mapping
+ *  : 9624 (9529 digesting)
+ *  : 9532 (9489 digesting)
+ *  : 9586 (9548 digesting)
+ *  
+ * Corretto (using openssl?) is ~3.5% faster on my Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz
+ * 
+ * 
+ * Vs Native:
+ *  $ time find /opt/music/0-A/ -type f -exec sha256sum -b '{}' \; > /dev/null
+ *  real    0m10,223s
+ *  user    0m8,583s
+ *  sys     0m1,689s
+ * 
  */
 class ReadPerformanceTest {
     /** File scanning buffer size. */
@@ -95,9 +108,12 @@ class ReadPerformanceTest {
         Path dir = Paths.get("/opt/music/0-A/ABBA/");
         
         Map<String, FileChecksummer> impls = 
-                Map.of("stream", this::hexChecksum,
-                        "channel", this::hexChecksumByChannel,
-                        "mapping", this::hexChecksumByMapping);
+                Map.of(
+                        // mapping is clearly fastest
+//                        "stream", this::hexChecksum,
+//                        "channel", this::hexChecksumByChannel,
+                        "mapping", this::hexChecksumByMapping
+                        );
 
         impls.entrySet().stream()
             .sorted((a, b) -> a.getKey().compareTo(b.getKey()))
