@@ -41,6 +41,7 @@ dependencies {
     testImplementation  "org.assertj:assertj-core:3.26.3"
     
     testImplementation  'software.amazon.cryptools:AmazonCorrettoCryptoProvider:2.4.1:linux-x86_64'
+    testImplementation  'com.dynatrace.hash4j:hash4j:0.18.0'
 }
 
 task makeActionsDockerImage() {
