@@ -27,7 +27,7 @@ ext {
 
 dependencies {
     implementation 'org.slf4j:slf4j-jdk14:2.0.13'
-    implementation 'org.apache.commons:commons-compress:1.26.2'
+    implementation 'org.apache.commons:commons-compress:1.27.0'
     implementation 'info.picocli:picocli:4.7.6'
 
     compileOnly    'org.jspecify:jspecify:1.0.0'
