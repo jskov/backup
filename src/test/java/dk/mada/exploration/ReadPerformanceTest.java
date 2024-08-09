@@ -44,6 +44,36 @@ import org.junit.jupiter.api.Test;
  *
  * Theory 2: will memory mapping of files for checksum be faster / cache better or worse?
  *  :: hm... mapping is marginally faster. but digesting is slower
+ *  
+ *  
+ * JDK SHA-256 digest implementation:
+ *  Using channel
+ *   : 1581 (1361 digesting)
+ *   : 1493 (1306 digesting)
+ *   : 1479 (1288 digesting)
+ *  Using mapping
+ *   : 1240 (1215 digesting)
+ *   : 1213 (1203 digesting)
+ *   : 1209 (1199 digesting)
+ *  Using stream
+ *   : 1246 (1112 digesting)
+ *   : 1223 (1108 digesting)
+ *   : 1233 (1109 digesting)
+ *  
+ * Try https://github.com/corretto/amazon-corretto-crypto-provider
+ * (see CORRETTO comment in code):
+ *  Using channel
+ *   : 1396 (1227 digesting)
+ *   : 1364 (1195 digesting)
+ *   : 1326 (1155 digesting)
+ *  Using mapping
+ *   : 1176 (1162 digesting)
+ *   : 1159 (1148 digesting)
+ *   : 1164 (1156 digesting)
+ *  Using stream
+ *   : 1263 (1146 digesting)
+ *   : 1253 (1135 digesting)
+ *   : 1239 (1110 digesting)
  */
 class ReadPerformanceTest {
     /** File scanning buffer size. */
@@ -56,6 +86,9 @@ class ReadPerformanceTest {
 
     @Test
     void shouldAvoidOverwritingFiles() throws IOException, NoSuchAlgorithmException {
+        // CORRETTO
+        com.amazon.corretto.crypto.provider.AmazonCorrettoCryptoProvider.install();
+
         digest = MessageDigest.getInstance("SHA-256");
         byteBuf = ByteBuffer.allocate(MAX_FILE_SIZE);
 
@@ -66,7 +99,9 @@ class ReadPerformanceTest {
                         "channel", this::hexChecksumByChannel,
                         "mapping", this::hexChecksumByMapping);
 
-        impls.forEach((name, fc) -> testDir(name, dir, fc));
+        impls.entrySet().stream()
+            .sorted((a, b) -> a.getKey().compareTo(b.getKey()))
+            .forEach(e -> testDir(e.getKey(), dir, e.getValue()));
     }
     
     private void testDir(String name, Path dir, FileChecksummer checksummer) {
