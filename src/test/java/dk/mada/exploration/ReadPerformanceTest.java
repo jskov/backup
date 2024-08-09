@@ -113,6 +113,14 @@ import com.dynatrace.hash4j.hashing.Hashing;
  *   : 1447 (569 digesting)
  *
  * So 10 times faster. Even on my old CPU. I think it is a winner!
+ *
+ * Even compared to native implementation, it is OK in java:
+ *
+ *  $ time find /opt/music/0-A/ -type f -exec xxh64sum '{}' \; >/dev/null
+ *                                                                        
+ *  real    0m1,863s
+ *  user    0m0,574s
+ *  sys     0m1,251s
  */
 class ReadPerformanceTest {
     /** File scanning buffer size. */
@@ -133,7 +141,7 @@ class ReadPerformanceTest {
         digest = MessageDigest.getInstance("SHA-256");
         byteBuf = ByteBuffer.allocate(MAX_FILE_SIZE);
 
-        Path dir = Paths.get("/opt/music/0-A/");
+        Path dir = Paths.get("/opt/music/0-A/ABBA/");
         
         Map<String, FileChecksummer> impls = 
                 Map.of(
