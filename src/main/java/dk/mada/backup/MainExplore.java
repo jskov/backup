@@ -31,6 +31,9 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.dynatrace.hash4j.hashing.HashStream64;
+import com.dynatrace.hash4j.hashing.Hashing;
+
 import dk.mada.backup.cli.HumanByteCount;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import dk.mada.backup.restore.RestoreScriptWriter;
@@ -255,16 +258,18 @@ public class MainExplore {
             tos.putArchiveEntry(tae);
 
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            HashStream64 hashStream = Hashing.xxh3_64().hashStream();
 
             int read;
             while ((read = bis.read(buffer)) > 0) {
                 digest.update(buffer, 0, read);
+                hashStream.putBytes(buffer, 0, read);
                 tos.write(buffer, 0, read);
             }
 
             tos.closeArchiveEntry();
 
-            return FileInfo.of(inArchiveName, size, digest);
+            return FileInfo.of(inArchiveName, size, digest, hashStream.getAsLong());
 
         } catch (IOException e) {
             throw new UncheckedIOException(e);

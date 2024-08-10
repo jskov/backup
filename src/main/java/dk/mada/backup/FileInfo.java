@@ -13,6 +13,9 @@ import java.util.Objects;
 
 import org.jspecify.annotations.Nullable;
 
+import com.dynatrace.hash4j.hashing.HashStream64;
+import com.dynatrace.hash4j.hashing.Hashing;
+
 /**
  * Captures information about a file.
  */
@@ -27,17 +30,28 @@ public final class FileInfo implements BackupElement {
     private final String checksum;
     /** Optional MD5 sum of the file - only computed/captured for crypt-files. */
     @Nullable private final String md5Checksum;
+    /**
+     * Optional XX3Hash (64 bit) of the file - only computed/captured for the original files. And only for the transition
+     * from SHA-256 to XXH3
+     */
+    private final String xxh3;
 
-    private FileInfo(String pathName, long size, String checksum, @Nullable String md5) {
+    private FileInfo(String pathName, long size, String checksum, long xxh3, @Nullable String md5) {
         this.pathName = pathName;
         this.size = size;
         this.checksum = checksum;
         this.md5Checksum = md5;
+        this.xxh3 = HexFormat.of().toHexDigits(xxh3);
     }
 
     /** {@return the file's SHA-256 checksum} */
     public String getChecksum() {
         return checksum;
+    }
+
+    /** {@return the file's XXH3 checksum} */
+    public String getXXH3() {
+        return xxh3;
     }
 
     /** {@return the file's MD5 checkum if present, or fail} */
@@ -53,8 +67,8 @@ public final class FileInfo implements BackupElement {
      * @param digest   the digest computed for the file
      * @return an instance capturing the file information for the backup
      */
-    public static FileInfo of(String pathName, long size, MessageDigest digest) {
-        return new FileInfo(pathName, size, digestToString(digest), null);
+    public static FileInfo of(String pathName, long size, MessageDigest digest, long xxh3) {
+        return new FileInfo(pathName, size, digestToString(digest), xxh3, null);
     }
 
     /**
@@ -81,6 +95,7 @@ public final class FileInfo implements BackupElement {
 
     private static FileInfo from(Path rootDir, Path file, boolean includeMd5Sum) {
         byte[] buffer = new byte[FILE_SCAN_BUFFER_SIZE];
+        HashStream64 hashStream = Hashing.xxh3_64().hashStream();
 
         try (InputStream is = Files.newInputStream(file);
                 BufferedInputStream bis = new BufferedInputStream(is)) {
@@ -91,6 +106,7 @@ public final class FileInfo implements BackupElement {
             int read;
             while ((read = bis.read(buffer)) > 0) {
                 digest.update(buffer, 0, read);
+                hashStream.putBytes(buffer, 0, read);
                 if (includeMd5Sum) {
                     digestMd5.update(buffer, 0, read);
                 }
@@ -99,7 +115,7 @@ public final class FileInfo implements BackupElement {
 
             String relPath = rootDir.relativize(file).getFileName().toString();
 
-            return new FileInfo(relPath, size, checksum,
+            return new FileInfo(relPath, size, checksum, hashStream.getAsLong(),
                     includeMd5Sum ? digestToString(digestMd5) : null);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -124,6 +140,8 @@ public final class FileInfo implements BackupElement {
         sb.append(String.format("% 11d", size));
         sb.append(',');
         sb.append(checksum);
+//TODO        sb.append(',');
+//        sb.append(xxh3);
         if (md5Checksum != null) {
             sb.append(",");
             sb.append(md5Checksum);
