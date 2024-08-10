@@ -242,7 +242,7 @@ verify_stream() {
         file_checksums="$file_checksums$sha2,$file\n"
     done
     for l in "${archives[@]}"; do
-        @@VARS_MD5@@
+        @@VARS@@
 
         if ! (echo $file | /bin/grep -q -e ".tar$") ; then
             file_checksums="$file_checksums$sha2,$file\n"
