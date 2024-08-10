@@ -22,6 +22,18 @@ import dk.mada.backup.api.BackupTargetExistsException;
  * Copies out the restore script, replacing backup information as it goes.
  */
 public final class RestoreScriptWriter {
+    /** Variable indexers for crypt lines */
+    private final static Map<VariableName, String> SCRIPT_INDEXERS = Map.of(
+            VariableName.VARS_MD5, """
+                    local file=${l:110}
+                    local size=${l:0:11}
+                    local sha2=${l:12:64}
+                    local md5=${l:77:32}""",
+            VariableName.VARS, """
+                    local file=${l:77}
+                    local size=${l:0:11}
+                    local sha2=${l:12:64}""");
+
     /**
      * Constructs and writes restore script.
      *
@@ -79,10 +91,25 @@ public final class RestoreScriptWriter {
         String res = line;
 
         for (Map.Entry<VariableName, String> e : vars.entrySet()) {
-            res = res.replace("@@" + e.getKey().name() + "@@", e.getValue());
+            res = replaceVariable(res, e.getKey(), e.getValue());
+        }
+
+        for (Map.Entry<VariableName, String> e : SCRIPT_INDEXERS.entrySet()) {
+            res = replaceVariable(res, e.getKey(), e.getValue());
         }
 
         return res;
+    }
+
+    private String replaceVariable(String l, VariableName name, String value) {
+        String m = "@@" + name + "@@";
+        int index = l.indexOf(m);
+        if (index < 0) {
+            return l;
+        }
+        String indent = " ".repeat(index);
+        String indentedValue = value.replace("\n", "\n" + indent);
+        return l.replace(m, indentedValue);
     }
 
     /**
