@@ -68,12 +68,11 @@ info_and_exit() {
         local name=$sel[@]
         local array=("${!name}")
         for l in "${array[@]}"; do
-            local file=${l:77}
             if [[ $sel == "crypts" ]]; then
-                file=${l:110}
+                @@VARS_MD5@@
+            else
+                @@VARS@@
             fi
-            local size=${l:0:11}
-            local sha2=${l:12:64}
             echo "${file} ${sha2} ${size}"
         done
     else
@@ -131,11 +130,10 @@ verify_files() {
 
     local i=1
     for l in "${array[@]}"; do
-        local size=${l:0:11}
-        local sha2=${l:12:64}
-        local file=${l:77}
         if [[ $name == "crypts[@]" ]]; then
-           file=${l:110}
+            @@VARS_MD5@@
+        else
+            @@VARS@@
         fi
 
         if ! (cd $files_dir; expect_file "$size" "$sha2" "$file" "- ($i/$len) ") ; then
@@ -165,9 +163,7 @@ unpack() {
 
     local crypt_files=
     for l in "${crypts[@]}"; do
-        local size=${l:0:11}
-        local sha2=${l:12:64}
-        local file=${l:110}
+        @@VARS_MD5@@
         crypt_files="$crypt_files $file"
     done
 
@@ -216,8 +212,7 @@ verify_jotta() {
     fi
 
     for l in "${crypts[@]}"; do
-        local md5=${l:77:32}
-        local file=${l:110}
+        @@VARS_MD5@@
 
         if match_jotta "$file" "$md5" "$jotta_state"; then
             echo -e " $ok $file"
@@ -243,15 +238,11 @@ verify_stream() {
     # Make a file with file/checksum lines for all (nested) files and root files
     local file_checksums=
     for l in "${files[@]}"; do
-        local size=${l:0:11}
-        local sha2=${l:12:64}
-        local file=${l:77}
+        @@VARS@@
         file_checksums="$file_checksums$sha2,$file\n"
     done
     for l in "${archives[@]}"; do
-        local size=${l:0:11}
-        local sha2=${l:12:64}
-        local file=${l:77}
+        @@VARS_MD5@@
 
         if ! (echo $file | /bin/grep -q -e ".tar$") ; then
             file_checksums="$file_checksums$sha2,$file\n"
@@ -278,9 +269,7 @@ EOF
 
     local crypt_files=
     for l in "${crypts[@]}"; do
-        local size=${l:0:11}
-        local sha2=${l:12:64}
-        local file=${l:110}
+        @@VARS_MD5@@
         crypt_files="$crypt_files $file"
     done
     local gpg_cmd="/usr/bin/gpg -q --no-permission-warning -d"

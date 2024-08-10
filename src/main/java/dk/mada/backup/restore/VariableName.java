@@ -15,5 +15,9 @@ public enum VariableName {
     /** The version of the application that created the backup. */
     VERSION,
     /** The version of the format used for file data. */
-    DATA_FORMAT_VERSION
+    DATA_FORMAT_VERSION,
+    /** Variable indexers for normal data lines. */
+    VARS,
+    /** Variable indexers for data lines containing MD5 information. */
+    VARS_MD5
 }
