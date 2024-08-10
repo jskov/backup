@@ -140,8 +140,8 @@ public final class FileInfo implements BackupElement {
         sb.append(String.format("% 11d", size));
         sb.append(',');
         sb.append(checksum);
-//TODO        sb.append(',');
-//        sb.append(xxh3);
+        sb.append(',');
+        sb.append(xxh3);
         if (md5Checksum != null) {
             sb.append(",");
             sb.append(md5Checksum);
