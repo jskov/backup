@@ -26,27 +26,16 @@ public final class FileInfo implements BackupElement {
     private final String pathName;
     /** Size of the file. */
     private final long size;
-    /** SHA-256 sum of the file. */
-    private final String checksum;
+    /** XXH3 sum of the file. */
+    private final String xxh3;
     /** Optional MD5 sum of the file - only computed/captured for crypt-files. */
     @Nullable private final String md5Checksum;
-    /**
-     * Optional XX3Hash (64 bit) of the file - only computed/captured for the original files. And only for the transition
-     * from SHA-256 to XXH3
-     */
-    private final String xxh3;
 
-    private FileInfo(String pathName, long size, String checksum, long xxh3, @Nullable String md5) {
+    private FileInfo(String pathName, long size, long xxh3, @Nullable String md5) {
         this.pathName = pathName;
         this.size = size;
-        this.checksum = checksum;
-        this.md5Checksum = md5;
         this.xxh3 = HexFormat.of().toHexDigits(xxh3);
-    }
-
-    /** {@return the file's SHA-256 checksum} */
-    public String getChecksum() {
-        return checksum;
+        this.md5Checksum = md5;
     }
 
     /** {@return the file's XXH3 checksum} */
@@ -64,11 +53,10 @@ public final class FileInfo implements BackupElement {
      *
      * @param pathName the path of the file relative to the backup root directory
      * @param size     the size of the file
-     * @param digest   the digest computed for the file
      * @return an instance capturing the file information for the backup
      */
-    public static FileInfo of(String pathName, long size, MessageDigest digest, long xxh3) {
-        return new FileInfo(pathName, size, digestToString(digest), xxh3, null);
+    public static FileInfo of(String pathName, long size, long xxh3) {
+        return new FileInfo(pathName, size, xxh3, null);
     }
 
     /**
@@ -100,22 +88,18 @@ public final class FileInfo implements BackupElement {
         try (InputStream is = Files.newInputStream(file);
                 BufferedInputStream bis = new BufferedInputStream(is)) {
             MessageDigest digestMd5 = MessageDigest.getInstance("MD5"); // NOSONAR - MD5 used by Jottacloud
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
             long size = Files.size(file);
 
             int read;
             while ((read = bis.read(buffer)) > 0) {
-                digest.update(buffer, 0, read);
                 hashStream.putBytes(buffer, 0, read);
                 if (includeMd5Sum) {
                     digestMd5.update(buffer, 0, read);
                 }
             }
-            String checksum = digestToString(digest);
-
             String relPath = rootDir.relativize(file).getFileName().toString();
 
-            return new FileInfo(relPath, size, checksum, hashStream.getAsLong(),
+            return new FileInfo(relPath, size, hashStream.getAsLong(),
                     includeMd5Sum ? digestToString(digestMd5) : null);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -130,7 +114,7 @@ public final class FileInfo implements BackupElement {
 
     @Override
     public String toString() {
-        return "FileInfo [pathName=" + pathName + ", size=" + size + ", checksum=" + checksum + "]";
+        return "FileInfo [pathName=" + pathName + ", size=" + size + ", xxh3=" + xxh3 + "]";
     }
 
     @Override
@@ -138,8 +122,6 @@ public final class FileInfo implements BackupElement {
         StringBuilder sb = new StringBuilder();
         sb.append('"');
         sb.append(String.format("% 11d", size));
-        sb.append(',');
-        sb.append(checksum);
         sb.append(',');
         sb.append(xxh3);
         if (md5Checksum != null) {

@@ -13,8 +13,6 @@ import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
@@ -257,24 +255,20 @@ public class MainExplore {
 
             tos.putArchiveEntry(tae);
 
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
             HashStream64 hashStream = Hashing.xxh3_64().hashStream();
 
             int read;
             while ((read = bis.read(buffer)) > 0) {
-                digest.update(buffer, 0, read);
                 hashStream.putBytes(buffer, 0, read);
                 tos.write(buffer, 0, read);
             }
 
             tos.closeArchiveEntry();
 
-            return FileInfo.of(inArchiveName, size, digest, hashStream.getAsLong());
+            return FileInfo.of(inArchiveName, size, hashStream.getAsLong());
 
         } catch (IOException e) {
             throw new UncheckedIOException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("No algo", e);
         }
     }
 }

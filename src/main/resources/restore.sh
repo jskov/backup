@@ -30,7 +30,7 @@ fail() {
 
 expect_file() {
     local size="$1"
-    local sha2="$2"
+    local xxh3="$2"
     local file="$3"
     local prefix="$4"
 
@@ -45,9 +45,9 @@ expect_file() {
         fail "\nFile $file has size $actual_size, but expected $size"
     fi
 
-    local actual_sha2=$(/usr/bin/sha256sum "$file" | /usr/bin/cut -d' ' -f1)
-    if [ "$actual_sha2" != "$sha2" ]; then
-        fail "\nFile $file has sha256sum '$actual_sha2', but expected '$sha2'"
+    local actual_xxh3=$(/usr/bin/xxhsum --binary -H3 "$file" | /usr/bin/cut -d' ' -f4)
+    if [ "$actual_xxh3" != "$xxh3" ]; then
+        fail "\nFile $file has xxh3 '$actual_xxh3', but expected '$xxh3'"
     fi
 
     echo "ok"
@@ -73,7 +73,7 @@ info_and_exit() {
             else
                 @@VARS@@
             fi
-            echo "${file} ${sha2} ${size}"
+            echo "${file} ${xxh3} ${size}"
         done
     else
         echo "Backup '@@BACKUP_NAME@@'"
@@ -136,7 +136,7 @@ verify_files() {
             @@VARS@@
         fi
 
-        if ! (cd $files_dir; expect_file "$size" "$sha2" "$file" "- ($i/$len) ") ; then
+        if ! (cd $files_dir; expect_file "$size" "$xxh3" "$file" "- ($i/$len) ") ; then
             exit 1
         fi
         i=$((i + 1))
@@ -239,13 +239,13 @@ verify_stream() {
     local file_checksums=
     for l in "${files[@]}"; do
         @@VARS@@
-        file_checksums="$file_checksums$sha2,$file\n"
+        file_checksums="$file_checksums$xxh3,$file\n"
     done
     for l in "${archives[@]}"; do
         @@VARS@@
 
         if ! (echo $file | /bin/grep -q -e ".tar$") ; then
-            file_checksums="$file_checksums$sha2,$file\n"
+            file_checksums="$file_checksums$xxh3,$file\n"
         fi
     done
     echo -e "$file_checksums" > /tmp/valid-input.txt
@@ -259,7 +259,7 @@ set -e
 
 filename="\$1"
 
-a=\$(/usr/bin/sha256sum -b - | echo "\$(/bin/sed -e "s/ \*-/,/;")\$filename")
+a=\$(/usr/bin/xxhsum --binary -H3 - | echo "\$(/bin/sed -e "s/.* //;"),\$filename")
 
 if ! (/bin/grep -F -q "\$a" /tmp/valid-input.txt) ; then
   echo "Did not find matching checksum for file '\$filename'"

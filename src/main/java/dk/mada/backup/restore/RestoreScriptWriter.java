@@ -25,16 +25,14 @@ public final class RestoreScriptWriter {
     /** Variable indexers for crypt lines */
     private final static Map<VariableName, String> SCRIPT_INDEXERS = Map.of(
             VariableName.VARS_MD5, """
-                    local file=${l:127}
                     local size=${l:0:11}
-                    local sha2=${l:12:64}
-                    local xxh3=${l:16:77}
-                    local md5=${l:94:32}""",
+                    local xxh3=${l:12:16}
+                    local md5=${l:29:32}
+                    local file=${l:62}""",
             VariableName.VARS, """
-                    local file=${l:94}
                     local size=${l:0:11}
-                    local sha2=${l:12:64}
-                    local xxh3=${l:16:77}""");
+                    local xxh3=${l:12:16}
+                    local file=${l:29}""");
 
     /**
      * Constructs and writes restore script.
