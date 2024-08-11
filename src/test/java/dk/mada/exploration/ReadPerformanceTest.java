@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.dynatrace.hash4j.hashing.HashStream64;
@@ -122,6 +123,7 @@ import com.dynatrace.hash4j.hashing.Hashing;
  *  user    0m0,574s
  *  sys     0m1,251s
  */
+@Disabled("Only used for manual exploration")
 class ReadPerformanceTest {
     /** File scanning buffer size. */
     private static final int FILE_SCAN_BUFFER_SIZE = 2*8192;
@@ -132,7 +134,7 @@ class ReadPerformanceTest {
     private ByteBuffer byteBuf;
 
     @Test
-    void shouldAvoidOverwritingFiles() throws IOException, NoSuchAlgorithmException {
+    void readPerformance() throws IOException, NoSuchAlgorithmException {
         // CORRETTO
 //        com.amazon.corretto.crypto.provider.AmazonCorrettoCryptoProvider.install();
 
