@@ -13,11 +13,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import dk.mada.backup.restore.RestoreExecutor;
 import dk.mada.backup.restore.RestoreExecutor.Result;
 import dk.mada.fixture.DirectoryDeleter;
 import dk.mada.fixture.MakeBackup;
-import dk.mada.fixture.TestCertificateInfo;
+import dk.mada.fixture.MakeRestore;
 
 /**
  * Makes a backup, runs multiple checks on the restore of this backup.
@@ -68,8 +67,6 @@ class BackupVerificationTest {
 
         Result res = runRestoreCmd("unpack", "-a", restoreDir.toAbsolutePath().toString());
 
-        assertThat(res.exitValue())
-                .isZero();
         assertThat(res.output())
                 .contains(" - (1/10) dir-a.tar... ok",
                         " - (2/10) dir-b.tar... ok",
@@ -82,6 +79,8 @@ class BackupVerificationTest {
                         " - (9/10) file-root1.bin... ok",
                         " - (10/10) file-root2 with space.bin... ok",
                         "Success!");
+        assertThat(res.exitValue())
+            .isZero();
     }
 
     /**
@@ -141,7 +140,7 @@ class BackupVerificationTest {
                 .collect(Collectors.joining("\n"));
         Files.writeString(badRestoreScript, withBrokenChecksum);
 
-        Result res = runRestoreCmd(badRestoreScript, "verify", "-s");
+        Result res = MakeRestore.runRestoreCmd(badRestoreScript, "verify", "-s");
 
         assertThat(res.output())
                 .contains("Did not find matching checksum for file 'dir-b/file-b1.bin'");
@@ -157,10 +156,6 @@ class BackupVerificationTest {
     }
 
     private Result runRestoreCmd(String... args) {
-        return runRestoreCmd(restoreScript, args);
-    }
-
-    private Result runRestoreCmd(Path script, String... args) {
-        return RestoreExecutor.runRestoreScript(script, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES, args);
+        return MakeRestore.runRestoreCmd(restoreScript, args);
     }
 }
