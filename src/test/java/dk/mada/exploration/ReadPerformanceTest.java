@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.dynatrace.hash4j.hashing.HashStream64;
-import com.dynatrace.hash4j.hashing.Hasher64;
 import com.dynatrace.hash4j.hashing.Hashing;
 
 /**
@@ -36,7 +35,7 @@ import com.dynatrace.hash4j.hashing.Hashing;
  *     if existing crypted archive file matches checksum from metadata
  *       then: no need to update (or write any files)
  *    otherwise: create new backup for folder (re-reading all files again)
- *  
+ *
  * This test will determine performance of reading data twice (worst case)
  * compared to the current one-read where archive is created and checksums
  * computed in one go.
@@ -49,7 +48,7 @@ import com.dynatrace.hash4j.hashing.Hashing;
  *
  * Theory 2: will memory mapping of files for checksum be faster / cache better or worse?
  *  :: hm... mapping is marginally faster. but digesting is slower
- *  
+ *
  *
  *  Using channel
  *   : 1581 (1361 digesting)
@@ -65,11 +64,11 @@ import com.dynatrace.hash4j.hashing.Hashing;
  *   : 1233 (1109 digesting)
  *
  * Mapping is clearly fastest.
- * 
+ *
  * Testing digest implementations:
- *  
+ *
  * JDK SHA-256 digest implementation:
- * 
+ *
  *  Using mapping
  *   : 10043 (9937 digesting)
  *   : 9854 (9804 digesting)
@@ -82,19 +81,19 @@ import com.dynatrace.hash4j.hashing.Hashing;
  *  : 9624 (9529 digesting)
  *  : 9532 (9489 digesting)
  *  : 9586 (9548 digesting)
- *  
+ *
  * Corretto (using openssl?) is ~3.5% faster on my Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz
- * 
- * 
+ *
+ *
  * Vs Native:
  *  $ time find /opt/music/0-A/ -type f -exec sha256sum -b '{}' \; > /dev/null
  *  real    0m10,223s
  *  user    0m8,583s
  *  sys     0m1,689s
- * 
- * 
+ *
+ *
  * Try alternative digest algorithms:
- * 
+ *
  * SHA512, around 40% faster (java: 6700ish, sha2512sum: 0m7,3s)
  * Buy cryptographicly secury which is not needed. Just looking to catch file corruption.
  *
@@ -118,7 +117,7 @@ import com.dynatrace.hash4j.hashing.Hashing;
  * Even compared to native implementation, it is OK in java:
  *
  *  $ time find /opt/music/0-A/ -type f -exec xxh64sum '{}' \; >/dev/null
- *                                                                        
+ *
  *  real    0m1,863s
  *  user    0m0,574s
  *  sys     0m1,251s
@@ -138,14 +137,12 @@ class ReadPerformanceTest {
         // CORRETTO
 //        com.amazon.corretto.crypto.provider.AmazonCorrettoCryptoProvider.install();
 
-        Hasher64 x = Hashing.xxh3_64();
-        
         digest = MessageDigest.getInstance("SHA-256");
         byteBuf = ByteBuffer.allocate(MAX_FILE_SIZE);
 
         Path dir = Paths.get("/opt/music/0-A/ABBA/");
-        
-        Map<String, FileChecksummer> impls = 
+
+        Map<String, FileChecksummer> impls =
                 Map.of(
                         // mapping is clearly fastest
 //                        "stream", this::hexChecksum,
@@ -159,7 +156,7 @@ class ReadPerformanceTest {
             .sorted((a, b) -> a.getKey().compareTo(b.getKey()))
             .forEach(e -> testDir(e.getKey(), dir, e.getValue()));
     }
-    
+
     private void testDir(String name, Path dir, FileChecksummer checksummer) {
         System.out.println("Using " + name);
         for (int i = 0; i < 3; i++) {
@@ -194,7 +191,7 @@ class ReadPerformanceTest {
                 long total = System.currentTimeMillis() - s;
                 totalDigest += total;
             }
-            
+
             return new FileInfo(rootDir.relativize(file), formatter.formatHex(digest.digest()));
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to compute checksum for " + file, e);
@@ -208,12 +205,12 @@ class ReadPerformanceTest {
 
             MappedByteBuffer mbb =
                     channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-            
+
             long s = System.currentTimeMillis();
             digest.update(mbb);
             long total = System.currentTimeMillis() - s;
             totalDigest += total;
-            
+
             return new FileInfo(rootDir.relativize(file), formatter.formatHex(digest.digest()));
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to compute checksum for " + file, e);
@@ -228,7 +225,7 @@ class ReadPerformanceTest {
                     channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
 
             HashStream64 hashStream = Hashing.xxh3_64().hashStream();
-            
+
             long s = System.currentTimeMillis();
             while (mbb.hasRemaining()) {
                 int copy = mbb.remaining();
@@ -240,7 +237,7 @@ class ReadPerformanceTest {
             }
             long total = System.currentTimeMillis() - s;
             totalDigest += total;
-            
+
             return new FileInfo(rootDir.relativize(file), formatter.toHexDigits(hashStream.getAsLong()));
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to compute checksum for " + file, e);
@@ -257,7 +254,7 @@ class ReadPerformanceTest {
                 long total = System.currentTimeMillis() - s;
                 totalDigest += total;
             }
-            
+
             return new FileInfo(rootDir.relativize(file), formatter.toHexDigits(hashStream.getAsLong()));
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to compute checksum for " + file, e);
@@ -277,7 +274,7 @@ class ReadPerformanceTest {
             digest.update(byteBuf);
             long total = System.currentTimeMillis() - s;
             totalDigest += total;
-            
+
             return new FileInfo(rootDir.relativize(file), formatter.formatHex(digest.digest()));
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to compute checksum for " + file, e);
@@ -286,7 +283,7 @@ class ReadPerformanceTest {
 
     record FileInfo(Path file, String checksum) {
     }
-    
+
     @FunctionalInterface
     interface FileChecksummer {
         FileInfo process(Path rootDir, Path file);
