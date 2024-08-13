@@ -43,7 +43,8 @@ expect_file() {
         fail "\nFile $file has size $actual_size, but expected $size"
     fi
 
-    local actual_xxh3=$(/bin/xxhsum -H3 "$file" | /bin/cut -d' ' -f4)
+    local xxh3_output=$(/bin/xxhsum -H3 "$file")
+    local actual_xxh3=${xxh3_output: -16}
     if [[ "$actual_xxh3" != "$xxh3" ]]; then
         fail "\nFile $file has xxh3 '$actual_xxh3', but expected '$xxh3'"
     fi
