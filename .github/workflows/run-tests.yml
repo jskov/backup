@@ -22,6 +22,11 @@ jobs:
     name: Build, test, and release
     runs-on: ubuntu-latest
     steps:
+      - name: Install xxhash
+        run: |
+          sudo apt-get update
+          sudo apt-get install xxhash
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:

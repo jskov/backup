@@ -33,6 +33,12 @@ music-2021.03.07-01.crypt   1.00GiB  7fcf5071496b4d2a6aa981caf9adbec8  2021-03-0
 
 The `verify -j path` option allows the backup info in the cloud to be verified by comparing the file checksums.
 
+# Build local jar
+
+```console
+$ ./gradlew shadowJar -Pversion=1.2.1
+$ cp build/libs/backup-shadow.jar ~/bin/backup-1.2.2.jar
+```
 
 # Testing
 

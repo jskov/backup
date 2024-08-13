@@ -30,27 +30,26 @@ fail() {
 
 expect_file() {
     local size="$1"
-    local sha2="$2"
+    local xxh3="$2"
     local file="$3"
     local prefix="$4"
 
-    echo -n " $prefix$file... "
-
-    if [ ! -f "$file" ]; then
+    if [[ ! -f "$file" ]]; then
         fail "\nDid not find expected file $file"
     fi
 
-    local actual_size=$(/usr/bin/stat -c "%s" "$file")
-    if [ "$actual_size" -ne "$size" ]; then
+    local actual_size=$(/bin/stat -c "%s" "$file")
+    if [[ "$actual_size" -ne "$size" ]]; then
         fail "\nFile $file has size $actual_size, but expected $size"
     fi
 
-    local actual_sha2=$(/usr/bin/sha256sum "$file" | /usr/bin/cut -d' ' -f1)
-    if [ "$actual_sha2" != "$sha2" ]; then
-        fail "\nFile $file has sha256sum '$actual_sha2', but expected '$sha2'"
+    local xxh3_output=$(/bin/xxhsum -H3 "$file")
+    local actual_xxh3=${xxh3_output: -16}
+    if [[ "$actual_xxh3" != "$xxh3" ]]; then
+        fail "\nFile $file has xxh3 '$actual_xxh3', but expected '$xxh3'"
     fi
 
-    echo "ok"
+    echo " $prefix$file... ok"
 }
 
 
@@ -73,7 +72,7 @@ info_and_exit() {
             else
                 @@VARS@@
             fi
-            echo "${file} ${sha2} ${size}"
+            echo "${file} ${xxh3} ${size}"
         done
     else
         echo "Backup '@@BACKUP_NAME@@'"
@@ -89,25 +88,25 @@ info_and_exit() {
 
 usage_and_exit() {
     # usage
-    echo "Usage:"
-    echo " restore [cmd]"
-    echo
-    echo "With cmd being one of:"
-    echo
-    echo "  info               information about backup"
-    echo "  info -c            information about crypted backup files"
-    echo "  info -a            information about archive files"
-    echo "  info -f            information about the original files"
-    echo
-    echo "  unpack dir         unpacks all files to dir"
-    echo "  unpack -a dir      unpacks (only) archives to dir"
-    echo
-    echo "  verify             verifies crypted backup files (locally)"
-    echo "  verify -c dir      verifies crypted backup files in dir"
-    echo "  verify -a dir      verifies decrypted archive files in dir"
-    echo "  verify -f dir      verifies decrypted and unpacked files in dir"
-    echo "  verify -s          decrypts and verifies files via streaming - prompts password"
-    echo "  verify -j path     verifies MD5 checksum of backup files at Jotta path"
+    echo >/dev/stderr "Usage:"
+    echo >/dev/stderr " restore [cmd]"
+    echo >/dev/stderr
+    echo >/dev/stderr "With cmd being one of:"
+    echo >/dev/stderr
+    echo >/dev/stderr "  info               information about backup"
+    echo >/dev/stderr "  info -c            information about crypted backup files"
+    echo >/dev/stderr "  info -a            information about archive files"
+    echo >/dev/stderr "  info -f            information about the original files"
+    echo >/dev/stderr
+    echo >/dev/stderr "  unpack dir         unpacks all files to dir"
+    echo >/dev/stderr "  unpack -a dir      unpacks (only) archives to dir"
+    echo >/dev/stderr
+    echo >/dev/stderr "  verify             verifies crypted backup files (locally)"
+    echo >/dev/stderr "  verify -c dir      verifies crypted backup files in dir"
+    echo >/dev/stderr "  verify -a dir      verifies decrypted archive files in dir"
+    echo >/dev/stderr "  verify -f dir      verifies decrypted and unpacked files in dir"
+    echo >/dev/stderr "  verify -s          decrypts and verifies files via streaming - prompts password"
+    echo >/dev/stderr "  verify -j path     verifies MD5 checksum of backup files at Jotta path"
 
     exit 1
 }
@@ -126,7 +125,7 @@ verify_files() {
 
     local array=("${!name}")
     local len=${#array[@]}
-    echo "Verifying integrity of archives in $files_dir..."
+    echo "Verifying integrity of archives in '$files_dir'..."
 
     local i=1
     for l in "${array[@]}"; do
@@ -136,7 +135,7 @@ verify_files() {
             @@VARS@@
         fi
 
-        if ! (cd $files_dir; expect_file "$size" "$sha2" "$file" "- ($i/$len) ") ; then
+        if ! (cd $files_dir; expect_file "$size" "$xxh3" "$file" "- ($i/$len) ") ; then
             exit 1
         fi
         i=$((i + 1))
@@ -169,7 +168,7 @@ unpack() {
 
     /bin/mkdir "$target"
 
-    local gpg_cmd="/usr/bin/gpg -q --no-permission-warning -d"
+    local gpg_cmd="/bin/gpg -q --no-permission-warning -d"
     if $onlyArchives; then
         echo "Unpacking directory archives..."
         /bin/cat $crypt_files | $gpg_cmd | (cd "$target" && /bin/tar -x -f -)
@@ -187,7 +186,7 @@ match_jotta() {
     local md5="$2"
     local jotta_state="$3"
 
-    /bin/cat $jotta_state | /usr/bin/grep -E -q "$file.*$md5"
+    /bin/cat $jotta_state | /bin/grep -E -q "$file.*$md5"
 }
 
 verify_jotta() {
@@ -201,10 +200,10 @@ verify_jotta() {
     echo -e "Checking backup files at Jotta cloud path $jotta_path\n"
     
     local jotta_state=$(mktemp)
-    /usr/bin/jotta-cli ls -l "$jotta_path" > $jotta_state
+    /bin/jotta-cli ls -l "$jotta_path" > $jotta_state
 
     local file=$(basename $0)
-    if match_jotta $file $(/usr/bin/md5sum $0 | /bin/cut -f 1 -d' ') $jotta_state; then
+    if match_jotta $file $(/bin/md5sum $0 | /bin/cut -f 1 -d' ') $jotta_state; then
         echo -e " $ok $file"
     else
         echo -e " $bad $file"
@@ -226,8 +225,8 @@ verify_jotta() {
         echo -e "\nAll files ok!"
         /bin/rm -f $jotta_state
     else
-        echo -e "\nSome files did not match Jotta listing:\n"
-        /bin/cat $jotta_state
+        echo >/dev/stderr -e "\nSome files did not match Jotta listing:\n"
+        /bin/cat >/dev/stderr $jotta_state
         /bin/rm -f $jotta_state
         exit 1
     fi
@@ -239,13 +238,13 @@ verify_stream() {
     local file_checksums=
     for l in "${files[@]}"; do
         @@VARS@@
-        file_checksums="$file_checksums$sha2,$file\n"
+        file_checksums="$file_checksums$xxh3,$file\n"
     done
     for l in "${archives[@]}"; do
         @@VARS@@
 
         if ! (echo $file | /bin/grep -q -e ".tar$") ; then
-            file_checksums="$file_checksums$sha2,$file\n"
+            file_checksums="$file_checksums$xxh3,$file\n"
         fi
     done
     echo -e "$file_checksums" > /tmp/valid-input.txt
@@ -259,10 +258,10 @@ set -e
 
 filename="\$1"
 
-a=\$(/usr/bin/sha256sum -b - | echo "\$(/bin/sed -e "s/ \*-/,/;")\$filename")
+a=\$(/bin/xxhsum -H3 - | echo "\$(/bin/cut -d' ' -f4),\$filename")
 
 if ! (/bin/grep -F -q "\$a" /tmp/valid-input.txt) ; then
-  echo "Did not find matching checksum for file '\$filename'"
+  echo >/dev/stderr "Did not find matching checksum for file '\$filename'"
   exit 1
 fi
 EOF
@@ -272,12 +271,21 @@ EOF
         @@VARS_MD5@@
         crypt_files="$crypt_files $file"
     done
-    local gpg_cmd="/usr/bin/gpg -q --no-permission-warning -d"
+    local gpg_cmd="/bin/gpg -q --no-permission-warning -d"
 
     /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "set -e && [[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - --to-command=\"/bin/bash /tmp/verify.sh \\\"\\\$TAR_FILENAME\\\"\" || /bin/bash /tmp/verify.sh \"$TAR_FILENAME\""')
 
     echo "All files verified ok."
 }
+
+# Excludes coreutils binaries
+expected_tools="/bin/xxhsum /bin/tar /bin/gpg /bin/grep"
+for t in $expected_tools; do
+    if [[ ! -x $t ]]; then
+        echo >/dev/stderr "Script requires tool: $t"
+        exit 1
+    fi
+done
 
 if [ "$1" == "verify" ]; then
     shift
@@ -289,6 +297,11 @@ if [ "$1" == "verify" ]; then
 
     if [ "$1" == "-j" ]; then
         shift
+
+        if [[ ! -x /bin/jotta-cli ]]; then
+            echo >/dev/stderr "Script requires tool: $t"
+            exit 1
+        fi
 
         verify_jotta "$@"
         exit 0
