@@ -34,23 +34,21 @@ expect_file() {
     local file="$3"
     local prefix="$4"
 
-    echo -n " $prefix$file... "
-
-    if [ ! -f "$file" ]; then
+    if [[ ! -f "$file" ]]; then
         fail "\nDid not find expected file $file"
     fi
 
     local actual_size=$(/bin/stat -c "%s" "$file")
-    if [ "$actual_size" -ne "$size" ]; then
+    if [[ "$actual_size" -ne "$size" ]]; then
         fail "\nFile $file has size $actual_size, but expected $size"
     fi
 
-    local actual_xxh3=$(/bin/xxhsum --binary -H3 "$file" | /bin/cut -d' ' -f4)
-    if [ "$actual_xxh3" != "$xxh3" ]; then
+    local actual_xxh3=$(/bin/xxhsum -H3 "$file" | /bin/cut -d' ' -f4)
+    if [[ "$actual_xxh3" != "$xxh3" ]]; then
         fail "\nFile $file has xxh3 '$actual_xxh3', but expected '$xxh3'"
     fi
 
-    echo "ok"
+    echo " $prefix$file... ok"
 }
 
 
@@ -126,7 +124,7 @@ verify_files() {
 
     local array=("${!name}")
     local len=${#array[@]}
-    echo "Verifying integrity of archives in $files_dir..."
+    echo "Verifying integrity of archives in '$files_dir'..."
 
     local i=1
     for l in "${array[@]}"; do

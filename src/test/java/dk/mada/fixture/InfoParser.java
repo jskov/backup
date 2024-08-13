@@ -2,7 +2,7 @@ package dk.mada.fixture;
 
 import java.util.List;
 
-import dk.mada.backup.types.Sha256sum;
+import dk.mada.backup.types.Xx3Hash;
 
 /**
  * Code to parse lines of info output from script.
@@ -18,7 +18,7 @@ public class InfoParser {
      * @param checksum the checksum of the file
      * @param size     the size of the file
      **/
-    public record Info(String filename, Sha256sum checksum, long size) { }
+    public record Info(String filename, Xx3Hash checksum, long size) { }
 
     /**
      * Parses 'info' command output into structured data.
@@ -38,7 +38,7 @@ public class InfoParser {
             throw new IllegalStateException("Failed to parse line: '" + l + "'");
         }
         String filename = parts[0];
-        Sha256sum checksum = new Sha256sum(parts[1]);
+        Xx3Hash checksum = new Xx3Hash(parts[1]);
         long size = Long.parseLong(parts[2]);
         return new Info(filename, checksum, size);
     }

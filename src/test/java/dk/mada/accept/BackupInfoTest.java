@@ -86,9 +86,9 @@ class BackupInfoTest {
         assertThat(res.exitValue())
                 .isZero();
         assertThat(res.output())
-                .containsPattern("dir-a.tar [0-9a-f]{64}        2560")
-                .containsPattern("dir-deep.tar [0-9a-f]{64}        2048")
-                .containsPattern("dir-m-with-.brackets.-and-.parens.-dir.tar [0-9a-f]{64}        2560");
+                .containsPattern("dir-a.tar [0-9a-f]{16}        2560")
+                .containsPattern("dir-deep.tar [0-9a-f]{16}        2048")
+                .containsPattern("dir-m-with-.brackets.-and-.parens.-dir.tar [0-9a-f]{16}        2560");
     }
 
     /**
@@ -102,8 +102,8 @@ class BackupInfoTest {
                 .isZero();
         assertThat(res.output())
                 .contains(
-                        "dir-a/file-a1.bin e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855           0",
-                        "dir-e/file-e with space.bin e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855           0");
+                        "dir-a/file-a1.bin 2d06800538d394c2           0",
+                        "dir-e/file-e with space.bin 2d06800538d394c2           0");
     }
 
     private Result runRestoreCmd(String... args) {
