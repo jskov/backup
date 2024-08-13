@@ -39,7 +39,7 @@ public final class MakeBackup {
             targetDir.toString()
             );
 
-        CliMain.main(args.toArray(new String[args.size()]));
+        CliMain.main(ExitHandlerFixture.exitForTesting(), args.toArray(new String[args.size()]));
 
         return restoreScript;
     }
