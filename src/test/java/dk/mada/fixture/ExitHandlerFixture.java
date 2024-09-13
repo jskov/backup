@@ -16,14 +16,14 @@ public final class ExitHandlerFixture {
     public static ExitHandler exitForTesting() {
         return new ExitHandler() {
             @Override
-            public void systemExit(int exitCode) {
+            public void systemExit(int exitCode, Throwable cause) {
                 if (exitCode != 0) {
-                    throw new IllegalStateException("Backup/restore failed, would system exit: " + exitCode);
+                    throw new IllegalStateException("Backup/restore failed, would system exit: " + exitCode, cause);
                 }
             }
 
             @Override
-            public void systemExit(int exitCode, String message) {
+            public void systemExitMessage(int exitCode, String message) {
                 if (exitCode != 0) {
                     throw new IllegalStateException("Backup/restore failed, would system exit: " + exitCode + " with message: " + message);
                 }
