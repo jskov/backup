@@ -45,7 +45,7 @@ public final class RestoreExecutor {
         Result res = runCmd(script, envOverrides, args);
         if (res.exitValue != 0) {
             Console.println("Failed to run " + script + ", returned " + res.exitValue);
-            exitHandler.systemExit(res.exitValue, res.output);
+            exitHandler.systemExitMessage(res.exitValue, res.output);
         }
 
         return res.output;

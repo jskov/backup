@@ -17,6 +17,7 @@ import dk.mada.backup.api.BackupArguments;
 import dk.mada.backup.impl.BackupApplication;
 import dk.mada.backup.impl.ExitHandler;
 import dk.mada.backup.types.GpgId;
+import dk.mada.logging.LoggerConfig;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
@@ -248,6 +249,7 @@ public final class CliMain implements Runnable {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        LoggerConfig.loadConfig();
         main(new ExitHandler(), args);
     }
 
@@ -262,6 +264,6 @@ public final class CliMain implements Runnable {
         int exitCode = new CommandLine(cliMain)
                 .setDefaultValueProvider(new DefaultArgs())
                 .execute(args);
-        exitHandler.systemExit(exitCode);
+        exitHandler.systemExit(exitCode, null);
     }
 }

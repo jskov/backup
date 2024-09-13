@@ -1,5 +1,7 @@
 package dk.mada.backup.impl;
 
+import org.jspecify.annotations.Nullable;
+
 import dk.mada.backup.cli.Console;
 
 /**
@@ -12,8 +14,9 @@ public class ExitHandler {
      * Handle system exit.
      *
      * @param exitCode the code to exit with
+     * @param cause    the cause of the exit, or null
      */
-    public void systemExit(int exitCode) {
+    public void systemExit(int exitCode, @Nullable Throwable cause) {
         System.exit(exitCode);
     }
 
@@ -23,7 +26,7 @@ public class ExitHandler {
      * @param exitCode the code to exit with
      * @param message  the message to print on the console
      */
-    public void systemExit(int exitCode, String message) {
+    public void systemExitMessage(int exitCode, String message) {
         Console.println(message);
         System.exit(exitCode);
     }

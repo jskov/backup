@@ -82,7 +82,7 @@ public class BackupApplication {
         } catch (BackupTargetExistsException e) {
             logger.info("Failed to create backup: {}", e.getMessage());
             logger.debug("Failure", e);
-            exitHandler.systemExit(1);
+            exitHandler.systemExit(1, e);
             throw new IllegalStateException("Should not be necessary after systemExit?!");
         }
     }
@@ -90,8 +90,11 @@ public class BackupApplication {
     private void verifyBackup(Path script) {
         try {
             logger.info("Verifying backup...");
-            RestoreExecutor.runRestoreScriptExitOnFail(exitHandler, script, args.envOverrides(), "verify");
-            RestoreExecutor.runRestoreScriptExitOnFail(exitHandler, script, args.envOverrides(), "verify", "-s");
+            String cryptVerifyOutput = RestoreExecutor.runRestoreScriptExitOnFail(exitHandler, script, args.envOverrides(), "verify");
+            logger.debug("encrypted files:\n{}", cryptVerifyOutput);
+            String contentVerifyOutput = RestoreExecutor.runRestoreScriptExitOnFail(exitHandler, script, args.envOverrides(), "verify",
+                    "-s");
+            logger.debug("content files:\n{}", contentVerifyOutput);
             logger.info("Backup verified.");
         } catch (Exception e) {
             Console.println("");
