@@ -14,6 +14,7 @@ import org.jspecify.annotations.Nullable;
 
 import dk.mada.backup.Version;
 import dk.mada.backup.api.BackupArguments;
+import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.impl.BackupApplication;
 import dk.mada.backup.impl.ExitHandler;
 import dk.mada.backup.types.GpgId;
@@ -162,6 +163,7 @@ public final class CliMain implements Runnable {
                 realSrcDir, relativeTargetDir,
                 repositoryDir,
                 repositoryScriptPath,
+                BackupOutputType.NUMBERED,
                 maxFileSize, skipVerify);
     }
 

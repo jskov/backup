@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.restore.RestoreExecutor;
 import dk.mada.backup.restore.RestoreExecutor.Result;
 import dk.mada.fixture.InfoParser;
@@ -22,7 +23,7 @@ import dk.mada.fixture.TestCertificateInfo;
  * Makes a backup, checks info in backup.
  */
 @Tag("accept")
-class BackupInfoTest {
+class BackupInfoNumberedTest {
     /** Minimal expected size of backup. */
     private static final long SIZE_LOWER_BOUND = 24500L;
     /** Maximal expected size of backup. */
@@ -32,7 +33,7 @@ class BackupInfoTest {
 
     @BeforeAll
     static void makeBackup() throws IOException, ArchiveException {
-        restoreScript = MakeBackup.makeBackup();
+        restoreScript = MakeBackup.makeBackup(BackupOutputType.NUMBERED, true);
     }
 
     /**

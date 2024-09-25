@@ -17,6 +17,7 @@ import dk.mada.backup.types.GpgId;
  * @param targetDir            the folder to write backup output files to
  * @param repositoryDir        the folder to write an extra copy of the restore script to
  * @param repositoryScriptPath the path of the restore script in the repository
+ * @param outputType           the backup output type
  * @param maxFileSize          the maximum backup output file size
  * @param skipVerify           flag to skip verification of backup after its creation
  */
@@ -28,6 +29,7 @@ public record BackupArguments(
         Path targetDir,
         @Nullable Path repositoryDir,
         Path repositoryScriptPath,
+        BackupOutputType outputType,
         long maxFileSize,
         boolean skipVerify) {
 }

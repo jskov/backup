@@ -34,8 +34,7 @@ class RestoreScriptGenerationTest {
         RestoreScriptWriter sut = new RestoreScriptWriter();
 
         Map<VariableName, String> vars = Map.of(
-                VariableName.VERSION, "1.2.7",
-                VariableName.DATA_FORMAT_VERSION, "777");
+                VariableName.VERSION, "1.2.7");
 
         List<BackupElement> crypts = toBackupElements("backup.tar");
         List<BackupElement> tars = toBackupElements("fun.tar", "sun.tar");
@@ -55,7 +54,8 @@ class RestoreScriptGenerationTest {
         assertThat(fullText)
                 .contains("made with backup version 1.2.7",
                         "@version: 1.2.7",
-                        "@data_format_version: 777");
+                        "@data_format_version: 2" // this one matching the writer static
+                        );
     }
 
     @Test

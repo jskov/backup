@@ -20,6 +20,8 @@ files=(
 #END_FILES#
 )
 
+output_type=@@BACKUP_OUTPUT_TYPE@@
+gpg_cmd="/bin/gpg -q --no-permission-warning -d"
 
 fail() {
     local msg="$1"
@@ -35,7 +37,7 @@ expect_file() {
     local prefix="$4"
 
     if [[ ! -f "$file" ]]; then
-        fail "\nDid not find expected file $file"
+        fail "\nDid not find expected file '$file'"
     fi
 
     local actual_size=$(/bin/stat -c "%s" "$file")
@@ -144,6 +146,20 @@ verify_files() {
     echo "Success!"
 }
 
+unpack_encrypted_files() {
+    local onlyArchives=$1
+    shift
+    local target="$1"
+    shift
+    local crypt_files="$@"
+
+    if $onlyArchives; then
+        /bin/cat $crypt_files | $gpg_cmd | (cd "$target" && /bin/tar -x -f -)
+    else
+        /bin/cat $crypt_files | $gpg_cmd | (cd "$target" && /bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - || /bin/cat > \"$TAR_FILENAME\""')
+    fi
+}
+
 unpack() {
     local onlyArchives=false
     if [ "$1" == "-a" ]; then
@@ -154,28 +170,36 @@ unpack() {
     if [ $# -ne 1 ]; then
         fail "Unpack expects one argument, the destination directory"
     fi
-    local target=$1
+    local target="$1"
 
     if [ -e "$target" ]; then
         fail "Will not unpack to existing target $target"
     fi
 
-    local crypt_files=
-    for l in "${crypts[@]}"; do
-        @@VARS_MD5@@
-        crypt_files="$crypt_files $file"
-    done
-
     /bin/mkdir "$target"
 
-    local gpg_cmd="/bin/gpg -q --no-permission-warning -d"
     if $onlyArchives; then
         echo "Unpacking directory archives..."
-        /bin/cat $crypt_files | $gpg_cmd | (cd "$target" && /bin/tar -x -f -)
-        verify_files "archives" "$target"
     else
         echo "Unpacking full backup..."
-        /bin/cat $crypt_files | $gpg_cmd | (cd "$target" && /bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - || /bin/cat > \"$TAR_FILENAME\""')
+    fi
+
+    if [[ $output_type == "NUMBERED" ]]; then
+        # Unpack as one big file
+        local crypt_files=
+        for l in "${crypts[@]}"; do
+            @@VARS_MD5@@
+            crypt_files="$crypt_files $file"
+        done
+        unpack_encrypted_files $onlyArchives "$target" "$crypt_files"
+    else
+        echo >/dev/stderr "Unexpected output type: $output_type"
+        exit 1
+    fi
+
+    if $onlyArchives; then
+        verify_files "archives" "$target"
+    else
         verify_files "files" "$target"
     fi
 }
@@ -232,6 +256,10 @@ verify_jotta() {
     fi
 }
 
+verify_crypted_files() {
+    local files="$@"
+    /bin/cat $files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "set -e && [[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - --to-command=\"/bin/bash /tmp/verify.sh \\\"\\\$TAR_FILENAME\\\"\" || /bin/bash /tmp/verify.sh \"$TAR_FILENAME\""')
+}
 
 verify_stream() {
     # Make a file with file/checksum lines for all (nested) files and root files
@@ -266,15 +294,18 @@ if ! (/bin/grep -F -q "\$a" /tmp/valid-input.txt) ; then
 fi
 EOF
 
-    local crypt_files=
-    for l in "${crypts[@]}"; do
-        @@VARS_MD5@@
-        crypt_files="$crypt_files $file"
-    done
-    local gpg_cmd="/bin/gpg -q --no-permission-warning -d"
-
-    /bin/cat $crypt_files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "set -e && [[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - --to-command=\"/bin/bash /tmp/verify.sh \\\"\\\$TAR_FILENAME\\\"\" || /bin/bash /tmp/verify.sh \"$TAR_FILENAME\""')
-
+    if [[ $output_type == "NUMBERED" ]]; then
+        # Verify encrypted files as one big file
+        local crypt_files=
+        for l in "${crypts[@]}"; do
+            @@VARS_MD5@@
+            crypt_files="$crypt_files $file"
+        done
+        verify_crypted_files $crypt_files
+    else
+        echo >/dev/stderr "Unexpected output type: $output_type"
+        exit 1
+    fi
     echo "All files verified ok."
 }
 

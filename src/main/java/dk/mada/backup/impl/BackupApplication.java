@@ -79,7 +79,7 @@ public class BackupApplication {
     private Path createBackup() {
         try {
             GpgStreamInfo gpgStreamInfo = new GpgStreamInfo(args.gpgRecipientKeyId(), args.envOverrides());
-            BackupApi backupApi = new BackupApi(gpgStreamInfo, args.maxFileSize());
+            BackupApi backupApi = new BackupApi(gpgStreamInfo, args.outputType(), args.maxFileSize());
             return backupApi.makeBackup(args.name(), args.sourceDir(), args.targetDir());
         } catch (BackupTargetExistsException e) {
             logger.info("Failed to create backup: {}", e.getMessage());
