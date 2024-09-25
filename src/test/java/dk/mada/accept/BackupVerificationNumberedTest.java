@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.restore.RestoreExecutor.Result;
 import dk.mada.fixture.DirectoryDeleter;
 import dk.mada.fixture.MakeBackup;
@@ -22,13 +23,13 @@ import dk.mada.fixture.MakeRestore;
  * Makes a backup, runs multiple checks on the restore of this backup.
  */
 @Tag("accept")
-class BackupVerificationTest {
+class BackupVerificationNumberedTest {
     /** Restore script for created backup. */
     private static Path restoreScript;
 
     @BeforeAll
     static void makeBackup() throws IOException, ArchiveException {
-        restoreScript = MakeBackup.makeBackup();
+        restoreScript = MakeBackup.makeBackup(BackupOutputType.NUMBERED, true);
     }
 
     /**

@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dk.mada.backup.api.BackupApi;
+import dk.mada.backup.api.BackupOutputType;
 import dk.mada.fixture.TestCertificateInfo;
 import dk.mada.fixture.TestDataPrepper;
 
@@ -39,7 +40,7 @@ class SizeLimitTest {
 
     @BeforeEach
     void createBackupApi() {
-        api = new BackupApi(TestCertificateInfo.TEST_GPG_INFO, MAX_ENCRYPT_FILE_SIZE);
+        api = new BackupApi(TestCertificateInfo.TEST_GPG_INFO, BackupOutputType.NUMBERED, MAX_ENCRYPT_FILE_SIZE);
     }
 
     /**

@@ -9,6 +9,7 @@ import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.restore.RestoreExecutor;
 import dk.mada.backup.restore.RestoreExecutor.Result;
 import dk.mada.fixture.MakeBackup;
@@ -30,8 +31,12 @@ class BackupChecksumTest {
      * the checksums. This is how apache-commons worked until version 1.21.
      */
     @Test
-    void archiveChecksumsWithoutUserGroup() throws IOException, ArchiveException {
-        Path restoreScript = MakeBackup.makeBackup();
+    void archiveChecksumsWithoutUserGroupNumbered() throws IOException, ArchiveException {
+        runTest(BackupOutputType.NUMBERED);
+    }
+
+    private void runTest(BackupOutputType outputType) throws IOException, ArchiveException { 
+        Path restoreScript = MakeBackup.makeBackup(outputType, true);
         Result res = runRestoreCmd(restoreScript, "info", "-a");
 
         assertThat(res.exitValue())

@@ -18,19 +18,21 @@ public class BackupApi {
      * Prepare backup with full configuration.
      *
      * @param gpgStreamInfo    the GPG stream information.
+     * @param outputType       The desired backup output type
      * @param maxCryptFileSize Maximum crypt file output size.
      */
-    public BackupApi(GpgStreamInfo gpgStreamInfo, long maxCryptFileSize) {
-        spikeCode = new MainExplore(gpgStreamInfo, maxCryptFileSize);
+    public BackupApi(GpgStreamInfo gpgStreamInfo, BackupOutputType outputType, long maxCryptFileSize) {
+        spikeCode = new MainExplore(gpgStreamInfo, outputType, maxCryptFileSize);
     }
 
     /**
      * Prepare backup with default size limit of 1GiB.
      *
      * @param gpgStreamInfo the GPG stream information.
+     * @param outputType    The desired backup output type
      */
-    public BackupApi(GpgStreamInfo gpgStreamInfo) {
-        this(gpgStreamInfo, DEFAULT_MAX_CRYPT_FILE_SIZE);
+    public BackupApi(GpgStreamInfo gpgStreamInfo, BackupOutputType outputType) {
+        this(gpgStreamInfo, outputType, DEFAULT_MAX_CRYPT_FILE_SIZE);
     }
 
     /**

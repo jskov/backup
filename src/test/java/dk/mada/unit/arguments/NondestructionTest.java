@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.mada.backup.api.BackupApi;
+import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.api.BackupTargetExistsException;
 import dk.mada.fixture.TestCertificateInfo;
 import dk.mada.fixture.TestDataPrepper;
@@ -42,7 +43,7 @@ class NondestructionTest {
 
     @BeforeEach
     void createBackupApi() {
-        api = new BackupApi(TestCertificateInfo.TEST_GPG_INFO);
+        api = new BackupApi(TestCertificateInfo.TEST_GPG_INFO, BackupOutputType.NUMBERED);
     }
 
     @Test

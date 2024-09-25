@@ -32,12 +32,14 @@ import org.slf4j.LoggerFactory;
 import com.dynatrace.hash4j.hashing.HashStream64;
 import com.dynatrace.hash4j.hashing.Hashing;
 
+import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.cli.HumanByteCount;
-import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
+import dk.mada.backup.gpg.GpgEncrypterException;
+import dk.mada.backup.impl.output.BackupStreamWriter;
+import dk.mada.backup.impl.output.OutputBySize;
 import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.restore.VariableName;
-import dk.mada.backup.splitter.SplitterOutputStream;
 
 /**
  * Code from the original spike exploration of the solution.
@@ -48,8 +50,6 @@ public class MainExplore {
     private static final Logger logger = LoggerFactory.getLogger(MainExplore.class);
     /** File scanning buffer size. */
     private static final int FILE_SCAN_BUFFER_SIZE = 8192;
-    /** The version of the data format used for file information. */
-    private static final String FILE_DATA_FORMAT_VERSION = "1";
     /** File permissions used for temporary files used while creating backup. */
     private static final FileAttribute<Set<PosixFilePermission>> ATTR_PRIVATE_TO_USER = PosixFilePermissions
             .asFileAttribute(PosixFilePermissions.fromString("rwx------"));
@@ -60,18 +60,22 @@ public class MainExplore {
     private final long maxCryptFileSize;
     /** Total size of the files in the backup (does not include directory sizes). */
     private long totalInputSize;
-    /** GPG Stream info. */
-    private GpgStreamInfo gpgStreamInfo;
+    /** Information needed to create GPG stream. */
+    private final GpgStreamInfo gpgInfo;
+    /** The selected output type for this backup. */
+    private final BackupOutputType outputType;
 
     /**
      * Creates a new instance.
      *
-     * @param gpgStreamInfo    the GPG stream information
+     * @param gpgInfo          the GPG stream information
+     * @param outputType       the desired output type
      * @param maxCryptFileSize the size limit for crypt-files
      */
-    public MainExplore(GpgStreamInfo gpgStreamInfo, long maxCryptFileSize) {
+    public MainExplore(GpgStreamInfo gpgInfo, BackupOutputType outputType, long maxCryptFileSize) {
+        this.gpgInfo = gpgInfo;
+        this.outputType = outputType;
         this.maxCryptFileSize = maxCryptFileSize;
-        this.gpgStreamInfo = gpgStreamInfo;
     }
 
     /**
@@ -88,25 +92,28 @@ public class MainExplore {
         }
         logger.info("Create backup from {}", rootDir);
 
+        Path restoreScript = targetDir.resolve(name + ".sh");
+
         try {
             Files.createDirectories(targetDir);
         } catch (IOException e1) {
             throw new IllegalStateException("Failed to create target dir", e1);
         }
 
+        // This variant makes a tar archive containing all the packaged folder tars.
+        // The archive is crypted and then split into numbered output files.
+
         List<BackupElement> archiveElements;
         Future<List<Path>> outputFilesFuture;
         try (Stream<Path> files = Files.list(rootDir);
-                SplitterOutputStream sos = new SplitterOutputStream(targetDir, name, ".crypt", maxCryptFileSize);
-                GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(sos, gpgStreamInfo);
-                TarArchiveOutputStream tarOs = makeTarOutputStream(eos)) {
+                BackupStreamWriter bsw = defineOutputStream(targetDir, name)) {
 
             archiveElements = files
                     .sorted(pathSorter(rootDir))
-                    .map(p -> processRootElement(rootDir, tarOs, p))
+                    .map(p -> processRootElement(rootDir, bsw, p))
                     .toList();
 
-            outputFilesFuture = sos.getOutputFiles();
+            outputFilesFuture = bsw.getOutputFiles();
 
             logger.info("Waiting for backup streaming to complete...");
         } catch (IOException e) {
@@ -129,17 +136,22 @@ public class MainExplore {
                 .appendPattern("Y.M.d H:m")
                 .toFormatter());
 
-        Path restoreScript = targetDir.resolve(name + ".sh");
         Map<VariableName, String> vars = Map.of(
                 VariableName.VERSION, Version.getBackupVersion(),
                 VariableName.BACKUP_DATE_TIME, backupTime,
                 VariableName.BACKUP_NAME, name,
                 VariableName.BACKUP_INPUT_SIZE, HumanByteCount.humanReadableByteCount(totalInputSize),
-                VariableName.BACKUP_KEY_ID, gpgStreamInfo.recipientKeyId().id(),
-                VariableName.DATA_FORMAT_VERSION, FILE_DATA_FORMAT_VERSION);
+                VariableName.BACKUP_KEY_ID, gpgInfo.recipientKeyId().id(),
+                VariableName.BACKUP_OUTPUT_TYPE, outputType.name());
         new RestoreScriptWriter().write(restoreScript, vars, cryptElements, archiveElements, fileElements);
 
         return restoreScript;
+    }
+
+    private BackupStreamWriter defineOutputStream(Path targetDir, String name) throws GpgEncrypterException {
+        return switch (outputType) {
+        case NUMBERED -> new OutputBySize(targetDir, name, maxCryptFileSize, gpgInfo);
+        };
     }
 
     /**
@@ -158,12 +170,17 @@ public class MainExplore {
         };
     }
 
-    private BackupElement processRootElement(Path rootDir, TarArchiveOutputStream tarOs, Path p) {
-        logger.debug("Process {}", p);
-        if (Files.isDirectory(p)) {
-            return processDir(rootDir, tarOs, p);
-        } else {
-            return processFile(rootDir, tarOs, p);
+    private BackupElement processRootElement(Path rootDir, BackupStreamWriter bsw, Path p) {
+        logger.info("Process {}", p);
+        try {
+            TarArchiveOutputStream tos = bsw.processNextElement(p.getFileName().toString());
+            if (Files.isDirectory(p)) {
+                return processDir(rootDir, tos, p);
+            } else {
+                return processFile(rootDir, tos, p);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -173,6 +190,7 @@ public class MainExplore {
 
     private FileInfo processDir(Path rootDir, TarArchiveOutputStream tarOs, Path dir) {
         try {
+            // FIXME: writing to a temp file here!? And then copy to tarOs later.
             Path tempArchiveFile = Files.createTempFile("backup", "tmp", ATTR_PRIVATE_TO_USER);
             DirInfo dirInfo = createArchiveFromDir(rootDir, dir, tempArchiveFile);
             fileElements.add(dirInfo);
