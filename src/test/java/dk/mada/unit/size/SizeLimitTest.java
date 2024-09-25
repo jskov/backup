@@ -39,8 +39,7 @@ class SizeLimitTest {
 
     @BeforeEach
     void createBackupApi() {
-        api = new BackupApi(TestCertificateInfo.TEST_RECIPIEND_KEY_ID,
-                TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES, MAX_ENCRYPT_FILE_SIZE);
+        api = new BackupApi(TestCertificateInfo.TEST_GPG_INFO, MAX_ENCRYPT_FILE_SIZE);
     }
 
     /**

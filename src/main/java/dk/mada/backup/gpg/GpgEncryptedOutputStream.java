@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -41,10 +40,8 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
     /** The max wait time in seconds for the GPG stderr output to be consumed after the process ends. */
     private static final int GPG_STDERR_MAX_WAIT_SECONDS = 5;
 
-    /** GPG recipient key id. */
-    private final GpgId recipientKeyId;
-    /** Environment overrides. */
-    private final Map<String, String> envOverrides;
+    /** GPG information. */
+    private final GpgStreamInfo gpgInfo;
     /** Latch signaling completion of the (stdout) GPG process. */
     private final CountDownLatch gpgStdoutDone = new CountDownLatch(1);
     /** Latch signaling completed capture of the stderr from the GPG process. */
@@ -61,33 +58,28 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
     @Nullable private Exception stderrException;
 
     /**
-     * Creates new instance.
+     * The information to make a GPG encrypted stream.
      *
-     * @param out            the stream to write the encoded data to
-     * @param recipientKeyId the recipient GPG key to use for encryption
-     * @param envOverrides   the environment overrides to use
-     *
-     * @throws GpgEncrypterException if the GPG process fails
+     * @param recipientKeyId  the key id
+     * @param gpgEnvOverrides environment overrides
      */
-    public GpgEncryptedOutputStream(OutputStream out, GpgId recipientKeyId, Map<String, String> envOverrides)
-            throws GpgEncrypterException {
-        super(out);
-        this.recipientKeyId = recipientKeyId;
-        this.envOverrides = envOverrides;
-
-        gpgSink = startGpgBackgroundProcess();
+    public record GpgStreamInfo(GpgId recipientKeyId, Map<String, String> gpgEnvOverrides) {
     }
 
     /**
      * Creates new instance.
      *
-     * @param out            the stream to write the encoded data to
-     * @param recipientKeyId the recipient GPG key to use for encryption
+     * @param out     the stream to write the encoded data to
+     * @param gpgInfo the information needed to run GPG
      *
      * @throws GpgEncrypterException if the GPG process fails
      */
-    public GpgEncryptedOutputStream(OutputStream out, GpgId recipientKeyId) throws GpgEncrypterException {
-        this(out, recipientKeyId, Collections.emptyMap());
+    public GpgEncryptedOutputStream(OutputStream out, GpgStreamInfo gpgInfo)
+            throws GpgEncrypterException {
+        super(out);
+        this.gpgInfo = gpgInfo;
+
+        gpgSink = startGpgBackgroundProcess();
     }
 
     @Override
@@ -192,16 +184,16 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
                     "--with-colons",
                     "--cipher-algo", "AES256",
                     "--batch", "--no-tty",
-                    "--recipient", recipientKeyId.id(),
+                    "--recipient", gpgInfo.recipientKeyId().id(),
                     "--encrypt");
             ProcessBuilder pb = new ProcessBuilder()
                     .command(cmd)
                     .redirectErrorStream(false);
 
-            pb.environment().putAll(envOverrides);
+            pb.environment().putAll(gpgInfo.gpgEnvOverrides());
 
             logger.debug("Starting gpg background process: {}", cmd);
-            logger.debug("Env: {}", envOverrides);
+            logger.debug("Env: {}", gpgInfo.gpgEnvOverrides());
 
             Process p = pb.start();
 
