@@ -42,8 +42,7 @@ class NondestructionTest {
 
     @BeforeEach
     void createBackupApi() {
-        api = new BackupApi(TestCertificateInfo.TEST_RECIPIEND_KEY_ID,
-                TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES);
+        api = new BackupApi(TestCertificateInfo.TEST_GPG_INFO);
     }
 
     @Test

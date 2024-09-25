@@ -1,11 +1,9 @@
 package dk.mada.backup.api;
 
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Map;
 
 import dk.mada.backup.MainExplore;
-import dk.mada.backup.types.GpgId;
+import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 
 /**
  * API for the backup operation.
@@ -19,31 +17,20 @@ public class BackupApi {
     /**
      * Prepare backup with full configuration.
      *
-     * @param gpgRecipientKeyId GPG recipient key id.
-     * @param gpgEnvOverrides   Environment overrides (for testing).
-     * @param maxCryptFileSize  Maximum crypt file output size.
+     * @param gpgStreamInfo    the GPG stream information.
+     * @param maxCryptFileSize Maximum crypt file output size.
      */
-    public BackupApi(GpgId gpgRecipientKeyId, Map<String, String> gpgEnvOverrides, long maxCryptFileSize) {
-        spikeCode = new MainExplore(gpgRecipientKeyId, gpgEnvOverrides, maxCryptFileSize);
+    public BackupApi(GpgStreamInfo gpgStreamInfo, long maxCryptFileSize) {
+        spikeCode = new MainExplore(gpgStreamInfo, maxCryptFileSize);
     }
 
     /**
      * Prepare backup with default size limit of 1GiB.
      *
-     * @param gpgRecipientKeyId GPG recipient key id.
-     * @param gpgEnvOverrides   Environment overrides (for testing).
+     * @param gpgStreamInfo the GPG stream information.
      */
-    public BackupApi(GpgId gpgRecipientKeyId, Map<String, String> gpgEnvOverrides) {
-        this(gpgRecipientKeyId, gpgEnvOverrides, DEFAULT_MAX_CRYPT_FILE_SIZE);
-    }
-
-    /**
-     * Prepare backup with default size limit of 1GiB and no extra environment settings.
-     *
-     * @param gpgRecipientKeyId GPG recipient key id.
-     */
-    public BackupApi(GpgId gpgRecipientKeyId) {
-        this(gpgRecipientKeyId, Collections.emptyMap());
+    public BackupApi(GpgStreamInfo gpgStreamInfo) {
+        this(gpgStreamInfo, DEFAULT_MAX_CRYPT_FILE_SIZE);
     }
 
     /**

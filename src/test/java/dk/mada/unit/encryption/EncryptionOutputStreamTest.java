@@ -42,9 +42,7 @@ class EncryptionOutputStreamTest {
 
         try (OutputStream os = Files.newOutputStream(cryptedFile);
                 BufferedOutputStream bos = new BufferedOutputStream(os);
-                GpgEncryptedOutputStream sutOutputStream = new GpgEncryptedOutputStream(bos,
-                        TestCertificateInfo.TEST_RECIPIEND_KEY_ID,
-                        TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES)) {
+                GpgEncryptedOutputStream sutOutputStream = new GpgEncryptedOutputStream(bos, TestCertificateInfo.TEST_GPG_INFO)) {
             Files.copy(originFile, sutOutputStream);
         } catch (Exception e) {
             logger.warn("Failed", e);

@@ -34,10 +34,10 @@ import com.dynatrace.hash4j.hashing.Hashing;
 
 import dk.mada.backup.cli.HumanByteCount;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream;
+import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.restore.VariableName;
 import dk.mada.backup.splitter.SplitterOutputStream;
-import dk.mada.backup.types.GpgId;
 
 /**
  * Code from the original spike exploration of the solution.
@@ -56,26 +56,22 @@ public class MainExplore {
 
     /** Information about the directories included in the backup. */
     private List<DirInfo> fileElements = new ArrayList<>();
-    /** GPG key used for encryption of the backup. */
-    private final GpgId recipientKeyId;
-    /** Environment overrides used when invoking external GPG process. */
-    private final Map<String, String> gpgEnvOverrides;
     /** Size limit for crypt-files. */
     private final long maxCryptFileSize;
     /** Total size of the files in the backup (does not include directory sizes). */
     private long totalInputSize;
+    /** GPG Stream info. */
+    private GpgStreamInfo gpgStreamInfo;
 
     /**
      * Creates a new instance.
      *
-     * @param recipientKeyId   the GPG key used for encryption of the backup
-     * @param gpgEnvOverrides  the environment overrides used when invoking external GPG process
+     * @param gpgStreamInfo    the GPG stream information
      * @param maxCryptFileSize the size limit for crypt-files
      */
-    public MainExplore(GpgId recipientKeyId, Map<String, String> gpgEnvOverrides, long maxCryptFileSize) {
-        this.recipientKeyId = recipientKeyId;
-        this.gpgEnvOverrides = gpgEnvOverrides;
+    public MainExplore(GpgStreamInfo gpgStreamInfo, long maxCryptFileSize) {
         this.maxCryptFileSize = maxCryptFileSize;
+        this.gpgStreamInfo = gpgStreamInfo;
     }
 
     /**
@@ -102,7 +98,7 @@ public class MainExplore {
         Future<List<Path>> outputFilesFuture;
         try (Stream<Path> files = Files.list(rootDir);
                 SplitterOutputStream sos = new SplitterOutputStream(targetDir, name, ".crypt", maxCryptFileSize);
-                GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(sos, recipientKeyId, gpgEnvOverrides);
+                GpgEncryptedOutputStream eos = new GpgEncryptedOutputStream(sos, gpgStreamInfo);
                 TarArchiveOutputStream tarOs = makeTarOutputStream(eos)) {
 
             archiveElements = files
@@ -139,7 +135,7 @@ public class MainExplore {
                 VariableName.BACKUP_DATE_TIME, backupTime,
                 VariableName.BACKUP_NAME, name,
                 VariableName.BACKUP_INPUT_SIZE, HumanByteCount.humanReadableByteCount(totalInputSize),
-                VariableName.BACKUP_KEY_ID, recipientKeyId.id(),
+                VariableName.BACKUP_KEY_ID, gpgStreamInfo.recipientKeyId().id(),
                 VariableName.DATA_FORMAT_VERSION, FILE_DATA_FORMAT_VERSION);
         new RestoreScriptWriter().write(restoreScript, vars, cryptElements, archiveElements, fileElements);
 

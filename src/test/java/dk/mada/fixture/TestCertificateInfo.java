@@ -5,6 +5,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
+import dk.mada.backup.gpg.GpgEncryptedOutputStream;
+import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.types.GpgId;
 
 /**
@@ -32,6 +34,8 @@ public final class TestCertificateInfo {
     public static final GpgId TEST_RECIPIEND_KEY_ID = new GpgId(/* KEYID*/"D8F5F5FBEA96C2DAD159E3FA40B38E058430464B"/*KEYID */);
     /** Environment overrides necessary for the GPG process. */
     public static final Map<String, String> TEST_KEY_ENVIRONMENT_OVERRIDES = Map.of("GNUPGHOME", ABS_TEST_GNUPG_HOME);
+    /** Gpg information for tests. */
+    public static final GpgStreamInfo TEST_GPG_INFO = new GpgEncryptedOutputStream.GpgStreamInfo(TestCertificateInfo.TEST_RECIPIEND_KEY_ID, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES);
 
     private TestCertificateInfo() { }
 
