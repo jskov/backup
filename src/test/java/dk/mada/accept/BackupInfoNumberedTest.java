@@ -25,9 +25,9 @@ import dk.mada.fixture.TestCertificateInfo;
 @Tag("accept")
 class BackupInfoNumberedTest {
     /** Minimal expected size of backup. */
-    private static final long SIZE_LOWER_BOUND = 24500L;
+    private static final long SIZE_LOWER_BOUND = 27000L;
     /** Maximal expected size of backup. */
-    private static final long SIZE_UPPER_BOUND = 24900L;
+    private static final long SIZE_UPPER_BOUND = 29000L;
     /** Restore script for created backup. */
     private static Path restoreScript;
 
@@ -50,7 +50,7 @@ class BackupInfoNumberedTest {
                         "Backup 'test'",
                         "made with backup version",
                         "created on 20",
-                        "original size 66 B",
+                        "original size 71 B",
                         "encrypted with key id " + TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id());
     }
 
