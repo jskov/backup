@@ -69,16 +69,18 @@ class BackupVerificationNumberedTest {
         Result res = runRestoreCmd("unpack", "-a", restoreDir.toAbsolutePath().toString());
 
         assertThat(res.output())
-                .contains(" - (1/10) dir-a.tar... ok",
-                        " - (2/10) dir-b.tar... ok",
-                        " - (3/10) dir-c.tar... ok",
-                        " - (4/10) dir-d with space.tar... ok",
-                        " - (5/10) dir-deep.tar... ok",
-                        " - (6/10) dir-e.tar... ok",
-                        " - (7/10) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.tar... ok", // NOSONAR
-                        " - (8/10) dir-m-with-[brackets]-and-(parens)-dir.tar... ok",
-                        " - (9/10) file-root1.bin... ok",
-                        " - (10/10) file-root2 with space.bin... ok",
+                .contains(" - (1/12) ./dir-a.tar... ok",
+                        " - (2/12) ./dir-b.tar... ok",
+                        " - (3/12) ./dir-c.tar... ok",
+                        " - (4/12) ./dir-d with space.tar... ok",
+                        " - (5/12) ./dir-deep.tar... ok",
+                        " - (6/12) ./dir-e.tar... ok",
+                        " - (7/12) ./dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.tar... ok", // NOSONAR
+                        " - (8/12) ./dir-m-with-[brackets]-and-(parens)-dir.tar... ok",
+                        " - (9/12) ./dir-tricky.tar.tar... ok",
+                        " - (10/12) file-root1.bin... ok",
+                        " - (11/12) file-root2 with space.bin... ok",
+                        " - (12/12) file-tricky.tar... ok",
                         "Success!");
         assertThat(res.exitValue())
             .isZero();
@@ -94,18 +96,21 @@ class BackupVerificationNumberedTest {
 
         Result res = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
 
+        System.out.println(res.output());
+        
         assertThat(res.output())
-                .contains(" - (1/11) dir-a/file-a1.bin... ok",
-                        " - (2/11) dir-a/file-a2.bin... ok",
-                        " - (3/11) dir-b/file-b1.bin... ok",
-                        " - (4/11) dir-c/file-c-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.bin... ok", // NOSONAR
-                        " - (5/11) dir-d with space/file-d1.bin... ok",
-                        " - (6/11) dir-deep/dir-sub-a/file-deep-a.bin... ok",
-                        " - (7/11) dir-deep/dir-sub-b/file-deep-b.bin... ok",
-                        " - (8/11) dir-e/file-e with space.bin... ok",
-                        " - (9/11) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890/file-long1.bin... ok", // NOSONAR
-                        " - (10/11) dir-m-with-[brackets]-and-(parens)-dir/empty-file... ok",
-                        " - (11/11) dir-m-with-[brackets]-and-(parens)-dir/text-file.txt... ok",
+                .contains(" - (1/12) dir-a/file-a1.bin... ok",
+                        " - (2/12) dir-a/file-a2.bin... ok",
+                        " - (3/12) dir-b/file-b1.bin... ok",
+                        " - (4/12) dir-c/file-c-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.bin... ok", // NOSONAR
+                        " - (5/12) dir-d with space/file-d1.bin... ok",
+                        " - (6/12) dir-deep/dir-sub-a/file-deep-a.bin... ok",
+                        " - (7/12) dir-deep/dir-sub-b/file-deep-b.bin... ok",
+                        " - (8/12) dir-e/file-e with space.bin... ok",
+                        " - (9/12) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890/file-long1.bin... ok", // NOSONAR
+                        " - (10/12) dir-m-with-[brackets]-and-(parens)-dir/empty-file... ok",
+                        " - (11/12) dir-m-with-[brackets]-and-(parens)-dir/text-file.txt... ok",
+                        " - (12/12) dir-tricky.tar/file-in-tricky... ok",
                         "Success!");
 
         assertThat(res.exitValue())

@@ -48,6 +48,8 @@ import dk.mada.backup.restore.VariableName;
  */
 public class MainExplore {
     private static final Logger logger = LoggerFactory.getLogger(MainExplore.class);
+    /** Archive name prefix used to mark directories. */
+    private static final String ARCHIVE_DIRECTORY_PREFIX = "./";
     /** File scanning buffer size. */
     private static final int FILE_SCAN_BUFFER_SIZE = 8192;
     /** File permissions used for temporary files used while creating backup. */
@@ -195,7 +197,7 @@ public class MainExplore {
             DirInfo dirInfo = createArchiveFromDir(rootDir, dir, tempArchiveFile);
             fileElements.add(dirInfo);
 
-            String inArchiveName = dir.getFileName().toString() + ".tar";
+            String inArchiveName = ARCHIVE_DIRECTORY_PREFIX + dir.getFileName().toString() + ".tar";
             FileInfo res = copyTarBundleToTarResettingFileTime(tempArchiveFile, inArchiveName, tarOs);
 
             Files.delete(tempArchiveFile);

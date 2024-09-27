@@ -156,7 +156,7 @@ unpack_encrypted_files() {
     if $onlyArchives; then
         /bin/cat $crypt_files | $gpg_cmd | (cd "$target" && /bin/tar -x -f -)
     else
-        /bin/cat $crypt_files | $gpg_cmd | (cd "$target" && /bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - || /bin/cat > \"$TAR_FILENAME\""')
+        /bin/cat $crypt_files | $gpg_cmd | (cd "$target" && /bin/tar -x -f - --to-command='/bin/bash -c "[[ \"$TAR_FILENAME\" == ./* ]] && /bin/tar -x -f - || /bin/cat > \"$TAR_FILENAME\""')
     fi
 }
 
@@ -258,7 +258,7 @@ verify_jotta() {
 
 verify_crypted_files() {
     local files="$@"
-    /bin/cat $files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "set -e && [[ \"$TAR_FILENAME\" == *.tar ]] && /bin/tar -x -f - --to-command=\"/bin/bash /tmp/verify.sh \\\"\\\$TAR_FILENAME\\\"\" || /bin/bash /tmp/verify.sh \"$TAR_FILENAME\""')
+    /bin/cat $files | $gpg_cmd | (/bin/tar -x -f - --to-command='/bin/bash -c "set -e && [[ \"$TAR_FILENAME\" == ./* ]] && /bin/tar -x -f - --to-command=\"/bin/bash /tmp/verify.sh \\\"\\\$TAR_FILENAME\\\"\" || /bin/bash /tmp/verify.sh \"$TAR_FILENAME\""')
 }
 
 verify_stream() {
@@ -271,8 +271,8 @@ verify_stream() {
     for l in "${archives[@]}"; do
         @@VARS@@
 
-        if ! (echo $file | /bin/grep -q -e ".tar$") ; then
-            file_checksums="$file_checksums$xxh3,$file\n"
+        if ! (echo $file | /bin/grep -q -e "^[.]/") ; then
+            file_checksums="${file_checksums}${xxh3},${file}\n"
         fi
     done
     echo -e "$file_checksums" > /tmp/valid-input.txt
