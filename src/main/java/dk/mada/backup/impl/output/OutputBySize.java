@@ -24,6 +24,15 @@ public class OutputBySize implements BackupStreamWriter {
     /** The active splitter output stream. */
     private SplitterOutputStream sos;
 
+    /**
+     * Creates new instance.
+     *
+     * @param targetDir      the target directory
+     * @param name           the name of the backup set
+     * @param cryptSplitSize the size to split the output files at
+     * @param gpgInfo        the GPG information
+     * @throws GpgEncrypterException if GPG failed
+     */
     public OutputBySize(Path targetDir, String name, long cryptSplitSize, GpgStreamInfo gpgInfo) throws GpgEncrypterException {
         sos = new SplitterOutputStream(targetDir, name, ".crypt", cryptSplitSize);
         eos = new GpgEncryptedOutputStream(sos, gpgInfo);

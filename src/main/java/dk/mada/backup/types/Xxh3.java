@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  * A XXH3 64 bit hex value.
  *
  * @param value the XXHash checksum
- * @see https://github.com/Cyan4973/xxHash
+ * @see <a href="https://github.com/Cyan4973/xxHash">https://github.com/Cyan4973/xxHash</a>
  */
 public record Xxh3(long value) {
     /** Pattern for a valid XXH3 hash in string format. */

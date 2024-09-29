@@ -59,7 +59,7 @@ public class TarContainerBuilder implements AutoCloseable {
      *
      * @param buffer        the buffer
      * @param inArchiveName the name to use in the archive
-     * @return
+     * @return the information for the created container entry
      */
     public Entry addStream(InternalBufferStream buffer, String inArchiveName) {
         try {
@@ -90,7 +90,7 @@ public class TarContainerBuilder implements AutoCloseable {
      *
      * @param file          the file to add
      * @param inArchiveName the in-archive name to give the file
-     * @return information for the created container entry
+     * @return the information for the created container entry
      */
     public Entry addFile(Path file, String inArchiveName) {
         byte[] buffer = new byte[FILE_READ_BUFFER_SIZE];
