@@ -44,6 +44,11 @@ public final class MakeBackup {
             "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),
             "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME));
 
+        args.addAll(List.of(
+                CliMain.OPT_MAX_CONTAINER_SIZE, "20m",
+                CliMain.OPT_MAX_ROOT_DIR_SIZE, "10m"
+                ));
+
         args.add(srcDir.toString());
         args.add(targetDir.toString());
 

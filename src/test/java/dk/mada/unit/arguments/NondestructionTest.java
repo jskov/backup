@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import dk.mada.backup.api.BackupApi;
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.api.BackupTargetExistsException;
+import dk.mada.backup.api.BackupArguments.Limits;
 import dk.mada.fixture.TestCertificateInfo;
 import dk.mada.fixture.TestDataPrepper;
 
@@ -43,7 +44,9 @@ class NondestructionTest {
 
     @BeforeEach
     void createBackupApi() {
-        api = new BackupApi(TestCertificateInfo.TEST_GPG_INFO, BackupOutputType.NUMBERED);
+        long megs4 = 4*1024*1024;
+        Limits limits = new Limits(megs4, megs4, megs4);
+        api = new BackupApi(TestCertificateInfo.TEST_GPG_INFO, BackupOutputType.NUMBERED, limits);
     }
 
     @Test
