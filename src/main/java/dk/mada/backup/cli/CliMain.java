@@ -14,6 +14,7 @@ import org.jspecify.annotations.Nullable;
 
 import dk.mada.backup.Version;
 import dk.mada.backup.api.BackupArguments;
+import dk.mada.backup.api.BackupArguments.Limits;
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.impl.BackupApplication;
 import dk.mada.backup.impl.ExitHandler;
@@ -25,6 +26,7 @@ import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.Spec;
+import picocli.CommandLine.Help.Visibility;
 
 /**
  * Main class for command line invocation.
@@ -38,8 +40,12 @@ import picocli.CommandLine.Spec;
         versionProvider = Version.class,
         description = "Makes a backup of a file tree. Results in a restore script plus a number of encrypted data files.")
 public final class CliMain implements Runnable {
-    /** Name of option for max backup file size. */
-    public static final String OPT_MAX_SIZE = "--max-size";
+    /** Name of option for numbered file split size. */
+    public static final String OPT_NUMBERED_SPLIT_SIZE = "--numbered-split-size";
+    /** Name of option for max root directory size. */
+    public static final String OPT_MAX_ROOT_DIR_SIZE = "--max-root-dir-size";
+    /** Name of option for max container size. */
+    public static final String OPT_MAX_CONTAINER_SIZE = "--max-container-size";
     /** Name of option for GPG recipient identity. */
     public static final String OPT_RECIPIENT = "-r";
     /** Name of option for repository directory. */
@@ -69,13 +75,30 @@ public final class CliMain implements Runnable {
     /** Flag to skip verification after backup has been created. */
     @Option(names = "--skip-verify", description = "skip verification after creating backup")
     private boolean skipVerify;
-    /** Maximum backup file size option. */
+    /** Numbered backup file split size. */
     @Option(
-            names = OPT_MAX_SIZE,
+            names = OPT_NUMBERED_SPLIT_SIZE,
             converter = HumanSizeInputConverter.class,
-            description = "max file size",
-            paramLabel = "SIZE")
-    private long maxFileSize;
+            description = "numbered file split size",
+            showDefaultValue = Visibility.ALWAYS,
+            paramLabel = "SPLIT-SIZE")
+    private long numberedBackupSplitSize;
+    /** Max root directory size. */
+    @Option(
+            names = OPT_MAX_ROOT_DIR_SIZE,
+            converter = HumanSizeInputConverter.class,
+            description = "max root directory size",
+            showDefaultValue = Visibility.ALWAYS,
+            paramLabel = "ROOT-DIR-SIZE")
+    private long maxRootDirSize;
+    /** Max container size. */
+    @Option(
+            names = OPT_MAX_CONTAINER_SIZE,
+            converter = HumanSizeInputConverter.class,
+            description = "max container size",
+            showDefaultValue = Visibility.ALWAYS,
+            paramLabel = "CONTAINER-SIZE")
+    private long maxContainerSize;
     /** Flag to print version. */
     @Option(names = { "-V", "--version" }, versionHelp = true, description = "print version information and exit")
     @SuppressWarnings("UnusedVariable")
@@ -157,6 +180,8 @@ public final class CliMain implements Runnable {
 
         Path repositoryScriptPath = adjustment.targetPath().resolve(backupName + ".sh");
 
+        Limits limits = new BackupArguments.Limits(maxRootDirSize, maxContainerSize, numberedBackupSplitSize);
+
         return new BackupArguments(
                 Objects.requireNonNull(gpgRecipientId, "GPG recipient id null"),
                 envOverrides, backupName,
@@ -164,7 +189,7 @@ public final class CliMain implements Runnable {
                 repositoryDir,
                 repositoryScriptPath,
                 BackupOutputType.NUMBERED,
-                maxFileSize, skipVerify);
+                skipVerify, limits);
     }
 
     private Path makeRealRelativeToCwd(Path dir) {

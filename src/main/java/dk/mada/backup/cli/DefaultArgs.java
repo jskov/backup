@@ -2,7 +2,6 @@ package dk.mada.backup.cli;
 
 import org.jspecify.annotations.Nullable;
 
-import dk.mada.backup.api.BackupApi;
 import picocli.CommandLine.IDefaultValueProvider;
 import picocli.CommandLine.Model.ArgSpec;
 import picocli.CommandLine.Model.OptionSpec;
@@ -35,8 +34,14 @@ public final class DefaultArgs implements IDefaultValueProvider {
         if (isNamedOption(arg, CliMain.OPT_RECIPIENT)) {
             return envInputs.getBackupRecipient();
         }
-        if (isNamedOption(arg, CliMain.OPT_MAX_SIZE)) {
-            return Long.toString(BackupApi.DEFAULT_MAX_CRYPT_FILE_SIZE);
+        if (isNamedOption(arg, CliMain.OPT_NUMBERED_SPLIT_SIZE)) {
+            return "1g";
+        }
+        if (isNamedOption(arg, CliMain.OPT_MAX_CONTAINER_SIZE)) {
+            return "500m";
+        }
+        if (isNamedOption(arg, CliMain.OPT_MAX_ROOT_DIR_SIZE)) {
+            return "200m";
         }
         if (isNamedOption(arg, CliMain.OPT_REPOSITORY_DIR)) {
             return envInputs.getBackupRepositoryDir();

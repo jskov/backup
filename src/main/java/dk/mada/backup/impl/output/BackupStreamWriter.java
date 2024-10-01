@@ -5,8 +5,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-
 /**
  * Backup stream writer.
  *
@@ -19,10 +17,10 @@ public interface BackupStreamWriter extends AutoCloseable {
      * Process next root element in the backup set.
      *
      * @param name the name of the file or directory
-     * @return the tar archive to stream the file or directory contents into
+     * @return the tar container builder to stream contents into
      * @throws IOException if IO fails
      */
-    TarArchiveOutputStream processNextElement(String name) throws IOException;
+    TarContainerBuilder processNextRootElement(String name) throws IOException;
 
     @Override
     void close() throws IOException;

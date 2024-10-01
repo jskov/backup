@@ -11,6 +11,7 @@ public enum DataFormatVersion {
     /** Uses HHX3 hash */
     VERSION_2("2");
 
+    /** The id used to match a version. */
     private final String id;
 
     private DataFormatVersion(String id) {
@@ -27,6 +28,13 @@ public enum DataFormatVersion {
         return id;
     }
 
+    /**
+     * Convert a string ID to the matching instance.
+     *
+     * @param id the ID of the data format version
+     * @return the matching format version instance
+     * @throws IllegalArgumentException if no match was found
+     */
     public static DataFormatVersion parse(String id) {
         for (DataFormatVersion e : DataFormatVersion.values()) {
             if (e.id().equals(id)) {

@@ -159,6 +159,8 @@ tasks.check {
     }
 }
 
+task preCommit(dependsOn: ['check', 'javadoc'])
+
 jacocoTestReport {
     reports {
         xml.required.set(true)

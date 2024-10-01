@@ -18,8 +18,8 @@ import dk.mada.backup.types.GpgId;
  * @param repositoryDir        the folder to write an extra copy of the restore script to
  * @param repositoryScriptPath the path of the restore script in the repository
  * @param outputType           the backup output type
- * @param maxFileSize          the maximum backup output file size
  * @param skipVerify           flag to skip verification of backup after its creation
+ * @param limits               the backup limits
  */
 public record BackupArguments(
         GpgId gpgRecipientKeyId,
@@ -30,6 +30,19 @@ public record BackupArguments(
         @Nullable Path repositoryDir,
         Path repositoryScriptPath,
         BackupOutputType outputType,
-        long maxFileSize,
-        boolean skipVerify) {
+        boolean skipVerify,
+        Limits limits) {
+
+    /**
+     * Limits for the backup operation.
+     *
+     * @param maxRootDirectorySize the maximal root directory size
+     * @param maxContainerSize     the maximal container size
+     * @param numberedSplitSize    the split size for numbered backups
+     */
+    public record Limits(
+            long maxRootDirectorySize,
+            long maxContainerSize,
+            long numberedSplitSize) {
+    }
 }
