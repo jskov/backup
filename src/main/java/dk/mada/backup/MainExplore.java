@@ -1,43 +1,32 @@
 package dk.mada.backup;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.FileTime;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.dynatrace.hash4j.hashing.HashStream64;
-import com.dynatrace.hash4j.hashing.Hashing;
-
+import dk.mada.backup.api.BackupArguments.Limits;
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.cli.HumanByteCount;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.gpg.GpgEncrypterException;
 import dk.mada.backup.impl.output.BackupStreamWriter;
+import dk.mada.backup.impl.output.InternalBufferStream;
 import dk.mada.backup.impl.output.OutputBySize;
+import dk.mada.backup.impl.output.TarContainerBuilder;
+import dk.mada.backup.impl.output.TarContainerBuilder.Entry;
 import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.restore.VariableName;
 
@@ -49,35 +38,36 @@ import dk.mada.backup.restore.VariableName;
 public class MainExplore {
     private static final Logger logger = LoggerFactory.getLogger(MainExplore.class);
     /** Archive name prefix used to mark directories. */
-    private static final String ARCHIVE_DIRECTORY_PREFIX = "./";
-    /** File scanning buffer size. */
-    private static final int FILE_SCAN_BUFFER_SIZE = 8192;
-    /** File permissions used for temporary files used while creating backup. */
-    private static final FileAttribute<Set<PosixFilePermission>> ATTR_PRIVATE_TO_USER = PosixFilePermissions
-            .asFileAttribute(PosixFilePermissions.fromString("rwx------"));
+    public static final String ARCHIVE_DIRECTORY_PREFIX = "./";
+    /** Archive name suffix shows wrapped in TAR. */
+    public static final String ARCHIVE_DIRECTORY_SUFFIX = ".tar";
 
     /** Information about the directories included in the backup. */
     private List<DirInfo> fileElements = new ArrayList<>();
-    /** Size limit for crypt-files. */
-    private final long maxCryptFileSize;
+    /** Backup limits. */
+    private final Limits limits;
     /** Total size of the files in the backup (does not include directory sizes). */
     private long totalInputSize;
     /** Information needed to create GPG stream. */
     private final GpgStreamInfo gpgInfo;
     /** The selected output type for this backup. */
     private final BackupOutputType outputType;
+    /** The internal buffer used for archiving root directories. */
+    private final InternalBufferStream dirPackBuffer;
 
     /**
      * Creates a new instance.
      *
-     * @param gpgInfo          the GPG stream information
-     * @param outputType       the desired output type
-     * @param maxCryptFileSize the size limit for crypt-files
+     * @param gpgInfo    the GPG stream information
+     * @param outputType the desired output type
+     * @param limits     the backup process limits
      */
-    public MainExplore(GpgStreamInfo gpgInfo, BackupOutputType outputType, long maxCryptFileSize) {
+    public MainExplore(GpgStreamInfo gpgInfo, BackupOutputType outputType, Limits limits) {
         this.gpgInfo = gpgInfo;
         this.outputType = outputType;
-        this.maxCryptFileSize = maxCryptFileSize;
+        this.limits = limits;
+
+        dirPackBuffer = new InternalBufferStream(limits.maxRootDirectorySize());
     }
 
     /**
@@ -152,7 +142,7 @@ public class MainExplore {
 
     private BackupStreamWriter defineOutputStream(Path targetDir, String name) throws GpgEncrypterException {
         return switch (outputType) {
-        case NUMBERED -> new OutputBySize(targetDir, name, maxCryptFileSize, gpgInfo);
+        case NUMBERED -> new OutputBySize(targetDir, name, limits.numberedSplitSize(), gpgInfo);
         };
     }
 
@@ -175,7 +165,7 @@ public class MainExplore {
     private BackupElement processRootElement(Path rootDir, BackupStreamWriter bsw, Path p) {
         logger.info("Process {}", p);
         try {
-            TarArchiveOutputStream tos = bsw.processNextElement(p.getFileName().toString());
+            TarContainerBuilder tos = bsw.processNextRootElement(p.getFileName().toString());
             if (Files.isDirectory(p)) {
                 return processDir(rootDir, tos, p);
             } else {
@@ -186,41 +176,43 @@ public class MainExplore {
         }
     }
 
-    private FileInfo processFile(Path rootDir, TarArchiveOutputStream tarOs, Path file) {
-        return copyToTar(rootDir, file, tarOs);
+    private FileInfo processFile(Path rootDir, TarContainerBuilder backupsetTarBuilder, Path file) {
+        return copyToTar(rootDir, file, backupsetTarBuilder);
     }
 
-    private FileInfo processDir(Path rootDir, TarArchiveOutputStream tarOs, Path dir) {
-        try {
-            // FIXME: writing to a temp file here!? And then copy to tarOs later.
-            Path tempArchiveFile = Files.createTempFile("backup", "tmp", ATTR_PRIVATE_TO_USER);
-            DirInfo dirInfo = createArchiveFromDir(rootDir, dir, tempArchiveFile);
-            fileElements.add(dirInfo);
+    /**
+     * Processes root directory folder.
+     *
+     * This is done by creating a tar archive of the folder contents.
+     *
+     * The archive needs to be created before it can be copied into the output container; tar needs to know the file size
+     * before the data is streamed into the archive.
+     *
+     * @param rootDir             the root directory of the backup source
+     * @param backupsetTarBuilder the tar builder for the backup set
+     * @param dir                 the directory archive and copy into the backup
+     * @return the file information for the added archive
+     */
+    private FileInfo processDir(Path rootDir, TarContainerBuilder backupsetTarBuilder, Path dir) {
+        DirInfo dirInfo = newCreateArchiveFromDir(rootDir, dir);
+        fileElements.add(dirInfo);
 
-            String inArchiveName = ARCHIVE_DIRECTORY_PREFIX + dir.getFileName().toString() + ".tar";
-            FileInfo res = copyTarBundleToTarResettingFileTime(tempArchiveFile, inArchiveName, tarOs);
-
-            Files.delete(tempArchiveFile);
-            return res;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        String inArchiveName = ARCHIVE_DIRECTORY_PREFIX + dir.getFileName().toString() + ARCHIVE_DIRECTORY_SUFFIX;
+        Entry entry = backupsetTarBuilder.addStream(dirPackBuffer, inArchiveName);
+        FileInfo res = FileInfo.of(inArchiveName, entry.size(), entry.xxh3().value());
+        return res;
     }
 
-    // Note: destroys target - which is a temporary file, so is OK
-    private DirInfo createArchiveFromDir(Path rootDir, Path dir, Path archive) {
-        try (OutputStream os = Files.newOutputStream(archive, StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
-                BufferedOutputStream bos = new BufferedOutputStream(os);
-                TarArchiveOutputStream tarForDirOs = makeTarOutputStream(bos)) {
-
+    private DirInfo newCreateArchiveFromDir(Path rootDir, Path dir) {
+        dirPackBuffer.reset();
+        try (TarContainerBuilder tarBuilder = new TarContainerBuilder(dirPackBuffer)) {
             logger.debug("Creating nested archive for {}", dir);
 
             try (Stream<Path> files = Files.walk(dir)) {
                 List<FileInfo> containedFiles = files
                         .sorted(pathSorter(rootDir))
                         .filter(Files::isRegularFile)
-                        .map(f -> copyToTar(rootDir, f, tarForDirOs))
+                        .map(f -> copyToTar(rootDir, f, tarBuilder))
                         .toList();
 
                 return DirInfo.from(rootDir, dir, containedFiles);
@@ -230,61 +222,12 @@ public class MainExplore {
         }
     }
 
-    private static TarArchiveOutputStream makeTarOutputStream(OutputStream sink) {
-        TarArchiveOutputStream taos = new TarArchiveOutputStream(sink);
-        taos.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
-        return taos;
-    }
+    private FileInfo copyToTar(Path rootDir, Path file, TarContainerBuilder tarBuilder) {
+        String inArchiveName = rootDir.relativize(file).toString();
+        Entry entry = tarBuilder.addFile(file, inArchiveName);
 
-    private FileInfo copyToTar(Path rootDir, Path file, TarArchiveOutputStream tos) {
-        String archivePath = rootDir.relativize(file).toString();
-        return copyToTar(file, archivePath, tos, true);
-    }
+        totalInputSize += entry.size();
 
-    private FileInfo copyTarBundleToTarResettingFileTime(Path file, String inArchiveName, TarArchiveOutputStream tos)
-            throws IOException {
-        Files.setLastModifiedTime(file, FileTime.fromMillis(0));
-        return copyToTar(file, inArchiveName, tos, false);
-    }
-
-    private FileInfo copyToTar(Path file, String inArchiveName, TarArchiveOutputStream tos, boolean countsTowardsSize) {
-        byte[] buffer = new byte[FILE_SCAN_BUFFER_SIZE];
-
-        try (InputStream is = Files.newInputStream(file); BufferedInputStream bis = new BufferedInputStream(is)) {
-            long size = Files.size(file);
-
-            if (countsTowardsSize) {
-                totalInputSize += size;
-            }
-
-            String type = inArchiveName.endsWith(".tar") ? "=>" : "-";
-            String humanSize = HumanByteCount.humanReadableByteCount(size);
-            logger.info(" {} {} {}", type, inArchiveName, humanSize);
-            TarArchiveEntry tae = tos.createArchiveEntry(file.toFile(), inArchiveName);
-
-            // Apache commons 1.21+ includes user and group information that was
-            // not present before. Clear it, similar to the time information.
-            tae.setUserId(0);
-            tae.setGroupId(0);
-            tae.setGroupName("");
-            tae.setUserName("");
-
-            tos.putArchiveEntry(tae);
-
-            HashStream64 hashStream = Hashing.xxh3_64().hashStream();
-
-            int read;
-            while ((read = bis.read(buffer)) > 0) {
-                hashStream.putBytes(buffer, 0, read);
-                tos.write(buffer, 0, read);
-            }
-
-            tos.closeArchiveEntry();
-
-            return FileInfo.of(inArchiveName, size, hashStream.getAsLong());
-
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return FileInfo.of(inArchiveName, entry.size(), entry.xxh3().value());
     }
 }

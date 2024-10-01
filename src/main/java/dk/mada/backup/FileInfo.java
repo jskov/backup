@@ -53,6 +53,7 @@ public final class FileInfo implements BackupElement {
      *
      * @param pathName the path of the file relative to the backup root directory
      * @param size     the size of the file
+     * @param xxh3     the XXH3 hash
      * @return an instance capturing the file information for the backup
      */
     public static FileInfo of(String pathName, long size, long xxh3) {
