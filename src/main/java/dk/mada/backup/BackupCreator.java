@@ -17,26 +17,20 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import dk.mada.backup.api.BackupArguments.Limits;
-import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.cli.HumanByteCount;
-import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
-import dk.mada.backup.gpg.GpgEncrypterException;
+import dk.mada.backup.impl.output.BackupPolicy;
 import dk.mada.backup.impl.output.BackupStreamWriter;
 import dk.mada.backup.impl.output.InternalBufferStream;
-import dk.mada.backup.impl.output.OutputBySize;
 import dk.mada.backup.impl.output.TarContainerBuilder;
 import dk.mada.backup.impl.output.TarContainerBuilder.Entry;
 import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.restore.VariableName;
 
 /**
- * Code from the original spike exploration of the solution.
- *
- * TODO: Needs to be rewritten/split up.
+ * Creates backup using pluggable policies.
  */
-public class MainExplore {
-    private static final Logger logger = LoggerFactory.getLogger(MainExplore.class);
+public class BackupCreator {
+    private static final Logger logger = LoggerFactory.getLogger(BackupCreator.class);
     /** Archive name prefix used to mark directories. */
     public static final String ARCHIVE_DIRECTORY_PREFIX = "./";
     /** Archive name suffix shows wrapped in TAR. */
@@ -44,47 +38,38 @@ public class MainExplore {
 
     /** Information about the directories included in the backup. */
     private List<DirInfo> fileElements = new ArrayList<>();
-    /** Backup limits. */
-    private final Limits limits;
+    /** Backup policy. */
+    private final BackupPolicy policy;
     /** Total size of the files in the backup (does not include directory sizes). */
     private long totalInputSize;
-    /** Information needed to create GPG stream. */
-    private final GpgStreamInfo gpgInfo;
-    /** The selected output type for this backup. */
-    private final BackupOutputType outputType;
     /** The internal buffer used for archiving root directories. */
     private final InternalBufferStream dirPackBuffer;
 
     /**
      * Creates a new instance.
      *
-     * @param gpgInfo    the GPG stream information
-     * @param outputType the desired output type
-     * @param limits     the backup process limits
+     * @param policy the backup policy
      */
-    public MainExplore(GpgStreamInfo gpgInfo, BackupOutputType outputType, Limits limits) {
-        this.gpgInfo = gpgInfo;
-        this.outputType = outputType;
-        this.limits = limits;
+    public BackupCreator(BackupPolicy policy) {
+        this.policy = policy;
 
-        dirPackBuffer = new InternalBufferStream(limits.maxRootDirectorySize());
+        dirPackBuffer = new InternalBufferStream(policy.limits().maxRootDirectorySize());
     }
 
     /**
-     * Create a backup from a directory.
+     * Create a backup according to policy.
      *
-     * @param rootDir   the backup root directory
-     * @param targetDir the target directory for the encrypted backup files
-     * @param name      the backup name
      * @return the generated restore script
      */
-    public Path packDir(Path rootDir, Path targetDir, String name) {
+    public Path create() {
+        Path rootDir = policy.rootDirectory();
         if (!Files.isDirectory(rootDir)) {
             throw new IllegalArgumentException("Must be dir, was " + rootDir);
         }
         logger.info("Create backup from {}", rootDir);
 
-        Path restoreScript = targetDir.resolve(name + ".sh");
+        Path restoreScript = policy.restoreScript();
+        Path targetDir = policy.targetDirectory();
 
         try {
             Files.createDirectories(targetDir);
@@ -92,13 +77,11 @@ public class MainExplore {
             throw new IllegalStateException("Failed to create target dir", e1);
         }
 
-        // This variant makes a tar archive containing all the packaged folder tars.
-        // The archive is crypted and then split into numbered output files.
-
+        // Process root elements
         List<BackupElement> archiveElements;
         Future<List<Path>> outputFilesFuture;
         try (Stream<Path> files = Files.list(rootDir);
-                BackupStreamWriter bsw = defineOutputStream(targetDir, name)) {
+                BackupStreamWriter bsw = policy.writer()) {
 
             archiveElements = files
                     .sorted(pathSorter(rootDir))
@@ -112,6 +95,7 @@ public class MainExplore {
             throw new UncheckedIOException("Failed processing", e);
         }
 
+        // Wait for the encrypted output files to settle
         List<FileInfo> cryptElements;
         try {
             cryptElements = outputFilesFuture.get().stream()
@@ -131,19 +115,15 @@ public class MainExplore {
         Map<VariableName, String> vars = Map.of(
                 VariableName.VERSION, Version.getBackupVersion(),
                 VariableName.BACKUP_DATE_TIME, backupTime,
-                VariableName.BACKUP_NAME, name,
+                VariableName.BACKUP_NAME, policy.backupName(),
                 VariableName.BACKUP_INPUT_SIZE, HumanByteCount.humanReadableByteCount(totalInputSize),
-                VariableName.BACKUP_KEY_ID, gpgInfo.recipientKeyId().id(),
-                VariableName.BACKUP_OUTPUT_TYPE, outputType.name());
+                VariableName.BACKUP_KEY_ID, policy.gpgInfo().recipientKeyId().id(),
+                VariableName.BACKUP_OUTPUT_TYPE, policy.outputType().name());
         new RestoreScriptWriter().write(restoreScript, vars, cryptElements, archiveElements, fileElements);
 
-        return restoreScript;
-    }
+        policy.completeBackup();
 
-    private BackupStreamWriter defineOutputStream(Path targetDir, String name) throws GpgEncrypterException {
-        return switch (outputType) {
-        case NUMBERED -> new OutputBySize(targetDir, name, limits.numberedSplitSize(), gpgInfo);
-        };
+        return restoreScript;
     }
 
     /**
