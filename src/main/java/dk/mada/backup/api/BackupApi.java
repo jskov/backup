@@ -2,16 +2,22 @@ package dk.mada.backup.api;
 
 import java.nio.file.Path;
 
-import dk.mada.backup.MainExplore;
+import dk.mada.backup.BackupCreator;
 import dk.mada.backup.api.BackupArguments.Limits;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
+import dk.mada.backup.impl.output.BackupPolicy;
+import dk.mada.backup.impl.output.NumberedBackupPolicy;
 
 /**
  * API for the backup operation.
  */
 public class BackupApi {
-    /** The current implementation of the code. */
-    private final MainExplore spikeCode;
+    /** The backup output type. */
+    private BackupOutputType outputType;
+    /** The GPG information. */
+    private GpgStreamInfo gpgInfo;
+    /** The backup limits. */
+    private Limits limits;
 
     /**
      * Prepare backup with full configuration.
@@ -21,7 +27,9 @@ public class BackupApi {
      * @param limits        the backup limits
      */
     public BackupApi(GpgStreamInfo gpgStreamInfo, BackupOutputType outputType, Limits limits) {
-        spikeCode = new MainExplore(gpgStreamInfo, outputType, limits);
+        this.gpgInfo = gpgStreamInfo;
+        this.outputType = outputType;
+        this.limits = limits;
     }
 
     /**
@@ -35,6 +43,10 @@ public class BackupApi {
      * @throws BackupException or any of its subclasses, on failure
      */
     public Path makeBackup(String backupName, Path sourceDir, Path targetDir) {
-        return spikeCode.packDir(sourceDir, targetDir, backupName);
+        BackupPolicy policy = switch (outputType) {
+        case NUMBERED -> new NumberedBackupPolicy(backupName, gpgInfo, limits, sourceDir, targetDir);
+        };
+
+        return new BackupCreator(policy).create();
     }
 }
