@@ -42,6 +42,52 @@ public class TarContainerBuilder implements AutoCloseable {
      * @param xxh3        the xxh3 checksum
      */
     public record Entry(String archiveName, long size, Xxh3 xxh3) {
+
+        /** Archive name prefix used to mark directories. */
+        public static final String ARCHIVE_DIRECTORY_PREFIX = "./";
+        /** Archive name suffix shows wrapped in TAR. */
+        public static final String ARCHIVE_DIRECTORY_SUFFIX = ".tar";
+
+        /** {@return the unwrapped folder name} */
+        public String unwrappedFolderName() {
+            return unwrapFolderName(archiveName);
+        }
+
+        /**
+         * Wraps file system folder name to the in-archive form.
+         *
+         * @param folderName the file system name of the folder
+         * @return the in-archive form
+         */
+        public static String wrapFolderName(String folderName) {
+            return ARCHIVE_DIRECTORY_PREFIX + folderName + ARCHIVE_DIRECTORY_SUFFIX;
+        }
+
+        /**
+         * Checks if an in-archive name represents an original folder.
+         *
+         * @param archiveName the in-archive name
+         * @return true if the name was a folder on the file system
+         */
+        public static boolean isWrappedFolderName(String archiveName) {
+            return archiveName.startsWith(ARCHIVE_DIRECTORY_PREFIX)
+                    && archiveName.endsWith(ARCHIVE_DIRECTORY_SUFFIX);
+        }
+
+        /**
+         * Unwraps an in-archive name to its file system equivalent.
+         *
+         * @param archiveName the in-archive name
+         * @return the file system equivalent of the name
+         */
+        public static String unwrapFolderName(String archiveName) {
+            if (isWrappedFolderName(archiveName)) {
+                return archiveName.substring(ARCHIVE_DIRECTORY_PREFIX.length(),
+                        archiveName.length() - ARCHIVE_DIRECTORY_SUFFIX.length());
+            } else {
+                return archiveName;
+            }
+        }
     }
 
     /**
@@ -57,11 +103,13 @@ public class TarContainerBuilder implements AutoCloseable {
     /**
      * Add contents of an internal buffer to the tar container.
      *
-     * @param buffer        the buffer
-     * @param inArchiveName the name to use in the archive
+     * @param buffer     the buffer
+     * @param folderName the origin folder's name
      * @return the information for the created container entry
      */
-    public Entry addStream(InternalBufferStream buffer, String inArchiveName) {
+    public Entry addStream(InternalBufferStream buffer, String folderName) {
+        String inArchiveName = Entry.wrapFolderName(folderName);
+
         try {
             TarArchiveEntry tae = new TarArchiveEntry(inArchiveName);
             int size = buffer.size();
@@ -119,6 +167,14 @@ public class TarContainerBuilder implements AutoCloseable {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    /** {@return the first entry} */
+    public Entry firstEntry() {
+        if (entries.isEmpty()) {
+            throw new IllegalStateException("Archive contains no entries!");
+        }
+        return entries.get(0);
     }
 
     private void startEntryStreaming(TarArchiveEntry tae) throws IOException {

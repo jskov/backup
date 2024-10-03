@@ -31,11 +31,6 @@ import dk.mada.backup.restore.VariableName;
  */
 public class BackupCreator {
     private static final Logger logger = LoggerFactory.getLogger(BackupCreator.class);
-    /** Archive name prefix used to mark directories. */
-    public static final String ARCHIVE_DIRECTORY_PREFIX = "./";
-    /** Archive name suffix shows wrapped in TAR. */
-    public static final String ARCHIVE_DIRECTORY_SUFFIX = ".tar";
-
     /** Information about the directories included in the backup. */
     private List<DirInfo> fileElements = new ArrayList<>();
     /** Backup policy. */
@@ -177,9 +172,8 @@ public class BackupCreator {
         DirInfo dirInfo = newCreateArchiveFromDir(rootDir, dir);
         fileElements.add(dirInfo);
 
-        String inArchiveName = ARCHIVE_DIRECTORY_PREFIX + dir.getFileName().toString() + ARCHIVE_DIRECTORY_SUFFIX;
-        Entry entry = backupsetTarBuilder.addStream(dirPackBuffer, inArchiveName);
-        FileInfo res = FileInfo.of(inArchiveName, entry.size(), entry.xxh3().value());
+        Entry entry = backupsetTarBuilder.addStream(dirPackBuffer, dir.getFileName().toString());
+        FileInfo res = FileInfo.of(entry.archiveName(), entry.size(), entry.xxh3().value());
         return res;
     }
 
