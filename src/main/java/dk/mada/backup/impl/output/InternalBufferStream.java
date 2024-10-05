@@ -72,6 +72,11 @@ public class InternalBufferStream extends ByteArrayOutputStream {
         return Xxh3.of(hashStream.getAsLong());
     }
 
+    /** {@return the current buffer count} */
+    public long count() {
+        return count;
+    }
+
     private void assertNoGrowth(int len) {
         if (count + len >= buf.length) {
             throw new IllegalStateException("Unable to handle backup inputs larger than " + buf.length);
