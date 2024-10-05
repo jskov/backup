@@ -2,6 +2,7 @@
 
 # @version: @@VERSION@@
 # @data_format_version: @@DATA_FORMAT_VERSION@@
+# @gpg_key_id: @@BACKUP_KEY_ID@@
 
 set -e
 
