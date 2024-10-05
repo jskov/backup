@@ -33,6 +33,12 @@ public interface BackupPolicy {
     GpgStreamInfo gpgInfo();
 
     /**
+     * Called when the backup is starting. This allows the policy implementation to check desired state before starting the
+     * backup.
+     */
+    void backupPrep();
+
+    /**
      * {@return the backup writer to use for the root elements}
      *
      * @throws GpgEncrypterException if GPG operations fail

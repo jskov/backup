@@ -80,6 +80,10 @@ public class NumberedBackupPolicy implements BackupPolicy {
     }
 
     @Override
+    public void backupPrep() {
+    }
+
+    @Override
     public void completeBackup() {
     }
 }
