@@ -1,5 +1,7 @@
 package dk.mada.fixture;
 
+import org.jspecify.annotations.Nullable;
+
 import dk.mada.backup.impl.ExitHandler;
 
 /**
@@ -16,18 +18,47 @@ public final class ExitHandlerFixture {
     public static ExitHandler exitForTesting() {
         return new ExitHandler() {
             @Override
-            public void systemExit(int exitCode, Throwable cause) {
+            public void systemExit(int exitCode, @Nullable Throwable cause) {
                 if (exitCode != 0) {
-                    throw new IllegalStateException("Backup/restore failed, would system exit: " + exitCode, cause);
+                    throw new TestFailedWithException("Backup/restore failed, would system exit: " + exitCode, cause);
                 }
             }
 
             @Override
             public void systemExitMessage(int exitCode, String message) {
                 if (exitCode != 0) {
-                    throw new IllegalStateException("Backup/restore failed, would system exit: " + exitCode + " with message: " + message);
+                    throw new TestFailedWithMessage("Backup/restore failed, would system exit: " + exitCode + " with message: " + message, message);
                 }
             }
         };
+    }
+
+    /**
+     * An exception describing backup failure throwing exception.
+     */
+    public static class TestFailedWithException extends RuntimeException {
+        @java.io.Serial
+        static final long serialVersionUID = 42L;
+        public TestFailedWithException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+    /**
+     * An exception describing backup failure with just exit message.
+     */
+    public static class TestFailedWithMessage extends RuntimeException {
+        @java.io.Serial
+        static final long serialVersionUID = 42L;
+        private final String exitMessage;
+
+        public TestFailedWithMessage(String message, String exitMessage) {
+            super(message);
+            this.exitMessage = exitMessage;
+        }
+
+        public String exitMessage() {
+            return exitMessage;
+        }
     }
 }
