@@ -6,6 +6,7 @@ import dk.mada.backup.BackupCreator;
 import dk.mada.backup.api.BackupArguments.Limits;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.impl.output.BackupPolicy;
+import dk.mada.backup.impl.output.NamedBackupPolicy;
 import dk.mada.backup.impl.output.NumberedBackupPolicy;
 
 /**
@@ -45,6 +46,7 @@ public class BackupApi {
     public Path makeBackup(String backupName, Path sourceDir, Path targetDir) {
         BackupPolicy policy = switch (outputType) {
         case NUMBERED -> new NumberedBackupPolicy(backupName, gpgInfo, limits, sourceDir, targetDir);
+        case NAMED -> new NamedBackupPolicy(backupName, gpgInfo, limits, sourceDir, targetDir);
         };
 
         return new BackupCreator(policy).create();

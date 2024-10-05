@@ -112,6 +112,10 @@ public final class CliMain implements Runnable {
     @Option(names = OPT_REPOSITORY_DIR, description = "repository for restore scripts")
     @Nullable private Path repositoryDir;
 
+    /** Flag to create per-name output files. */
+    @Option(names = "--by-name", description = "create root-level entry named output files")
+    private boolean byName;
+
     /** Backup source directory option. */
     @Parameters(index = "0", description = "backup source directory", paramLabel = "source-dir")
     @Nullable private Path sourceDir;
@@ -189,7 +193,7 @@ public final class CliMain implements Runnable {
                 realSrcDir, relativeTargetDir,
                 repositoryDir,
                 repositoryScriptPath,
-                BackupOutputType.NUMBERED,
+                byName ? BackupOutputType.NAMED : BackupOutputType.NUMBERED,
                 skipVerify, limits);
     }
 
