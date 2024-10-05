@@ -63,6 +63,8 @@ public class BackupCreator {
         }
         logger.info("Create backup from {}", rootDir);
 
+        policy.backupPrep();
+
         Path restoreScript = policy.restoreScript();
         Path targetDir = policy.targetDirectory();
 
