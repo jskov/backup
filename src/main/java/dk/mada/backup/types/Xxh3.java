@@ -6,9 +6,9 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * A XXH3 64 bit hex value.
+ * A XXH3 64 bit hash.
  *
- * @param value the XXHash checksum
+ * @param value the XXHash (3) hash
  * @see <a href="https://github.com/Cyan4973/xxHash">https://github.com/Cyan4973/xxHash</a>
  */
 public record Xxh3(long value) {
@@ -18,8 +18,8 @@ public record Xxh3(long value) {
     /**
      * Constructs a new instance from a hex string, verifying that the format is valid.
      *
-     * @param hex the xxh3 in hex form
-     * @return the new xxh3hash instance
+     * @param hex the XXH3 in hex form
+     * @return the new Xxh3 instance
      */
     public static Xxh3 ofHex(String hex) {
         String lc = Objects.requireNonNull(hex).toLowerCase(Locale.ROOT);
@@ -32,15 +32,20 @@ public record Xxh3(long value) {
     /**
      * Constructs a new instance from a long.
      *
-     * @param value the xxh3 in long form
-     * @return the new xxh3hash instance
+     * @param value the XXH3 in long form
+     * @return the new Xxh3 instance
      */
     public static Xxh3 of(long value) {
         return new Xxh3(value);
     }
 
+    /** {@return the Xxh3 hash as a hexadecimal string} */
+    public String hex() {
+        return HexFormat.of().toHexDigits(value);
+    }
+
     @Override
     public final String toString() {
-        return "xxh3[" + HexFormat.of().toHexDigits(value) + "]";
+        return "xxh3[" + hex() + "]";
     }
 }
