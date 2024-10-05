@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.jspecify.annotations.Nullable;
@@ -287,10 +288,22 @@ public final class CliMain implements Runnable {
      * @param args        the command line arguments
      */
     public static void main(ExitHandler exitHandler, String[] args) {
-        CliMain cliMain = new CliMain(backupArgs -> BackupApplication.run(exitHandler, backupArgs));
+        // Capture any exception thrown by the application so
+        // it can be passed on to the exit handler - used
+        // in testing
+        AtomicReference<Exception> backupException = new AtomicReference<>();
+
+        CliMain cliMain = new CliMain(backupArgs -> {
+            try {
+                BackupApplication.run(exitHandler, backupArgs);
+            } catch (Exception e) {
+                backupException.set(e);
+                throw e;
+            }
+        });
         int exitCode = new CommandLine(cliMain)
                 .setDefaultValueProvider(new DefaultArgs())
                 .execute(args);
-        exitHandler.systemExit(exitCode, null);
+        exitHandler.systemExit(exitCode, backupException.get());
     }
 }
