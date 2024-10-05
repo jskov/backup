@@ -49,6 +49,10 @@ public final class MakeBackup {
                 CliMain.OPT_MAX_ROOT_DIR_SIZE, "10m"
                 ));
 
+        if (outputType == BackupOutputType.NAMED) {
+            args.add("--by-name");
+        }
+
         args.add(srcDir.toString());
         args.add(targetDir.toString());
 

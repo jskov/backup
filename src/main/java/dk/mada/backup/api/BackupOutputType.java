@@ -9,4 +9,8 @@ public enum BackupOutputType {
      * specified maximal size.
      */
     NUMBERED,
+    /**
+     * The folder archives are individually encrypted and stored in separately named files.
+     */
+    NAMED
 }
