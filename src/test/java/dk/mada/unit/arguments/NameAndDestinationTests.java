@@ -48,7 +48,7 @@ class NameAndDestinationTests {
      * Source and target paths are relative to CWD.
      */
     @Test
-    void sourceAndTargetDirsAreRelativeToCurrentDir() throws IOException {
+    void sourceAndTargetDirsAreRelativeToCurrentDir() {
         BackupArguments args = runBackup("dir-a", "output-test");
 
         assertThat(args.sourceDir())
@@ -62,7 +62,7 @@ class NameAndDestinationTests {
      * name.
      */
     @Test
-    void translatesDotSrcDir() throws IOException {
+    void translatesDotSrcDir() {
         BackupArguments args = runBackup(".", targetDir.toString());
 
         assertThat(args.name())
@@ -80,7 +80,7 @@ class NameAndDestinationTests {
      * @see sourceAndTargetMayBeRelative
      */
     @Test
-    void absolutePathsOverrideChanges() throws IOException {
+    void absolutePathsOverrideChanges() {
         BackupArguments args = runBackup(srcDir.toString(), targetDir.toString());
 
         assertThat(args.name())
@@ -101,7 +101,7 @@ class NameAndDestinationTests {
      * "dst/music" (not "dst")
      */
     @Test
-    void sourceAndTargetMayBeRelative() throws IOException {
+    void sourceAndTargetMayBeRelative() {
         BackupArguments args = runBackup("./dir-deep/dir-sub-a", targetDir.toString());
 
         assertThat(args.name())
@@ -110,7 +110,7 @@ class NameAndDestinationTests {
             .isEqualTo(targetDir.resolve("dir-deep"));
     }
 
-    private BackupArguments runBackup(String... args) throws IOException {
+    private BackupArguments runBackup(String... args) {
         List<String> combinedArgs = new ArrayList<>();
         combinedArgs.addAll(List.of(
                 "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),

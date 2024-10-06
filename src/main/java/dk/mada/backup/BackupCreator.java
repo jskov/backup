@@ -175,8 +175,7 @@ public class BackupCreator {
         fileElements.add(dirInfo);
 
         Entry entry = backupsetTarBuilder.addStream(dirPackBuffer, dir.getFileName().toString());
-        FileInfo res = FileInfo.of(entry.archiveName(), entry.size(), entry.xxh3().value());
-        return res;
+        return FileInfo.of(entry.archiveName(), entry.size(), entry.xxh3().value());
     }
 
     private DirInfo newCreateArchiveFromDir(Path rootDir, Path dir) {

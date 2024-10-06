@@ -62,10 +62,9 @@ class SplitterTest {
     }
 
     private String reassembleText(List<Path> files) {
-        String assembledText = files.stream()
+        return files.stream()
                 .map(this::readFile)
                 .collect(Collectors.joining());
-        return assembledText;
     }
 
     private List<Path> getListOfGeneratedFiles() throws IOException {

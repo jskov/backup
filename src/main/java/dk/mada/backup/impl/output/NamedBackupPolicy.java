@@ -130,5 +130,6 @@ public class NamedBackupPolicy implements BackupPolicy {
 
     @Override
     public void completeBackup() {
+        // TODO: move hardlinks around
     }
 }

@@ -81,9 +81,11 @@ public class NumberedBackupPolicy implements BackupPolicy {
 
     @Override
     public void backupPrep() {
+        // Nothing to prep
     }
 
     @Override
     public void completeBackup() {
+        // Nothing to complete
     }
 }

@@ -133,9 +133,9 @@ class ReadPerformanceTest {
     private ByteBuffer byteBuf;
 
     @Test
-    void readPerformance() throws IOException, NoSuchAlgorithmException {
+    void readPerformance() throws NoSuchAlgorithmException {
         // CORRETTO
-//        com.amazon.corretto.crypto.provider.AmazonCorrettoCryptoProvider.install();
+        // this performed marginally better; com.amazon.corretto.crypto.provider.AmazonCorrettoCryptoProvider.install()
 
         digest = MessageDigest.getInstance("SHA-256");
         byteBuf = ByteBuffer.allocate(MAX_FILE_SIZE);
@@ -181,6 +181,8 @@ class ReadPerformanceTest {
     }
 
     long totalDigest = 0;
+
+    @SuppressWarnings("unused")
     private FileInfo hexChecksum(Path rootDir, Path file) {
         digest.reset();
         try (InputStream is = Files.newInputStream(file); BufferedInputStream bis = new BufferedInputStream(is)) {
@@ -261,6 +263,7 @@ class ReadPerformanceTest {
         }
     }
 
+    @SuppressWarnings("unused")
     private FileInfo hexChecksumByChannel(Path rootDir, Path file) {
         byteBuf.clear();
         digest.reset();
