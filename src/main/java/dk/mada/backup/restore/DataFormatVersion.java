@@ -14,7 +14,7 @@ public enum DataFormatVersion {
     /** The id used to match a version. */
     private final String id;
 
-    private DataFormatVersion(String id) {
+    DataFormatVersion(String id) {
         this.id = id;
     }
 

@@ -22,8 +22,10 @@ import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
  *
  * Allows making incremental backups easier.
  */
-public class NamedBackupPolicy implements BackupPolicy {
+public final class NamedBackupPolicy implements BackupPolicy {
     private static final Logger logger = LoggerFactory.getLogger(NamedBackupPolicy.class);
+    /** Time to wait for backup validation. */
+    private static final int BACKUP_VALIDATION_TIMEOUT_SECONDS = 30;
     /** The backup name. */
     private final String name;
     /** The target directory. */
@@ -35,6 +37,7 @@ public class NamedBackupPolicy implements BackupPolicy {
     /** The source root directory. */
     private final Path rootDir;
     /** Data from backup being updated. */
+    @SuppressWarnings("unused")
     @Nullable private RestoreScriptData oldBackupData;
 
     /**
@@ -107,7 +110,7 @@ public class NamedBackupPolicy implements BackupPolicy {
                         .directory(targetDir.toFile())
                         .redirectErrorStream(true)
                         .start();
-                p.waitFor(30, TimeUnit.SECONDS);
+                p.waitFor(BACKUP_VALIDATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 String output = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
                 if (p.exitValue() != 0) {
                     logger.warn("Validation failed:\n{}", output);

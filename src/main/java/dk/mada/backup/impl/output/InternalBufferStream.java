@@ -13,7 +13,7 @@ import dk.mada.backup.types.Xxh3;
  * Based on BYAOS for now, which limits it to 2GB size. Rewrite at some time to allow for long-based storage. See
  * https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/foreign/Arena.html
  */
-public class InternalBufferStream extends ByteArrayOutputStream {
+public final class InternalBufferStream extends ByteArrayOutputStream {
     /**
      * Create new instance.
      *
