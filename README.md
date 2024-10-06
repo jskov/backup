@@ -106,3 +106,29 @@ target1.crypt + target2.crypt...            (crypt(s))
 ```
 
 Directory tar-files are untar'd on restore, regular files cat'd in place on restore.
+
+### Named encrypted files
+
+For each root-folder file (regular or directory), an encrypted output file is created.
+
+This file contains a tar-file, containing either a regular file or a tar-file of the directory content.
+
+```text
+dir-a.crypt                                 (crypt)
+└── dir-a.tar                               (crypt-container)
+    └── dir-a.tar       [^untar]            (root element dir)
+        └── dir-a
+           ├── file-a1.bin
+           └── file-a2.bin
+dir-b.crypt                                 (crypt)
+└── dir-b.tar                               (crypt-container)
+    └── dir-b.tar       [^untar]            (root element dir)
+        └── dir-b
+           └── file-b1.bin
+file-root1.bin.crypt                        (crypt)
+└── file-root1.bin.tar                      (crypt-container)
+    └── file-root1.bin  [^cat]              (root element file)
+file-root2.txt.crypt                        (crypt)
+└── file-root2.txt.tar                      (crypt-container)
+    └── file-root2.txt  [^cat]              (root element file)
+```
