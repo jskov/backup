@@ -186,7 +186,14 @@ unpack() {
         echo "Unpacking full backup..."
     fi
 
-    if [[ $output_type == "NUMBERED" ]]; then
+    if [[ $output_type == "NAMED" ]]; then
+        # Unpack files individually
+        for l in "${crypts[@]}"; do
+            @@VARS_MD5@@
+            echo "See $l"
+            unpack_encrypted_files $onlyArchives "$target" "$file"
+        done
+    elif [[ $output_type == "NUMBERED" ]]; then
         # Unpack as one big file
         local crypt_files=
         for l in "${crypts[@]}"; do
@@ -296,7 +303,13 @@ if ! (/bin/grep -F -q "\$a" /tmp/valid-input.txt) ; then
 fi
 EOF
 
-    if [[ $output_type == "NUMBERED" ]]; then
+    if [[ $output_type == "NAMED" ]]; then
+        # Verify encrypted files individually
+        for l in "${crypts[@]}"; do
+            @@VARS_MD5@@
+            verify_crypted_files $file
+        done
+    elif [[ $output_type == "NUMBERED" ]]; then
         # Verify encrypted files as one big file
         local crypt_files=
         for l in "${crypts[@]}"; do
