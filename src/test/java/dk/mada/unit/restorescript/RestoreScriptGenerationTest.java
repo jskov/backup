@@ -26,8 +26,7 @@ class RestoreScriptGenerationTest {
     private @TempDir Path repositoryDir;
 
     /**
-     * The restore script contains sections for each backup element type. These
-     * should all be expanded during copy.
+     * The restore script contains sections for each backup element type. These should all be expanded during copy.
      */
     @Test
     void allThreeFileInfoBlocksAreFilled() throws IOException {
@@ -55,7 +54,7 @@ class RestoreScriptGenerationTest {
                 .contains("made with backup version 1.2.7",
                         "@version: 1.2.7",
                         "@data_format_version: 2" // this one matching the writer static
-                        );
+                );
     }
 
     @Test
@@ -72,7 +71,7 @@ class RestoreScriptGenerationTest {
         List<String> lines = Files.readAllLines(script);
         assertThat(lines)
                 .contains("Annie Lennox/Medusa/01. Annie Lennox - No More \\\"I Love You's\\\".opus",
-                          "På slaget 12/Hjem til Århus/12 Li\\`e Midt I Mellen.ogg");
+                        "På slaget 12/Hjem til Århus/12 Li\\`e Midt I Mellen.ogg");
     }
 
     @Disabled("FIXME: still not done")
@@ -87,9 +86,9 @@ class RestoreScriptGenerationTest {
         sut.write(script, Map.of(), List.of(), List.of(), files);
 
         assertThat(script)
-            .exists();
+                .exists();
         assertThat(repositoryDir.resolve(backupTargetPath))
-            .exists();
+                .exists();
     }
 
     List<BackupElement> toBackupElements(String... strings) {

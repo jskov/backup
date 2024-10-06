@@ -83,7 +83,7 @@ class BackupVerificationNumberedTest {
                         " - (12/12) file-tricky.tar... ok",
                         "Success!");
         assertThat(res.exitValue())
-            .isZero();
+                .isZero();
     }
 
     /**
@@ -97,7 +97,7 @@ class BackupVerificationNumberedTest {
         Result res = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
 
         System.out.println(res.output());
-        
+
         assertThat(res.output())
                 .contains(" - (1/12) dir-a/file-a1.bin... ok",
                         " - (2/12) dir-a/file-a2.bin... ok",
@@ -132,8 +132,7 @@ class BackupVerificationNumberedTest {
     }
 
     /**
-     * Tests that the a faulty file in the backup set can be found by the streaming
-     * verifier.
+     * Tests that the a faulty file in the backup set can be found by the streaming verifier.
      *
      * Done by breaking the checksum in the restore script before running verify.
      */
@@ -158,7 +157,7 @@ class BackupVerificationNumberedTest {
     @Test
     void restoreScriptIsWrittenToRepository() {
         assertThat(restoreScript)
-            .hasSameTextualContentAs(restoreScript.getParent().resolve("_repository/test.sh"));
+                .hasSameTextualContentAs(restoreScript.getParent().resolve("_repository/test.sh"));
     }
 
     private Result runRestoreCmd(String... args) {

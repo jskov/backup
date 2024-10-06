@@ -26,15 +26,12 @@ class SplitterTest {
     private @TempDir Path targetDir;
 
     /**
-     * Should fail if backup is going to overwrite an existing
-     * file.
+     * Should fail if backup is going to overwrite an existing file.
      */
     @Test
     void shouldAvoidOverwritingFiles() throws IOException {
         Files.createFile(targetDir.resolve("basename-01.tar"));
-        assertThatThrownBy(() ->
-            writeSplitterOutput("test", 2)
-        ).isInstanceOf(BackupTargetExistsException.class);
+        assertThatThrownBy(() -> writeSplitterOutput("test", 2)).isInstanceOf(BackupTargetExistsException.class);
     }
 
     @Test

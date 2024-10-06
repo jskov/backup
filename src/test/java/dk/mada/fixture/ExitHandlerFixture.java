@@ -27,7 +27,8 @@ public final class ExitHandlerFixture {
             @Override
             public void systemExitMessage(int exitCode, String message) {
                 if (exitCode != 0) {
-                    throw new TestFailedWithMessage("Backup/restore failed, would system exit: " + exitCode + " with message: " + message, message);
+                    throw new TestFailedWithMessage("Backup/restore failed, would system exit: " + exitCode + " with message: " + message,
+                            message);
                 }
             }
         };
@@ -39,6 +40,7 @@ public final class ExitHandlerFixture {
     public static class TestFailedWithException extends RuntimeException {
         @java.io.Serial
         static final long serialVersionUID = 42L;
+
         public TestFailedWithException(String message, Throwable cause) {
             super(message, cause);
         }

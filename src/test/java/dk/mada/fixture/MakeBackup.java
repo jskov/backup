@@ -13,11 +13,11 @@ import dk.mada.backup.cli.CliMain;
 import dk.mada.logging.LoggerConfig;
 
 /**
- * Makes a backup from canned input. Mostly used for testing the
- * resulting restore script.
+ * Makes a backup from canned input. Mostly used for testing the resulting restore script.
  */
 public final class MakeBackup {
-    private MakeBackup() { }
+    private MakeBackup() {
+    }
 
     /**
      * Create backup from test data.
@@ -39,15 +39,14 @@ public final class MakeBackup {
 
         List<String> args = new ArrayList<>();
         args.addAll(List.of(
-            "-n", "test",
-            "--repository", repositoryDir.toString(),
-            "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),
-            "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME));
+                "-n", "test",
+                "--repository", repositoryDir.toString(),
+                "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),
+                "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME));
 
         args.addAll(List.of(
                 CliMain.OPT_MAX_CONTAINER_SIZE, "20m",
-                CliMain.OPT_MAX_ROOT_DIR_SIZE, "10m"
-                ));
+                CliMain.OPT_MAX_ROOT_DIR_SIZE, "10m"));
 
         if (outputType == BackupOutputType.NAMED) {
             args.add("--by-name");

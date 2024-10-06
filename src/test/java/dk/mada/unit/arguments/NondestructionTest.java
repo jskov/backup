@@ -34,7 +34,7 @@ class NondestructionTest {
     private static Path srcDir;
     /** The backup API - SUT. */
     private BackupApi api;
-    /** Target directory for test.*/
+    /** Target directory for test. */
     private @TempDir Path targetDir;
 
     @BeforeAll
@@ -44,7 +44,7 @@ class NondestructionTest {
 
     @BeforeEach
     void createBackupApi() {
-        long megs4 = 4*1024*1024;
+        long megs4 = 4 * 1024 * 1024;
         Limits limits = new Limits(megs4, megs4, megs4);
         api = new BackupApi(TestCertificateInfo.TEST_GPG_INFO, BackupOutputType.NUMBERED, limits);
     }
