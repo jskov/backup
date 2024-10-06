@@ -35,6 +35,11 @@ class BackupChecksumTest {
         runTest(BackupOutputType.NUMBERED);
     }
 
+    @Test
+    void archiveChecksumsWithoutUserGroupNamed() throws IOException, ArchiveException {
+        runTest(BackupOutputType.NAMED);
+    }
+
     private void runTest(BackupOutputType outputType) throws IOException, ArchiveException { 
         Path restoreScript = MakeBackup.makeBackup(outputType, true);
         Result res = runRestoreCmd(restoreScript, "info", "-a");
