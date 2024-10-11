@@ -18,12 +18,13 @@ import dk.mada.backup.types.Xxh3;
  * Tests reading data back from an existing restore script.
  */
 class RestoreScriptReaderTest {
+    /** Standard header to use in tests *not* interested in these values. */
     private static final String HEADER = """
             # @version: 1.0.0
             # @data_format_version: 2
             # @gpg_key_id: 0123456789012345678901234567890123456789
             """;
-
+    /** The subject under test. */
     private RestoreScriptReader sut = new RestoreScriptReader();
 
     @Test
@@ -69,7 +70,7 @@ class RestoreScriptReaderTest {
                         files=(
                         "    1021388,73ac231869538a9d,A-D/Abrahams, Tom/Descent - Tom Abrahams.epub"
                         "     812232,7a2ab3217b3baa58,A-D/Abrahams, Tom/Spaceman - Tom Abrahams.epub"
-                        "    2155175,3a23e1befbac7319,A-D/Anderson, Kevin J./2113 - Stories Inspired by the Music of Rush - edited by Kevin J. Anderson and John McFetridge.epub"
+                        "    2155175,3a23e1befbac7319,A-D/Anderson, Kevin J./2113 - Stories Inspired by...epub"
                         "     425116,228e8f28402bbc54,A-D/Anderson, Kevin J./Climbing Olympus - Kevin J. Anderson.epub"
                         "        100,668e8f28402bbc54,info.txt"
                         )
@@ -93,7 +94,7 @@ class RestoreScriptReaderTest {
                 .contains(
                         new DataFileV2(1021388L, Xxh3.ofHex("73ac231869538a9d"), "A-D/Abrahams, Tom/Descent - Tom Abrahams.epub"),
                         new DataFileV2(2155175L, Xxh3.ofHex("3a23e1befbac7319"),
-                                "A-D/Anderson, Kevin J./2113 - Stories Inspired by the Music of Rush - edited by Kevin J. Anderson and John McFetridge.epub"),
+                                "A-D/Anderson, Kevin J./2113 - Stories Inspired by...epub"),
                         new DataFileV2(100L, Xxh3.ofHex("668e8f28402bbc54"), "info.txt"));
     }
 }

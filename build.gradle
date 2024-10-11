@@ -4,7 +4,7 @@ plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
 
-    id 'dk.mada.style' version '1.0.2'
+    id 'dk.mada.style' version '1.0.3'
     id 'dk.mada.reproducible' version '1.0.2'
 }
 

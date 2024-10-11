@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -34,7 +35,8 @@ class NameAndDestinationTests {
 
     @BeforeAll
     static void prepSource() throws IOException, ArchiveException {
-        srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree").toAbsolutePath();
+        srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree").toAbsolutePath(); // line length
+                                                                                             // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
         envAtRootOfSrc = new EnvironmentInputs() {
             @Override
@@ -125,6 +127,6 @@ class NameAndDestinationTests {
                 .withFailMessage("Failed processing arguments?!")
                 .isNotNull();
 
-        return returned;
+        return Objects.requireNonNull(returned);
     }
 }

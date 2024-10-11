@@ -41,7 +41,7 @@ public final class ExitHandlerFixture {
         @java.io.Serial
         static final long serialVersionUID = 42L;
 
-        public TestFailedWithException(String message, Throwable cause) {
+        public TestFailedWithException(String message, @Nullable Throwable cause) {
             super(message, cause);
         }
     }
@@ -59,6 +59,7 @@ public final class ExitHandlerFixture {
             this.exitMessage = exitMessage;
         }
 
+        /** {@return the exit message} */
         public String exitMessage() {
             return exitMessage;
         }

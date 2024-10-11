@@ -25,6 +25,8 @@ import dk.mada.fixture.TestDataPrepper;
  * It should be possible to size limit the output files.
  */
 class SizeLimitTest {
+    /** The max allowed backup and container size. */
+    private static final long MAX_BACKUP_SIZE = 4_000_000;
     /** Encryption file size limit. */
     private static final long MAX_ENCRYPT_FILE_SIZE = 8000L;
     /** Temporary output directory. */
@@ -41,8 +43,7 @@ class SizeLimitTest {
 
     @BeforeEach
     void createBackupApi() {
-        long megs4 = 4 * 1024 * 1024;
-        Limits limits = new Limits(megs4, megs4, MAX_ENCRYPT_FILE_SIZE);
+        Limits limits = new Limits(MAX_BACKUP_SIZE, MAX_BACKUP_SIZE, MAX_ENCRYPT_FILE_SIZE);
         api = new BackupApi(TestCertificateInfo.TEST_GPG_INFO, BackupOutputType.NUMBERED, limits);
     }
 

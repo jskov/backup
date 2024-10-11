@@ -88,22 +88,32 @@ import com.dynatrace.hash4j.hashing.Hashing;
  */
 @Disabled("Only used for manual exploration")
 class ReadPerformanceTest {
+    /** Number of times to run the scanner. */
+    private static final int TEST_REPEATS = 3;
     /** File scanning buffer size. */
     private static final int FILE_SCAN_BUFFER_SIZE = 2 * 8192;
+    /** Max file size to handle loading. */
     private static final int MAX_FILE_SIZE = 20 * 1024 * 1024;
+    /** Buffer for scanning. */
     private final byte[] buffer = new byte[FILE_SCAN_BUFFER_SIZE];
-    private MessageDigest digest;
+    /** The bytebuffer holding the read file. */
+    private final ByteBuffer byteBuf;
+    /** Hex formatter. */
     private final HexFormat formatter = HexFormat.of();
-    private ByteBuffer byteBuf;
+    /** Digester. */
+    private final MessageDigest digest;
+    /** Time used to digest files. */
+    long totalTimeSpentDigestingMs = 0;
 
-    @Test
-    void readPerformance() throws NoSuchAlgorithmException {
+    ReadPerformanceTest() throws NoSuchAlgorithmException {
         // CORRETTO
         // this performed marginally better; com.amazon.corretto.crypto.provider.AmazonCorrettoCryptoProvider.install()
-
         digest = MessageDigest.getInstance("SHA-256");
         byteBuf = ByteBuffer.allocate(MAX_FILE_SIZE);
+    }
 
+    @Test
+    void readPerformance() {
         Path dir = Paths.get("/opt/music/0-A/ABBA/");
 
         Map<String, FileChecksummer> impls = Map.of(
@@ -121,12 +131,12 @@ class ReadPerformanceTest {
 
     private void testDir(String name, Path dir, FileChecksummer checksummer) {
         System.out.println("Using " + name);
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < TEST_REPEATS; i++) {
             long start = System.currentTimeMillis();
             scanDir(dir, checksummer);
             long time = System.currentTimeMillis() - start;
-            System.out.println(" : " + time + " (" + totalDigest + " digesting)");
-            totalDigest = 0;
+            System.out.println(" : " + time + " (" + totalTimeSpentDigestingMs + " digesting)");
+            totalTimeSpentDigestingMs = 0;
         }
     }
 
@@ -142,8 +152,6 @@ class ReadPerformanceTest {
         }
     }
 
-    long totalDigest = 0;
-
     @SuppressWarnings("unused")
     private FileInfo hexChecksum(Path rootDir, Path file) {
         digest.reset();
@@ -153,7 +161,7 @@ class ReadPerformanceTest {
                 long s = System.currentTimeMillis();
                 digest.update(buffer, 0, read);
                 long total = System.currentTimeMillis() - s;
-                totalDigest += total;
+                totalTimeSpentDigestingMs += total;
             }
 
             return new FileInfo(rootDir.relativize(file), formatter.formatHex(digest.digest()));
@@ -172,7 +180,7 @@ class ReadPerformanceTest {
             long s = System.currentTimeMillis();
             digest.update(mbb);
             long total = System.currentTimeMillis() - s;
-            totalDigest += total;
+            totalTimeSpentDigestingMs += total;
 
             return new FileInfo(rootDir.relativize(file), formatter.formatHex(digest.digest()));
         } catch (IOException e) {
@@ -198,7 +206,7 @@ class ReadPerformanceTest {
                 hashStream.putBytes(buffer, 0, copy);
             }
             long total = System.currentTimeMillis() - s;
-            totalDigest += total;
+            totalTimeSpentDigestingMs += total;
 
             return new FileInfo(rootDir.relativize(file), formatter.toHexDigits(hashStream.getAsLong()));
         } catch (IOException e) {
@@ -214,7 +222,7 @@ class ReadPerformanceTest {
                 long s = System.currentTimeMillis();
                 hashStream.putBytes(buffer, 0, read);
                 long total = System.currentTimeMillis() - s;
-                totalDigest += total;
+                totalTimeSpentDigestingMs += total;
             }
 
             return new FileInfo(rootDir.relativize(file), formatter.toHexDigits(hashStream.getAsLong()));
@@ -236,7 +244,7 @@ class ReadPerformanceTest {
             long s = System.currentTimeMillis();
             digest.update(byteBuf);
             long total = System.currentTimeMillis() - s;
-            totalDigest += total;
+            totalTimeSpentDigestingMs += total;
 
             return new FileInfo(rootDir.relativize(file), formatter.formatHex(digest.digest()));
         } catch (IOException e) {

@@ -45,6 +45,11 @@ public class RestoreScriptReader {
     /** Unknown GPG key ID */
     private static final GpgId UNKNOWN_GPG_ID = new GpgId("0000000000000000000000000000000000000000");
 
+    /** Creates new instance. */
+    public RestoreScriptReader() {
+        // silence sonarcloud
+    }
+
     /**
      * Data extracted from an existing restore script.
      *
