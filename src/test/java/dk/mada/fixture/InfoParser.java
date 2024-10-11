@@ -18,7 +18,8 @@ public class InfoParser {
      * @param checksum the checksum of the file
      * @param size     the size of the file
      **/
-    public record Info(String filename, Xxh3 checksum, long size) { }
+    public record Info(String filename, Xxh3 checksum, long size) {
+    }
 
     /**
      * Parses 'info' command output into structured data.

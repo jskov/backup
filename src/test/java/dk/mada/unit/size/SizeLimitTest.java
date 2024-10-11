@@ -25,6 +25,8 @@ import dk.mada.fixture.TestDataPrepper;
  * It should be possible to size limit the output files.
  */
 class SizeLimitTest {
+    /** The max allowed backup and container size. */
+    private static final long MAX_BACKUP_SIZE = 4_000_000;
     /** Encryption file size limit. */
     private static final long MAX_ENCRYPT_FILE_SIZE = 8000L;
     /** Temporary output directory. */
@@ -41,8 +43,7 @@ class SizeLimitTest {
 
     @BeforeEach
     void createBackupApi() {
-        long megs4 = 4*1024*1024;
-        Limits limits = new Limits(megs4, megs4, MAX_ENCRYPT_FILE_SIZE);
+        Limits limits = new Limits(MAX_BACKUP_SIZE, MAX_BACKUP_SIZE, MAX_ENCRYPT_FILE_SIZE);
         api = new BackupApi(TestCertificateInfo.TEST_GPG_INFO, BackupOutputType.NUMBERED, limits);
     }
 
@@ -50,9 +51,10 @@ class SizeLimitTest {
      * Information about a backup files.
      *
      * @param filename the file name
-     * @param size the file size
+     * @param size     the file size
      */
-    private record CryptFile(String filename, long size) { }
+    private record CryptFile(String filename, long size) {
+    }
 
     @Test
     void shouldSplitBackupOverSeveralFiles() throws IOException {
@@ -61,14 +63,14 @@ class SizeLimitTest {
         List<CryptFile> crypted = getCryptFileInfos();
 
         assertThat(crypted)
-            .map(CryptFile::filename)
-            .containsExactlyInAnyOrder("test.sh", "test-01.crypt", "test-02.crypt", "test-03.crypt", "test-04.crypt");
+                .map(CryptFile::filename)
+                .containsExactlyInAnyOrder("test.sh", "test-01.crypt", "test-02.crypt", "test-03.crypt", "test-04.crypt");
 
         // the parts should split at the requested size
         assertThat(crypted)
-            .filteredOn(cf -> cf.filename().endsWith(".crypt"))
-            .map(CryptFile::size)
-            .contains(MAX_ENCRYPT_FILE_SIZE);
+                .filteredOn(cf -> cf.filename().endsWith(".crypt"))
+                .map(CryptFile::size)
+                .contains(MAX_ENCRYPT_FILE_SIZE);
     }
 
     private List<CryptFile> getCryptFileInfos() throws IOException {

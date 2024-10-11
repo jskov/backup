@@ -20,7 +20,20 @@ import dk.mada.backup.types.Xxh3;
  */
 public class RestoreScriptReader {
     private static final Logger logger = LoggerFactory.getLogger(RestoreScriptReader.class);
-
+    /** Data line crypt name index start. */
+    private static final int IX_CRYPT_NAME_START = 63;
+    /** Data line (archive+file) name index start. */
+    private static final int IX_NAME_START = 30;
+    /** Data line XXH3 index end. */
+    private static final int IX_XXH3_END = 29;
+    /** Data line length index start. */
+    private static final int IX_XXH3_START = 13;
+    /** Data line length index end. */
+    private static final int IX_LENGTH_END = 12;
+    /** Data line MD5 index end. */
+    private static final int IX_MD5_END = 62;
+    /** Data line MD5 index start. */
+    private static final int IX_MD5_START = 30;
     /** Marker prefix for backup script version. */
     private static final String BACKUP_VERSION_PREFIX = "# @version: ";
     /** Marker prefix for data format version. */
@@ -31,6 +44,11 @@ public class RestoreScriptReader {
     private static final String UNKNOWN_BACKUP_VERSION = "0";
     /** Unknown GPG key ID */
     private static final GpgId UNKNOWN_GPG_ID = new GpgId("0000000000000000000000000000000000000000");
+
+    /** Creates new instance. */
+    public RestoreScriptReader() {
+        // silence sonarcloud
+    }
 
     /**
      * Data extracted from an existing restore script.
@@ -148,7 +166,7 @@ public class RestoreScriptReader {
             if (l.startsWith("files=(")) {
                 collectingFiles = true;
             }
-            if (l.length() > 20) {
+            if (l.length() > IX_NAME_START) {
                 if (collectingCrypts) {
                     cryptLines.add(l);
                 }
@@ -198,10 +216,10 @@ public class RestoreScriptReader {
      */
     private DataCryptV2 deserializeCryptV2(String l) {
         logger.trace("See '{}'", l);
-        long length = Long.parseLong(l.substring(1, 12).trim());
-        Xxh3 xxh3 = Xxh3.ofHex(l.substring(13, 29));
-        Md5 md5 = Md5.ofHex(l.substring(30, 62));
-        String name = l.substring(63, l.length() - 1);
+        long length = Long.parseLong(l.substring(1, IX_LENGTH_END).trim());
+        Xxh3 xxh3 = Xxh3.ofHex(l.substring(IX_XXH3_START, IX_XXH3_END));
+        Md5 md5 = Md5.ofHex(l.substring(IX_MD5_START, IX_MD5_END));
+        String name = l.substring(IX_CRYPT_NAME_START, l.length() - 1);
         return new DataCryptV2(length, xxh3, md5, name);
     }
 
@@ -212,9 +230,9 @@ public class RestoreScriptReader {
      * @return the decrypted data.
      */
     private DataArchiveV2 deserializeArchiveV2(String l) {
-        long length = Long.parseLong(l.substring(1, 12).trim());
-        Xxh3 xxh3 = Xxh3.ofHex(l.substring(13, 29));
-        String name = l.substring(30, l.length() - 1);
+        long length = Long.parseLong(l.substring(1, IX_LENGTH_END).trim());
+        Xxh3 xxh3 = Xxh3.ofHex(l.substring(IX_XXH3_START, IX_XXH3_END));
+        String name = l.substring(IX_NAME_START, l.length() - 1);
         boolean isDirectory = TarContainerBuilder.Entry.isWrappedFolderName(name);
         name = TarContainerBuilder.Entry.unwrapFolderName(name);
         return new DataArchiveV2(length, xxh3, name, isDirectory);
@@ -227,9 +245,9 @@ public class RestoreScriptReader {
      * @return the decrypted data.
      */
     private DataFileV2 deserializeFileV2(String l) {
-        long length = Long.parseLong(l.substring(1, 12).trim());
-        Xxh3 xxh3 = Xxh3.ofHex(l.substring(13, 29));
-        String name = l.substring(30, l.length() - 1);
+        long length = Long.parseLong(l.substring(1, IX_LENGTH_END).trim());
+        Xxh3 xxh3 = Xxh3.ofHex(l.substring(IX_XXH3_START, IX_XXH3_END));
+        String name = l.substring(IX_NAME_START, l.length() - 1);
         return new DataFileV2(length, xxh3, name);
     }
 }

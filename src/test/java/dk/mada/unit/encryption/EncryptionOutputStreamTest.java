@@ -30,8 +30,8 @@ class EncryptionOutputStreamTest {
     private @TempDir Path dir;
 
     /**
-     * Tests that encrypted works by encrypting an output stream and verifying that
-     * decrypting again results in a file like the input.
+     * Tests that encrypted works by encrypting an output stream and verifying that decrypting again results in a file like
+     * the input.
      */
     @Test
     void defaultEncryptionWorks() throws IOException, InterruptedException {

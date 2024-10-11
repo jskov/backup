@@ -57,8 +57,8 @@ class BackupInfoNumberedTest {
     /**
      * Tests that the backup information for crypted archives can be printed.
      *
-     * Size is checked to be within a range since crypted data on Ubuntu (GitHub
-     * actions) seems to differ from data crypted on Fedora (my dev box).
+     * Size is checked to be within a range since crypted data on Ubuntu (GitHub actions) seems to differ from data crypted
+     * on Fedora (my dev box).
      */
     @Test
     void backupInfoCrypted() {

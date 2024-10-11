@@ -36,6 +36,11 @@ public final class RestoreScriptWriter {
                     local xxh3=${l:12:16}
                     local file=${l:29}""");
 
+    /** Creates new instance. */
+    public RestoreScriptWriter() {
+        // silence sonarqube
+    }
+
     /**
      * Constructs and writes restore script.
      *

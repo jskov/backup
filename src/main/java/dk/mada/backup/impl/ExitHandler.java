@@ -10,6 +10,11 @@ import dk.mada.backup.cli.Console;
  * Can be replaced by mock for testing.
  */
 public class ExitHandler {
+    /** Creates new instance. */
+    public ExitHandler() {
+        // silence sonarcloud
+    }
+
     /**
      * Handle system exit.
      *

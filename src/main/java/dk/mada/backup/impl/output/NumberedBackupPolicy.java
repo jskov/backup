@@ -10,7 +10,7 @@ import dk.mada.backup.gpg.GpgEncrypterException;
 /**
  * Policy for a split (and numbered) output.
  */
-public class NumberedBackupPolicy implements BackupPolicy {
+public final class NumberedBackupPolicy implements BackupPolicy {
     /** The backup name. */
     private final String name;
     /** The target directory. */
@@ -81,9 +81,11 @@ public class NumberedBackupPolicy implements BackupPolicy {
 
     @Override
     public void backupPrep() {
+        // Nothing to prep
     }
 
     @Override
     public void completeBackup() {
+        // Nothing to complete
     }
 }

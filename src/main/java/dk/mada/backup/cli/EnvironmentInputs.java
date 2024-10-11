@@ -9,6 +9,10 @@ import java.nio.file.Paths;
  * Besides making the external interaction more apparent, this class allows overrides from unit tests.
  */
 public class EnvironmentInputs {
+    /** Creates new instance. */
+    public EnvironmentInputs() {
+        // silence sonarcloud
+    }
 
     /** {@return the environment value for BACKUP_RECIPIENT} */
     public String getBackupRecipient() {

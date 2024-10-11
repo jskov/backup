@@ -15,6 +15,11 @@ public final class HumanSizeInputConverter implements ITypeConverter<Long> {
     /** Accepted input patterns. */
     private static final Pattern VALID_INPUT_PATTERN = Pattern.compile("(\\d+)([kmgKMG]?)");
 
+    /** Creates new instance. */
+    public HumanSizeInputConverter() {
+        // silence sonarcloud
+    }
+
     @Override
     public Long convert(String inValue) {
         String value = inValue.replace("_", "");

@@ -8,7 +8,10 @@ import dk.mada.backup.restore.RestoreExecutor.Result;
 /**
  * Runs a backup's restore script.
  */
-public class MakeRestore {
+public final class MakeRestore {
+    private MakeRestore() {
+    }
+
     /**
      * Run the restore script.
      *

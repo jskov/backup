@@ -25,7 +25,7 @@ import dk.mada.backup.types.Xxh3;
 /**
  * Tar container builder.
  */
-public class TarContainerBuilder implements AutoCloseable {
+public final class TarContainerBuilder implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(TarContainerBuilder.class);
     /** File reading buffer size. */
     private static final int FILE_READ_BUFFER_SIZE = 8192;

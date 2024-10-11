@@ -15,16 +15,13 @@ public record Md5(String value) {
     private static final Pattern HASH_STRING_PATTERN = Pattern.compile("[0-9a-f]{32}");
 
     /**
-     * Constructs a new instance from a hex string, verifying that the format is valid.
-     *
-     * @param value the MD5 hash in hex form
+     * Validate the format.
      */
-    public Md5(String value) {
+    public Md5 {
         String lc = Objects.requireNonNull(value).toLowerCase(Locale.ROOT);
         if (!HASH_STRING_PATTERN.matcher(lc).matches()) {
             throw new IllegalArgumentException("Invalid MD5 hash: " + value);
         }
-        this.value = value;
     }
 
     /**

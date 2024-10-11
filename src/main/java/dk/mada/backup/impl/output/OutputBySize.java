@@ -16,7 +16,7 @@ import dk.mada.backup.splitter.SplitterOutputStream;
  * All input is streamed into one big tar archive. The tar stream is encrypted. The encrypted stream is then split into
  * files.
  */
-public class OutputBySize implements BackupStreamWriter {
+public final class OutputBySize implements BackupStreamWriter {
     /** The tar container builder. */
     private TarContainerBuilder tarBuilder;
     /** The active GPG output stream. */

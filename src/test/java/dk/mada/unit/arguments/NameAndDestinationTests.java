@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -29,12 +30,13 @@ class NameAndDestinationTests {
     private static Path srcDir;
     /** Environment inputs with CWD at root of srcDir. */
     private static EnvironmentInputs envAtRootOfSrc;
-    /** Target directory for test.*/
+    /** Target directory for test. */
     private @TempDir Path targetDir;
 
     @BeforeAll
     static void prepSource() throws IOException, ArchiveException {
-        srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree").toAbsolutePath();
+        srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree").toAbsolutePath(); // line length
+                                                                                             // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
         envAtRootOfSrc = new EnvironmentInputs() {
             @Override
@@ -48,69 +50,64 @@ class NameAndDestinationTests {
      * Source and target paths are relative to CWD.
      */
     @Test
-    void sourceAndTargetDirsAreRelativeToCurrentDir() throws IOException {
+    void sourceAndTargetDirsAreRelativeToCurrentDir() {
         BackupArguments args = runBackup("dir-a", "output-test");
 
         assertThat(args.sourceDir())
-            .isEqualTo(srcDir.resolve("dir-a"));
+                .isEqualTo(srcDir.resolve("dir-a"));
         assertThat(args.targetDir())
-            .isEqualTo(srcDir.resolve("output-test"));
+                .isEqualTo(srcDir.resolve("output-test"));
     }
 
     /**
-     * Unnamed source input gets translated to actual directory
-     * name.
+     * Unnamed source input gets translated to actual directory name.
      */
     @Test
-    void translatesDotSrcDir() throws IOException {
+    void translatesDotSrcDir() {
         BackupArguments args = runBackup(".", targetDir.toString());
 
         assertThat(args.name())
-            .isEqualTo("simple-input-tree");
+                .isEqualTo("simple-input-tree");
         assertThat(args.sourceDir())
-            .isEqualTo(srcDir.toAbsolutePath());
+                .isEqualTo(srcDir.toAbsolutePath());
         assertThat(args.targetDir())
-            .isEqualTo(targetDir);
+                .isEqualTo(targetDir);
     }
 
     /**
-     * If absolute paths given as source/target there will
-     * be no change to them as part of parsing.
+     * If absolute paths given as source/target there will be no change to them as part of parsing.
      *
      * @see sourceAndTargetMayBeRelative
      */
     @Test
-    void absolutePathsOverrideChanges() throws IOException {
+    void absolutePathsOverrideChanges() {
         BackupArguments args = runBackup(srcDir.toString(), targetDir.toString());
 
         assertThat(args.name())
-            .isEqualTo("simple-input-tree");
+                .isEqualTo("simple-input-tree");
         assertThat(args.sourceDir())
-            .isEqualTo(srcDir);
+                .isEqualTo(srcDir);
         assertThat(args.targetDir())
-            .isEqualTo(targetDir);
+                .isEqualTo(targetDir);
     }
 
     /**
-     * If source is relative the (source) parent-dir path will
-     * be used to extend the target dir and also for the
-     * name.
+     * If source is relative the (source) parent-dir path will be used to extend the target dir and also for the name.
      *
-     * For example input 'music/A dst' should result
-     * in backup name "music-A" (not "A") and target folder
-     * "dst/music" (not "dst")
+     * For example input 'music/A dst' should result in backup name "music-A" (not "A") and target folder "dst/music" (not
+     * "dst")
      */
     @Test
-    void sourceAndTargetMayBeRelative() throws IOException {
+    void sourceAndTargetMayBeRelative() {
         BackupArguments args = runBackup("./dir-deep/dir-sub-a", targetDir.toString());
 
         assertThat(args.name())
-            .isEqualTo("dir-deep-dir-sub-a");
+                .isEqualTo("dir-deep-dir-sub-a");
         assertThat(args.targetDir())
-            .isEqualTo(targetDir.resolve("dir-deep"));
+                .isEqualTo(targetDir.resolve("dir-deep"));
     }
 
-    private BackupArguments runBackup(String... args) throws IOException {
+    private BackupArguments runBackup(String... args) {
         List<String> combinedArgs = new ArrayList<>();
         combinedArgs.addAll(List.of(
                 "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),
@@ -127,9 +124,9 @@ class NameAndDestinationTests {
 
         BackupArguments returned = ref.get();
         assertThat(returned)
-            .withFailMessage("Failed processing arguments?!")
-            .isNotNull();
+                .withFailMessage("Failed processing arguments?!")
+                .isNotNull();
 
-        return returned;
+        return Objects.requireNonNull(returned);
     }
 }

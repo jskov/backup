@@ -11,7 +11,8 @@ import java.nio.file.attribute.BasicFileAttributes;
  * Deletes a directory.
  */
 public final class DirectoryDeleter {
-    private DirectoryDeleter() { }
+    private DirectoryDeleter() {
+    }
 
     /**
      * Deletes directory.

@@ -30,11 +30,13 @@ import dk.mada.fixture.TestDataPrepper;
  */
 class NondestructionTest {
     private static final Logger logger = LoggerFactory.getLogger(NondestructionTest.class);
+    /** The max allowed backup and container size. */
+    private static final long MAX_BACKUP_SIZE = 4_000_000;
     /** Directory to backup of. */
     private static Path srcDir;
     /** The backup API - SUT. */
     private BackupApi api;
-    /** Target directory for test.*/
+    /** Target directory for test. */
     private @TempDir Path targetDir;
 
     @BeforeAll
@@ -44,8 +46,7 @@ class NondestructionTest {
 
     @BeforeEach
     void createBackupApi() {
-        long megs4 = 4*1024*1024;
-        Limits limits = new Limits(megs4, megs4, megs4);
+        Limits limits = new Limits(MAX_BACKUP_SIZE, MAX_BACKUP_SIZE, MAX_BACKUP_SIZE);
         api = new BackupApi(TestCertificateInfo.TEST_GPG_INFO, BackupOutputType.NUMBERED, limits);
     }
 
