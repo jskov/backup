@@ -49,7 +49,7 @@ public class RestoreScriptReader {
 
     /** Creates new instance. */
     public RestoreScriptReader() {
-        // silence sonarcloud
+        // empty
     }
 
     /**

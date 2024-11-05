@@ -94,7 +94,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
 
     @Override
     public BackupStreamWriter writer() throws GpgEncrypterException {
-        throw new UnsupportedOperationException("Implementation not ready yet");
+        return new OutputByName(oldBackupData, targetDir, name, gpgInfo, restoreScript());
     }
 
     @Override
