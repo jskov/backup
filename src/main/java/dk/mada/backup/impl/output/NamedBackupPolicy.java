@@ -159,7 +159,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
     }
 
     private void createBackupClone() {
-        
+        // TODO: create clone folder, check for marker|delete, clone, set marker
     }
     
     @Override
