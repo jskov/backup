@@ -10,6 +10,7 @@ import org.apache.commons.compress.archivers.ArchiveException;
 
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.cli.CliMain;
+import dk.mada.backup.impl.output.DirectoryDeleter;
 import dk.mada.logging.LoggerConfig;
 
 /**

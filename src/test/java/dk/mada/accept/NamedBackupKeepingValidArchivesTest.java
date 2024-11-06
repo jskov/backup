@@ -14,8 +14,8 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import dk.mada.backup.api.BackupOutputType;
+import dk.mada.backup.impl.output.DirectoryDeleter;
 import dk.mada.backup.restore.RestoreExecutor.Result;
-import dk.mada.fixture.DirectoryDeleter;
 import dk.mada.fixture.ExitHandlerFixture.TestFailedWithException;
 import dk.mada.fixture.MakeBackup;
 import dk.mada.fixture.MakeRestore;
@@ -44,6 +44,16 @@ class NamedBackupKeepingValidArchivesTest {
             .withMessage("Validation of old backup failed");
     }
     
+    /**
+     * Tests that a new updated backup set will contain a clone of the old
+     * state in the .prev-sets/ directory.
+     */
+//    @Test
+    // TODO: check that the clone contains original files
+    void backupCloneIsCreated() throws IOException, ArchiveException {
+        // empty
+    }
+
     /**
      * Tests that an existing backup's encrypted files are reused when possible.
      */

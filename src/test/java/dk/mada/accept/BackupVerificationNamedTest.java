@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import dk.mada.backup.api.BackupOutputType;
+import dk.mada.backup.impl.output.DirectoryDeleter;
 import dk.mada.backup.restore.RestoreExecutor.Result;
-import dk.mada.fixture.DirectoryDeleter;
 import dk.mada.fixture.MakeBackup;
 import dk.mada.fixture.MakeRestore;
 
