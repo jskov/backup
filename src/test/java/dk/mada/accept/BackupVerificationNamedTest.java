@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -149,7 +150,7 @@ class BackupVerificationNamedTest {
     @Test
     void brokenBackupFilesCanBeFoundByStreamVerifier() throws IOException {
         // replace last 4 chars of checksum with "dead"
-        Path badRestoreScript = restoreScript.getParent().resolve("bad.sh");
+        Path badRestoreScript = parentDir(restoreScript).resolve("bad.sh");
         String withBrokenChecksum = Files.readAllLines(restoreScript).stream()
                 .map(s -> s.replaceAll("....,dir-b/file-b1.bin", "dead,dir-b/file-b1.bin"))
                 .collect(Collectors.joining("\n"));
@@ -167,10 +168,14 @@ class BackupVerificationNamedTest {
     @Test
     void restoreScriptIsWrittenToRepository() {
         assertThat(restoreScript)
-            .hasSameTextualContentAs(restoreScript.getParent().resolve("_repository/test.sh"));
+            .hasSameTextualContentAs(parentDir(restoreScript).resolve("_repository/test.sh"));
     }
 
     private Result runRestoreCmd(String... args) {
         return MakeRestore.runRestoreCmd(restoreScript, args);
+    }
+
+    private Path parentDir(Path restoreScript) {
+        return Objects.requireNonNull(restoreScript.getParent(), "No parent for restore script?!");
     }
 }

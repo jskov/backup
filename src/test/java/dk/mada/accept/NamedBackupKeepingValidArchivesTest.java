@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.Tag;
@@ -34,7 +35,7 @@ class NamedBackupKeepingValidArchivesTest {
     void cannotUpdateBrokenBackup() throws IOException, ArchiveException {
         Path restoreScriptFile = MakeBackup.makeBackup(BackupOutputType.NAMED, true);
 
-        Path aCryptFile = restoreScriptFile.getParent().resolve("dir-tricky.tar.crypt");
+        Path aCryptFile = parentDir(restoreScriptFile).resolve("dir-tricky.tar.crypt");
         Files.writeString(aCryptFile, "invalid data");
         
         assertThatExceptionOfType(TestFailedWithException.class)
@@ -61,7 +62,7 @@ class NamedBackupKeepingValidArchivesTest {
 
         System.out.println("\n\n===== Making update backup ====\n\n");
 
-        Path aCryptFile = restoreScriptFile.getParent().resolve("dir-tricky.tar.crypt");
+        Path aCryptFile = parentDir(restoreScriptFile).resolve("dir-tricky.tar.crypt");
         Files.writeString(aCryptFile, "invalid data");
         
         Path updatedRestoreScriptFile = MakeBackup.makeBackup(BackupOutputType.NAMED, false);
@@ -77,4 +78,7 @@ class NamedBackupKeepingValidArchivesTest {
     // TODO: with added folder/file
     // TODO: with removed folder/file
 
+    private Path parentDir(Path restoreScript) {
+        return Objects.requireNonNull(restoreScript.getParent(), "No parent for restore script?!");
+    }
 }

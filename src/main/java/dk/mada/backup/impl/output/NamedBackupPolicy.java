@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.Nullable;
@@ -94,7 +95,8 @@ public final class NamedBackupPolicy implements BackupPolicy {
 
     @Override
     public BackupStreamWriter writer() throws GpgEncrypterException {
-        return new OutputByName(oldBackupData, targetDir, name, gpgInfo, restoreScript());
+        RestoreScriptData oldData = Objects.requireNonNull(oldBackupData);
+        return new OutputByName(oldData, targetDir, name, gpgInfo, restoreScript());
     }
 
     @Override
