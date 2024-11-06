@@ -23,6 +23,7 @@ class RestoreScriptReaderTest {
             # @version: 1.0.0
             # @data_format_version: 2
             # @gpg_key_id: 0123456789012345678901234567890123456789
+            # @time: 2024.12.31-17.01
             """;
     /** The subject under test. */
     private RestoreScriptReader sut = new RestoreScriptReader();
@@ -43,10 +44,13 @@ class RestoreScriptReaderTest {
                 # @version: 1.2.3
                 # @data_format_version: 1
                 # @gpg_key_id: 7012345678901234567890123456789012345678
+                # @time: 2024.10.31-09.02
                 """);
 
         assertThat(data.dataFormatVersion())
                 .isEqualTo(DataFormatVersion.VERSION_1);
+        assertThat(data.time())
+                .isEqualTo("2024.10.31-09.02");
         assertThat(data.version())
                 .isEqualTo("1.2.3");
         assertThat(data.gpgKeyId())

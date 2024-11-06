@@ -40,6 +40,8 @@ public class RestoreScriptReader {
     private static final String DATA_FORMAT_VERSION_PREFIX = "# @data_format_version: ";
     /** Marker prefix for backup key Id used for encryption. */
     private static final String GPG_KEY_ID_PREFIX = "# @gpg_key_id: ";
+    /** Marker prefix for backup time string. */
+    private static final String TIME_ID_PREFIX = "# @time: ";
     /** Unknown backup version. */
     private static final String UNKNOWN_BACKUP_VERSION = "0";
     /** Unknown GPG key ID */
@@ -54,18 +56,21 @@ public class RestoreScriptReader {
      * Data extracted from an existing restore script.
      *
      * @param version           the backup application version
+     * @param time              a string describing the backup creation time
      * @param dataFormatVersion the script data format version
      * @param gpgKeyId          the GPG key id used for encryption
      * @param cryptsV2          a list of V2 crypt entries
      * @param archivesV2        a list of V2 archive entries
      * @param filesV2           a list of V2 file entries
      */
-    public record RestoreScriptData(String version, DataFormatVersion dataFormatVersion, GpgId gpgKeyId, List<DataCryptV2> cryptsV2,
+    public record RestoreScriptData(String version, String time, DataFormatVersion dataFormatVersion, GpgId gpgKeyId,
+            List<DataCryptV2> cryptsV2,
             List<DataArchiveV2> archivesV2, List<DataFileV2> filesV2) {
 
         /** {@return an empty data instance} */
         public static RestoreScriptData empty() {
-            return new RestoreScriptData(UNKNOWN_BACKUP_VERSION, DataFormatVersion.VERSION_INVALID, UNKNOWN_GPG_ID, List.of(), List.of(),
+            return new RestoreScriptData(UNKNOWN_BACKUP_VERSION, "", DataFormatVersion.VERSION_INVALID, UNKNOWN_GPG_ID, List.of(),
+                    List.of(),
                     List.of());
         }
 
@@ -144,12 +149,16 @@ public class RestoreScriptReader {
         List<String> fileLines = new ArrayList<>();
         String version = UNKNOWN_BACKUP_VERSION;
         GpgId gpgId = UNKNOWN_GPG_ID;
+        String time = "";
         DataFormatVersion dataFormatVersion = DataFormatVersion.VERSION_INVALID;
 
         List<String> lines = script.lines().toList();
         for (String l : lines) {
             if (l.startsWith(BACKUP_VERSION_PREFIX)) {
                 version = l.substring(BACKUP_VERSION_PREFIX.length()).trim();
+            }
+            if (l.startsWith(TIME_ID_PREFIX)) {
+                time = l.substring(TIME_ID_PREFIX.length()).trim();
             }
             if (l.startsWith(DATA_FORMAT_VERSION_PREFIX)) {
                 dataFormatVersion = DataFormatVersion.parse(l.substring(DATA_FORMAT_VERSION_PREFIX.length()).trim());
@@ -204,7 +213,7 @@ public class RestoreScriptReader {
                     .toList();
         }
 
-        return new RestoreScriptData(version, dataFormatVersion, gpgId, cryptsV2, archivesV2, filesV2);
+        return new RestoreScriptData(version, time, dataFormatVersion, gpgId, cryptsV2, archivesV2, filesV2);
     }
 
     /**

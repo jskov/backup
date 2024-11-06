@@ -106,7 +106,7 @@ public class BackupCreator {
         }
 
         String backupTime = LocalDateTime.now().format(new DateTimeFormatterBuilder()
-                .appendPattern("Y.M.d H:m")
+                .appendPattern("YYYY.MM.dd-HHmm")
                 .toFormatter());
 
         Map<VariableName, String> vars = Map.of(
