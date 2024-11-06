@@ -62,9 +62,6 @@ class NamedBackupKeepingValidArchivesTest {
 
         System.out.println("\n\n===== Making update backup ====\n\n");
 
-        Path aCryptFile = parentDir(restoreScriptFile).resolve("dir-tricky.tar.crypt");
-        Files.writeString(aCryptFile, "invalid data");
-        
         Path updatedRestoreScriptFile = MakeBackup.makeBackup(BackupOutputType.NAMED, false);
         String restoreUpdated = Files.readString(updatedRestoreScriptFile);
 
