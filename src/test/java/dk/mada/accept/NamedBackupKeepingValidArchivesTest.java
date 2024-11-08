@@ -22,15 +22,14 @@ import dk.mada.fixture.MakeBackup;
 import dk.mada.fixture.MakeRestore;
 
 /**
- * Makes a backup, tweaks subset of data folders, makes another backup.
- * Ensures that only the changed data folders are updated.
+ * Makes a backup, tweaks subset of data folders, makes another backup. Ensures that only the changed data folders are
+ * updated.
  */
 @Tag("accept")
 class NamedBackupKeepingValidArchivesTest {
-    
+
     /**
-     * Tests that an existing backup's BROKEN encrypted files cause an
-     * abort when trying to update.
+     * Tests that an existing backup's BROKEN encrypted files cause an abort when trying to update.
      */
     @Test
     void cannotUpdateBrokenBackup() throws IOException, ArchiveException {
@@ -38,16 +37,15 @@ class NamedBackupKeepingValidArchivesTest {
 
         Path aCryptFile = parentDir(restoreScriptFile).resolve("dir-tricky.tar.crypt");
         Files.writeString(aCryptFile, "invalid data");
-        
+
         assertThatExceptionOfType(TestFailedWithException.class)
-            .isThrownBy(() -> MakeBackup.makeBackup(BackupOutputType.NAMED, false))
-            .havingCause()
-            .withMessage("Validation of old backup failed");
+                .isThrownBy(() -> MakeBackup.makeBackup(BackupOutputType.NAMED, false))
+                .havingCause()
+                .withMessage("Validation of old backup failed");
     }
-    
+
     /**
-     * Tests that a new updated backup set will contain a clone of the old
-     * state in the .prev-sets/ directory.
+     * Tests that a new updated backup set will contain a clone of the old state in the .prev-sets/ directory.
      */
     @Test
     // TODO: check that the clone contains original files
@@ -78,9 +76,9 @@ class NamedBackupKeepingValidArchivesTest {
 
         // TODO: assert all but changed file/folder retains old crypted hashes (and file date)
         // TODO: assert that changed file/folder is changed
-        
+
         assertThat(restoreOrigin)
-            .isEqualTo(restoreUpdated);
+                .isEqualTo(restoreUpdated);
     }
 
     // TODO: with added folder/file

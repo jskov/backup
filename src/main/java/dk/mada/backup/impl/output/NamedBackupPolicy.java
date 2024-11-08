@@ -26,23 +26,17 @@ import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
  *
  * The new backup is created in three steps:
  *
- * 1) A sub-directory is created, named after the current (if any)
- *    backup set in the target directory. In this folder, hard links
- *    are made to the files of the current backup set. A valid-marker
- *    file is created to signal success.
+ * 1) A sub-directory is created, named after the current (if any) backup set in the target directory. In this folder,
+ * hard links are made to the files of the current backup set. A valid-marker file is created to signal success.
  *
- * 2) A temporary sub-directory is made for the new backup set. To
- *    this folder, new backup files are written; if the match the old
- *    backup set, in the form of hard links. Otherwise as new files.
- *    This folder ensures that the old backup set remains valid should
- *    the new backup fail.
+ * 2) A temporary sub-directory is made for the new backup set. To this folder, new backup files are written; if the
+ * match the old backup set, in the form of hard links. Otherwise as new files. This folder ensures that the old backup
+ * set remains valid should the new backup fail.
  *
- * 3) Finally, files in the target directory are deleted and the files
- *    of the new backup set are moved there (and the temporary directory
- *    deleted).
+ * 3) Finally, files in the target directory are deleted and the files of the new backup set are moved there (and the
+ * temporary directory deleted).
  *
- * This leaves a new backup set, with a sub-directory of named previous
- * states.
+ * This leaves a new backup set, with a sub-directory of named previous states.
  */
 public final class NamedBackupPolicy implements BackupPolicy {
     private static final Logger logger = LoggerFactory.getLogger(NamedBackupPolicy.class);
@@ -78,7 +72,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
         this.limits = limits;
         this.rootDir = rootDir;
         this.targetDir = targetDir;
-        
+
         newTargetDir = targetDir.resolve(".new-set");
     }
 
@@ -168,7 +162,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
     private void createBackupClone() {
         // TODO: create clone folder, check for marker|delete, clone, set marker
     }
-    
+
     @Override
     public Path completeBackup(RestoreScriptWriter scriptWriter) {
         scriptWriter.write(restoreScript());

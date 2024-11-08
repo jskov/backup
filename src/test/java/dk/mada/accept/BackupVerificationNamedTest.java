@@ -49,7 +49,8 @@ class BackupVerificationNamedTest {
                 .contains("(4/12) dir-d_with_space.crypt... ok")
                 .contains("(5/12) dir-deep.crypt... ok")
                 .contains("(6/12) dir-e.crypt... ok")
-                .contains("(7/12) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.crypt... ok")
+                .contains(
+                        "(7/12) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.crypt... ok")
                 .contains("(8/12) dir-m-with-_brackets_-and-_parens_-dir.crypt... ok")
                 .contains("(9/12) dir-tricky.tar.crypt... ok")
                 .contains("(10/12) file-root1.bin.crypt... ok")
@@ -81,21 +82,21 @@ class BackupVerificationNamedTest {
         Result res = runRestoreCmd("unpack", "-a", restoreDir.toAbsolutePath().toString());
 
         assertThat(res.output())
-            .contains(" - (1/12) ./dir-a.tar... ok",
-                    " - (2/12) ./dir-b.tar... ok",
-                    " - (3/12) ./dir-c.tar... ok",
-                    " - (4/12) ./dir-d with space.tar... ok",
-                    " - (5/12) ./dir-deep.tar... ok",
-                    " - (6/12) ./dir-e.tar... ok",
-                    " - (7/12) ./dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.tar... ok", // NOSONAR
-                    " - (8/12) ./dir-m-with-[brackets]-and-(parens)-dir.tar... ok",
-                    " - (9/12) ./dir-tricky.tar.tar... ok",
-                    " - (10/12) file-root1.bin... ok",
-                    " - (11/12) file-root2 with space.bin... ok",
-                    " - (12/12) file-tricky.tar... ok",
-                    "Success!");
+                .contains(" - (1/12) ./dir-a.tar... ok",
+                        " - (2/12) ./dir-b.tar... ok",
+                        " - (3/12) ./dir-c.tar... ok",
+                        " - (4/12) ./dir-d with space.tar... ok",
+                        " - (5/12) ./dir-deep.tar... ok",
+                        " - (6/12) ./dir-e.tar... ok",
+                        " - (7/12) ./dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.tar... ok", // NOSONAR
+                        " - (8/12) ./dir-m-with-[brackets]-and-(parens)-dir.tar... ok",
+                        " - (9/12) ./dir-tricky.tar.tar... ok",
+                        " - (10/12) file-root1.bin... ok",
+                        " - (11/12) file-root2 with space.bin... ok",
+                        " - (12/12) file-tricky.tar... ok",
+                        "Success!");
         assertThat(res.exitValue())
-            .isZero();
+                .isZero();
     }
 
     /**
@@ -142,8 +143,7 @@ class BackupVerificationNamedTest {
     }
 
     /**
-     * Tests that the a faulty file in the backup set can be found by the streaming
-     * verifier.
+     * Tests that the a faulty file in the backup set can be found by the streaming verifier.
      *
      * Done by breaking the checksum in the restore script before running verify.
      */
@@ -168,7 +168,7 @@ class BackupVerificationNamedTest {
     @Test
     void restoreScriptIsWrittenToRepository() {
         assertThat(restoreScript)
-            .hasSameTextualContentAs(parentDir(restoreScript).resolve("_repository/test.sh"));
+                .hasSameTextualContentAs(parentDir(restoreScript).resolve("_repository/test.sh"));
     }
 
     private Result runRestoreCmd(String... args) {

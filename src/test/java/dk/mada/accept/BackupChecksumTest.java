@@ -39,7 +39,7 @@ class BackupChecksumTest {
         runTest(BackupOutputType.NAMED);
     }
 
-    private void runTest(BackupOutputType outputType) throws IOException, ArchiveException { 
+    private void runTest(BackupOutputType outputType) throws IOException, ArchiveException {
         Path restoreScript = MakeBackup.makeBackup(outputType, true);
         Result res = runRestoreCmd(restoreScript, "info", "-a");
 

@@ -14,7 +14,7 @@ import dk.mada.backup.api.BackupException;
  */
 public final class DirectoryDeleter {
     private DirectoryDeleter() {
-        //empty
+        // empty
     }
 
     /**
