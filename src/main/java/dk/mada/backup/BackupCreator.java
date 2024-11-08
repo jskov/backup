@@ -65,11 +65,9 @@ public class BackupCreator {
 
         policy.backupPrep();
 
-        Path targetDir = policy.targetDirectory();
-
         // Process root elements
         List<BackupElement> archiveElements;
-        Future<List<Path>> outputFilesFuture;
+        Future<List<FileInfo>> outputFilesFuture;
         try (Stream<Path> files = Files.list(rootDir);
                 BackupStreamWriter bsw = policy.writer()) {
 
@@ -88,9 +86,10 @@ public class BackupCreator {
         // Wait for the encrypted output files to settle
         List<FileInfo> cryptElements;
         try {
-            cryptElements = outputFilesFuture.get().stream()
-                    .map(archiveFile -> FileInfo.fromCryptFile(targetDir, archiveFile))
-                    .toList();
+            cryptElements = outputFilesFuture.get();
+//            cryptElements = outputFilesFuture.get().stream()
+//                    .map(archiveFile -> FileInfo.fromCryptFile(targetDir, archiveFile))
+//                    .toList();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Interrupted getting output files", e);
