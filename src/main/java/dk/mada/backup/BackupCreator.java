@@ -116,7 +116,7 @@ public class BackupCreator {
                 VariableName.BACKUP_INPUT_SIZE, HumanByteCount.humanReadableByteCount(totalInputSize),
                 VariableName.BACKUP_KEY_ID, policy.gpgInfo().recipientKeyId().id(),
                 VariableName.BACKUP_OUTPUT_TYPE, policy.outputType().name());
-        new RestoreScriptWriter().write(restoreScript, vars, cryptElements, archiveElements, fileElements);
+        new RestoreScriptWriter(vars, cryptElements, archiveElements, fileElements).write(restoreScript);
 
         policy.completeBackup();
 

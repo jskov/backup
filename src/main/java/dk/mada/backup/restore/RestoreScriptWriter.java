@@ -35,10 +35,29 @@ public final class RestoreScriptWriter {
                     local size=${l:0:11}
                     local xxh3=${l:12:16}
                     local file=${l:29}""");
+    /** The variables values to expand in the script. */
+    private final Map<VariableName, String> vars;
+    /** The encrypted file data to add to the script. */
+    private final List<? extends BackupElement> crypts;
+    /** The tar file data to add to the script. */
+    private final List<? extends BackupElement> tars;
+    /** The file data to add to the script. */
+    private final List<? extends BackupElement> files;
 
-    /** Creates new instance. */
-    public RestoreScriptWriter() {
-        // silence sonarqube
+    /**
+     * Creates new instance.
+     *
+     * @param vars   the variables to expand in the script template
+     * @param crypts the information about crypted files
+     * @param tars   the information about tar files
+     * @param files  the information about the origin files
+     */ 
+    public RestoreScriptWriter(Map<VariableName, String> vars, List<? extends BackupElement> crypts,
+            List<? extends BackupElement> tars, List<? extends BackupElement> files) {
+        this.vars = vars;
+        this.crypts = crypts;
+        this.tars = tars;
+        this.files = files;
     }
 
     /**
@@ -47,13 +66,8 @@ public final class RestoreScriptWriter {
      * Note that the lists are added to the script in the order provided.
      *
      * @param script the destination path for the script
-     * @param vars   the variables to expand in the script template
-     * @param crypts the information about crypted files
-     * @param tars   the information about tar files
-     * @param files  the information about the origin files
      */
-    public void write(Path script, Map<VariableName, String> vars, List<? extends BackupElement> crypts,
-            List<? extends BackupElement> tars, List<? extends BackupElement> files) {
+    public void write(Path script) {
         if (Files.exists(script)) {
             throw new BackupTargetExistsException("Restore script file " + script + " already exists!");
         }
