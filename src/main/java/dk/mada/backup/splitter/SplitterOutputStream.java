@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -17,6 +16,7 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.mada.backup.FileInfo;
 import dk.mada.backup.api.BackupTargetExistsException;
 
 /**
@@ -42,7 +42,7 @@ public final class SplitterOutputStream extends OutputStream {
     /** Number of files written. */
     private int fileCounter = 0;
     /** Future for handing over the list of created files to the caller. */
-    private CompletableFuture<List<Path>> outputFilesFuture = new CompletableFuture<>();
+    private CompletableFuture<List<FileInfo>> outputFilesFuture = new CompletableFuture<>();
 
     /**
      * Split output stream over a number of files of a given size.
@@ -64,7 +64,7 @@ public final class SplitterOutputStream extends OutputStream {
     }
 
     /** {@return the future containing the output files} */
-    public Future<List<Path>> getOutputFiles() {
+    public Future<List<FileInfo>> getOutputFiles() {
         return outputFilesFuture;
     }
 
@@ -126,6 +126,10 @@ public final class SplitterOutputStream extends OutputStream {
     @Override
     public void close() throws IOException {
         closeCurrentFile();
-        outputFilesFuture.complete(Collections.unmodifiableList(outputFiles));
+        List<FileInfo> fileInfos = outputFiles.stream()
+                .map(f -> FileInfo.fromCryptFile(targetDir, f))
+                .toList();
+
+        outputFilesFuture.complete(fileInfos);
     }
 }

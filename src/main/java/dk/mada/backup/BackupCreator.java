@@ -65,18 +65,9 @@ public class BackupCreator {
 
         policy.backupPrep();
 
-        Path restoreScript = policy.restoreScript();
-        Path targetDir = policy.targetDirectory();
-
-        try {
-            Files.createDirectories(targetDir);
-        } catch (IOException e1) {
-            throw new IllegalStateException("Failed to create target dir", e1);
-        }
-
         // Process root elements
         List<BackupElement> archiveElements;
-        Future<List<Path>> outputFilesFuture;
+        Future<List<FileInfo>> outputFilesFuture;
         try (Stream<Path> files = Files.list(rootDir);
                 BackupStreamWriter bsw = policy.writer()) {
 
@@ -95,9 +86,7 @@ public class BackupCreator {
         // Wait for the encrypted output files to settle
         List<FileInfo> cryptElements;
         try {
-            cryptElements = outputFilesFuture.get().stream()
-                    .map(archiveFile -> FileInfo.fromCryptFile(targetDir, archiveFile))
-                    .toList();
+            cryptElements = outputFilesFuture.get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Interrupted getting output files", e);
@@ -116,14 +105,9 @@ public class BackupCreator {
                 VariableName.BACKUP_INPUT_SIZE, HumanByteCount.humanReadableByteCount(totalInputSize),
                 VariableName.BACKUP_KEY_ID, policy.gpgInfo().recipientKeyId().id(),
                 VariableName.BACKUP_OUTPUT_TYPE, policy.outputType().name());
-        
-        // FIXME: construct writer, pass to completeBackup
-        
-        new RestoreScriptWriter().write(restoreScript, vars, cryptElements, archiveElements, fileElements);
+        RestoreScriptWriter restoreWriter = new RestoreScriptWriter(vars, cryptElements, archiveElements, fileElements);
 
-        policy.completeBackup();
-
-        return restoreScript;
+        return policy.completeBackup(restoreWriter);
     }
 
     /**

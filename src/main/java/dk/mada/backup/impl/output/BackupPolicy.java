@@ -6,6 +6,7 @@ import dk.mada.backup.api.BackupArguments.Limits;
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.gpg.GpgEncrypterException;
+import dk.mada.backup.restore.RestoreScriptWriter;
 
 /**
  * Defines the backup policy.
@@ -46,7 +47,12 @@ public interface BackupPolicy {
     BackupStreamWriter writer() throws GpgEncrypterException;
 
     /**
-     * Called when the backup is completed.
+     * Called when the backup should be completed by writing the restore script.
+     *
+     * The policy handles the final output of the restore script.
+     *
+     * @param scriptWriter the prepared restore script writer
+     * @return the new backup's restore script
      */
-    void completeBackup();
+    Path completeBackup(RestoreScriptWriter scriptWriter);
 }
