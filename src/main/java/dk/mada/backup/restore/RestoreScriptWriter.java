@@ -51,7 +51,7 @@ public final class RestoreScriptWriter {
      * @param crypts the information about crypted files
      * @param tars   the information about tar files
      * @param files  the information about the origin files
-     */ 
+     */
     public RestoreScriptWriter(Map<VariableName, String> vars, List<? extends BackupElement> crypts,
             List<? extends BackupElement> tars, List<? extends BackupElement> files) {
         this.vars = vars;
@@ -95,7 +95,7 @@ public final class RestoreScriptWriter {
                 }
 
                 if (!ignoringSection) {
-                    String expanded = expandVars(vars, addLine);
+                    String expanded = expandVars(addLine);
 
                     bw.write(expanded);
                     bw.append('\n');
@@ -108,7 +108,7 @@ public final class RestoreScriptWriter {
         makeScriptExecutable(script);
     }
 
-    private String expandVars(Map<VariableName, String> vars, String line) {
+    private String expandVars(String line) {
         String res = line;
 
         res = replaceVariable(res, VariableName.DATA_FORMAT_VERSION, FORMAT_VERSION.toString());

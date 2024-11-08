@@ -65,14 +65,7 @@ public class BackupCreator {
 
         policy.backupPrep();
 
-        Path restoreScript = policy.restoreScript();
         Path targetDir = policy.targetDirectory();
-
-        try {
-            Files.createDirectories(targetDir);
-        } catch (IOException e1) {
-            throw new IllegalStateException("Failed to create target dir", e1);
-        }
 
         // Process root elements
         List<BackupElement> archiveElements;
@@ -116,11 +109,9 @@ public class BackupCreator {
                 VariableName.BACKUP_INPUT_SIZE, HumanByteCount.humanReadableByteCount(totalInputSize),
                 VariableName.BACKUP_KEY_ID, policy.gpgInfo().recipientKeyId().id(),
                 VariableName.BACKUP_OUTPUT_TYPE, policy.outputType().name());
-        new RestoreScriptWriter(vars, cryptElements, archiveElements, fileElements).write(restoreScript);
+        RestoreScriptWriter restoreWriter = new RestoreScriptWriter(vars, cryptElements, archiveElements, fileElements);
 
-        policy.completeBackup();
-
-        return restoreScript;
+        return policy.completeBackup(restoreWriter);
     }
 
     /**
