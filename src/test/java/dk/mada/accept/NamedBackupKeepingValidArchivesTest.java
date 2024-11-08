@@ -2,6 +2,7 @@ package dk.mada.accept;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -48,10 +49,10 @@ class NamedBackupKeepingValidArchivesTest {
      * Tests that a new updated backup set will contain a clone of the old
      * state in the .prev-sets/ directory.
      */
-//    @Test
+    @Test
     // TODO: check that the clone contains original files
     void backupCloneIsCreated() throws IOException, ArchiveException {
-        // empty
+        fail();
     }
 
     /**

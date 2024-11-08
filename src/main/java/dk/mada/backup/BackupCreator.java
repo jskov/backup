@@ -116,6 +116,9 @@ public class BackupCreator {
                 VariableName.BACKUP_INPUT_SIZE, HumanByteCount.humanReadableByteCount(totalInputSize),
                 VariableName.BACKUP_KEY_ID, policy.gpgInfo().recipientKeyId().id(),
                 VariableName.BACKUP_OUTPUT_TYPE, policy.outputType().name());
+        
+        // FIXME: construct writer, pass to completeBackup
+        
         new RestoreScriptWriter().write(restoreScript, vars, cryptElements, archiveElements, fileElements);
 
         policy.completeBackup();

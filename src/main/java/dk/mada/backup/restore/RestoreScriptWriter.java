@@ -38,7 +38,7 @@ public final class RestoreScriptWriter {
 
     /** Creates new instance. */
     public RestoreScriptWriter() {
-        // silence sonarqube
+        // empty
     }
 
     /**

@@ -108,7 +108,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
 
     @Override
     public Path restoreScript() {
-        return targetDirectory().resolve(name + ".sh");
+        return newTargetDir.resolve(name + ".sh");
     }
 
     @Override
@@ -118,8 +118,13 @@ public final class NamedBackupPolicy implements BackupPolicy {
 
     @Override
     public BackupStreamWriter writer() throws GpgEncrypterException {
+        try {
+            Files.createDirectories(newTargetDir);
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to create output directory " + newTargetDir, e);
+        }
         RestoreScriptData oldData = Objects.requireNonNull(oldBackupData);
-        return new OutputByName(oldData, targetDir, name, gpgInfo, restoreScript());
+        return new OutputByName(oldData, newTargetDir, name, gpgInfo, restoreScript());
     }
 
     @Override
