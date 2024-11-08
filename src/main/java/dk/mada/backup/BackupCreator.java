@@ -87,9 +87,6 @@ public class BackupCreator {
         List<FileInfo> cryptElements;
         try {
             cryptElements = outputFilesFuture.get();
-//            cryptElements = outputFilesFuture.get().stream()
-//                    .map(archiveFile -> FileInfo.fromCryptFile(targetDir, archiveFile))
-//                    .toList();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Interrupted getting output files", e);
