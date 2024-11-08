@@ -27,10 +27,13 @@ import dk.mada.fixture.MakeRestore;
 class BackupVerificationNamedTest {
     /** Restore script for created backup. */
     private static Path restoreScript;
+    /** Backup destination folder. */
+    private static Path backupDestination;
 
     @BeforeAll
     static void makeBackup() throws IOException, ArchiveException {
         restoreScript = MakeBackup.makeBackup(BackupOutputType.NAMED, true);
+        backupDestination = Objects.requireNonNull(restoreScript.getParent(), "No parent for restore script?!");
     }
 
     /**
@@ -150,7 +153,7 @@ class BackupVerificationNamedTest {
     @Test
     void brokenBackupFilesCanBeFoundByStreamVerifier() throws IOException {
         // replace last 4 chars of checksum with "dead"
-        Path badRestoreScript = parentDir(restoreScript).resolve("bad.sh");
+        Path badRestoreScript = backupDestination.resolve("bad.sh");
         String withBrokenChecksum = Files.readAllLines(restoreScript).stream()
                 .map(s -> s.replaceAll("....,dir-b/file-b1.bin", "dead,dir-b/file-b1.bin"))
                 .collect(Collectors.joining("\n"));
@@ -168,14 +171,10 @@ class BackupVerificationNamedTest {
     @Test
     void restoreScriptIsWrittenToRepository() {
         assertThat(restoreScript)
-                .hasSameTextualContentAs(parentDir(restoreScript).resolve("_repository/test.sh"));
+                .hasSameTextualContentAs(backupDestination.resolve("_repository/test.sh"));
     }
 
     private Result runRestoreCmd(String... args) {
         return MakeRestore.runRestoreCmd(restoreScript, args);
-    }
-
-    private Path parentDir(Path restoreScript) {
-        return Objects.requireNonNull(restoreScript.getParent(), "No parent for restore script?!");
     }
 }

@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -17,15 +16,15 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.mada.backup.FileInfo;
 import dk.mada.backup.api.BackupTargetExistsException;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
-import dk.mada.backup.gpg.GpgEncrypterException;
 import dk.mada.backup.impl.output.TarContainerBuilder.Entry;
 import dk.mada.backup.restore.RestoreScriptReader.DataArchiveV2;
 import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
 
-public class OutputByName implements BackupStreamWriter {
+public final class OutputByName implements BackupStreamWriter {
     private static final Logger logger = LoggerFactory.getLogger(OutputByName.class);
     /** Characters allowed in crypt file names. */
     private static final Pattern ALLOWED_FS_CHARS = Pattern.compile("[a-zA-Z0-9æøåÆØÅ.-]");
@@ -33,7 +32,7 @@ public class OutputByName implements BackupStreamWriter {
     /** Accruing list of files created from the stream. */
     private final List<Path> outputFiles = new ArrayList<>();
     /** Future for handing over the list of created files to the caller. */
-    private CompletableFuture<List<Path>> outputFilesFuture = new CompletableFuture<>();
+    private CompletableFuture<List<FileInfo>> outputFilesFuture = new CompletableFuture<>();
     /** Target directory for the files split from the stream. */
     private final Path targetDir;
     /** The information needed to build a GPG stream. */
@@ -41,7 +40,9 @@ public class OutputByName implements BackupStreamWriter {
 
     /** Data about the previous backup. */
     private final RestoreScriptData prevBackupData;
+    /** Memory buffer holding each backup file as it is created. */
     private final InternalBufferStream inMemoryBufferStream;
+    /** The name of the file currently being created. */
     @Nullable private String workingOnFileName;
 
 //    /** The current file being written to. */
@@ -51,8 +52,16 @@ public class OutputByName implements BackupStreamWriter {
     /** The tar container builder. */
     @Nullable private TarContainerBuilder tarBuilder;
 
-    public OutputByName(RestoreScriptData prevBackupData, Path targetDir, String backupName, GpgStreamInfo gpgInfo, Path restoreScript)
-            throws GpgEncrypterException {
+    /**
+     * Construct new instance.
+     *
+     * @param prevBackupData data about the previous backup
+     * @param targetDir      the target directory of the new backup
+     * @param backupName     the name of the new backup
+     * @param gpgInfo        the GPG information
+     * @param restoreScript  the location of the restore script
+     */
+    public OutputByName(RestoreScriptData prevBackupData, Path targetDir, String backupName, GpgStreamInfo gpgInfo, Path restoreScript) {
         this.targetDir = targetDir;
         this.gpgInfo = gpgInfo;
         this.prevBackupData = prevBackupData;
@@ -166,11 +175,16 @@ public class OutputByName implements BackupStreamWriter {
     @Override
     public void close() throws IOException {
         closeCurrentFileAndEncrypt();
-        outputFilesFuture.complete(Collections.unmodifiableList(outputFiles));
+
+        List<FileInfo> fileInfos = outputFiles.stream()
+                .map(f -> FileInfo.fromCryptFile(targetDir, f))
+                .toList();
+
+        outputFilesFuture.complete(fileInfos);
     }
 
     @Override
-    public Future<List<Path>> getOutputFiles() {
+    public Future<List<FileInfo>> getOutputFiles() {
         return outputFilesFuture;
     }
 
@@ -179,9 +193,9 @@ public class OutputByName implements BackupStreamWriter {
      *
      * FIXME: The data is written to a temporary file (in memory?) and only copied to the target iff: o target is missing o
      * target would be changed
-     * 
+     *
      * Get expected target checksum from target restore file. o file hash o hash of content filenames + file contents
-     * 
+     *
      * @param name the name of the file
      * @return the stream to write data to
      * @throws IOException if IO fails
@@ -210,7 +224,7 @@ public class OutputByName implements BackupStreamWriter {
      *
      * The restore script does not handle crypt filenames in a way to handle weird characters (or even just spaces). So for
      * now convert to something safe.
-     * 
+     *
      * @param name the input name
      * @return a name that will work with the script
      */
