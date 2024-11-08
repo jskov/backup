@@ -15,6 +15,7 @@ import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.gpg.GpgEncrypterException;
 import dk.mada.backup.restore.RestoreScriptReader;
+import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
 
 /**
@@ -100,6 +101,12 @@ public final class NamedBackupPolicy implements BackupPolicy {
     @Override
     public void backupPrep() {
         assertExistingBackupIsValid();
+
+        try {
+            Files.createDirectories(targetDir);
+        } catch (IOException e1) {
+            throw new IllegalStateException("Failed to create target dir", e1);
+        }
     }
 
     private void assertExistingBackupIsValid() {
@@ -132,7 +139,9 @@ public final class NamedBackupPolicy implements BackupPolicy {
     }
 
     @Override
-    public void completeBackup() {
+    public Path completeBackup(RestoreScriptWriter scriptWriter) {
+        scriptWriter.write(restoreScript());
         // TODO: move hardlinks around
+        return restoreScript();
     }
 }

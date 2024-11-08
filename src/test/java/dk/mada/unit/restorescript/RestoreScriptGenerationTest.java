@@ -30,7 +30,6 @@ class RestoreScriptGenerationTest {
      */
     @Test
     void allThreeFileInfoBlocksAreFilled() throws IOException {
-        RestoreScriptWriter sut = new RestoreScriptWriter();
 
         Map<VariableName, String> vars = Map.of(
                 VariableName.VERSION, "1.2.7");
@@ -39,8 +38,10 @@ class RestoreScriptGenerationTest {
         List<BackupElement> tars = toBackupElements("fun.tar", "sun.tar");
         List<BackupElement> files = toBackupElements("fun/photo1.jpg", "sun/photo2.jpg");
 
+        RestoreScriptWriter sut = new RestoreScriptWriter(vars, crypts, tars, files);
+
         Path script = dir.resolve("script.sh");
-        sut.write(script, vars, crypts, tars, files);
+        sut.write(script);
 
         List<String> lines = Files.readAllLines(script);
         assertThat(lines)
@@ -59,14 +60,13 @@ class RestoreScriptGenerationTest {
 
     @Test
     void specialCharsAreEscaped() throws IOException {
-        RestoreScriptWriter sut = new RestoreScriptWriter();
-
         List<BackupElement> files = toBackupElements(
                 "Annie Lennox/Medusa/01. Annie Lennox - No More \"I Love You's\".opus",
                 "På slaget 12/Hjem til Århus/12 Li`e Midt I Mellen.ogg");
+        RestoreScriptWriter sut = new RestoreScriptWriter(Map.of(), List.of(), List.of(), files);
 
         Path script = dir.resolve("script.sh");
-        sut.write(script, Map.of(), List.of(), List.of(), files);
+        sut.write(script);
 
         List<String> lines = Files.readAllLines(script);
         assertThat(lines)
@@ -77,13 +77,13 @@ class RestoreScriptGenerationTest {
     @Disabled("FIXME: still not done")
     @Test
     void restoreScriptIsWrittenToRepository() {
-        RestoreScriptWriter sut = new RestoreScriptWriter();
 
         List<BackupElement> files = toBackupElements("not-relevant.txt");
+        RestoreScriptWriter sut = new RestoreScriptWriter(Map.of(), List.of(), List.of(), files);
 
         String backupTargetPath = "script.sh";
         Path script = dir.resolve(backupTargetPath);
-        sut.write(script, Map.of(), List.of(), List.of(), files);
+        sut.write(script);
 
         assertThat(script)
                 .exists();

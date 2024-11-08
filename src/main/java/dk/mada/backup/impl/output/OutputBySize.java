@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.Future;
 
+import dk.mada.backup.FileInfo;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.gpg.GpgEncrypterException;
@@ -65,7 +66,7 @@ public final class OutputBySize implements BackupStreamWriter {
     }
 
     @Override
-    public Future<List<Path>> getOutputFiles() {
+    public Future<List<FileInfo>> getOutputFiles() {
         return sos.getOutputFiles();
     }
 }

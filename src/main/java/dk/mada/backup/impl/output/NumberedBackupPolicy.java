@@ -1,10 +1,13 @@
 package dk.mada.backup.impl.output;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.api.BackupArguments.Limits;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
+import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.gpg.GpgEncrypterException;
 
 /**
@@ -81,11 +84,16 @@ public final class NumberedBackupPolicy implements BackupPolicy {
 
     @Override
     public void backupPrep() {
-        // Nothing to prep
+        try {
+            Files.createDirectories(targetDir);
+        } catch (IOException e1) {
+            throw new IllegalStateException("Failed to create target dir", e1);
+        }
     }
 
     @Override
-    public void completeBackup() {
-        // Nothing to complete
+    public Path completeBackup(RestoreScriptWriter scriptWriter) {
+        scriptWriter.write(restoreScript());
+        return restoreScript();
     }
 }

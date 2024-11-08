@@ -1,9 +1,10 @@
 package dk.mada.backup.impl.output;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.Future;
+
+import dk.mada.backup.FileInfo;
 
 /**
  * Backup stream writer.
@@ -25,6 +26,6 @@ public interface BackupStreamWriter extends AutoCloseable {
     @Override
     void close() throws IOException;
 
-    /** {@return the future containing the output files} */
-    Future<List<Path>> getOutputFiles();
+    /** {@return a future containing information about the encrypted output files} */
+    Future<List<FileInfo>> getOutputFiles();
 }
