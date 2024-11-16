@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Objects;
 
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -17,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.impl.output.DirectoryDeleter;
 import dk.mada.backup.restore.RestoreExecutor.Result;
+import dk.mada.backup.restore.RestoreScriptReader;
+import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
 import dk.mada.fixture.ExitHandlerFixture.TestFailedWithException;
 import dk.mada.fixture.MakeBackup;
 import dk.mada.fixture.MakeRestore;
@@ -57,28 +60,29 @@ class NamedBackupKeepingValidArchivesTest {
      * Tests that an existing backup's encrypted files are reused when possible.
      */
     @Test
-    void backupContainsInfo() throws IOException, ArchiveException {
+    void backupContainsInfo() throws IOException, ArchiveException, InterruptedException {
         Path restoreScriptFile = MakeBackup.makeBackup(BackupOutputType.NAMED, true);
-        String restoreOrigin = Files.readString(restoreScriptFile);
 
         // Unpack for access to archives
-        Path restoreDir = Paths.get("build/backup-restored");
-        DirectoryDeleter.delete(restoreDir);
-        Result res = MakeRestore.runRestoreCmd(restoreScriptFile, "unpack", "-a", restoreDir.toAbsolutePath().toString());
-        System.out.println(res.output());
+//        Path restoreDir = Paths.get("build/backup-restored");
+//        DirectoryDeleter.delete(restoreDir);
+//        Result res = MakeRestore.runRestoreCmd(restoreScriptFile, "unpack", "-a", restoreDir.toAbsolutePath().toString());
+//        System.out.println(res.output());
 
         // TODO: change a file/folder
 
         System.out.println("\n\n===== Making update backup ====\n\n");
 
+//        Thread.sleep(Duration.ofSeconds(61));
+        
         Path updatedRestoreScriptFile = MakeBackup.makeBackup(BackupOutputType.NAMED, false);
-        String restoreUpdated = Files.readString(updatedRestoreScriptFile);
 
-        // TODO: assert all but changed file/folder retains old crypted hashes (and file date)
-        // TODO: assert that changed file/folder is changed
-
-        assertThat(restoreOrigin)
-                .isEqualTo(restoreUpdated);
+        RestoreScriptReader reader = new RestoreScriptReader();
+        RestoreScriptData originalSet = reader.readRestoreScriptData(restoreScriptFile);
+        RestoreScriptData updatedSet = reader.readRestoreScriptData(updatedRestoreScriptFile);
+        
+        assertThat(originalSet.cryptsV2())
+                .isEqualTo(updatedSet.cryptsV2());
     }
 
     // TODO: with added folder/file

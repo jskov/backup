@@ -132,8 +132,9 @@ public final class OutputByName implements BackupStreamWriter {
                     && oldArchive.xxh3().equals(rootElementEntry.xxh3())) {
                 logger.info(" - keeping");
                 Path oldSetCryptFile = oldCrypt.file();
-                createHardLink(targetDir.resolve(oldSetCryptFile.getFileName()), oldSetCryptFile);
-                // FIXME: add new entry to restore script
+                Path newSetCryptFile = targetDir.resolve(oldSetCryptFile.getFileName());
+                createHardLink(newSetCryptFile, oldSetCryptFile);
+                outputFiles.add(newSetCryptFile);
                 return;
             } else {
                 logger.info(" - changed");
