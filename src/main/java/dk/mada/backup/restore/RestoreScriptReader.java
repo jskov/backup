@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,9 +87,9 @@ public class RestoreScriptReader {
      * @param size the size of the file
      * @param xxh3 the XXH3 checksum of the file
      * @param md5  the MD5 checksum of the file
-     * @param name the file name
+     * @param file the encrypted file
      */
-    public record DataCryptV2(long size, Xxh3 xxh3, Md5 md5, String name) {
+    public record DataCryptV2(long size, Xxh3 xxh3, Md5 md5, Path file) {
     }
 
     /**
@@ -126,8 +127,9 @@ public class RestoreScriptReader {
         }
 
         try {
+            Path backupSetDir = Objects.requireNonNull(scriptFile.getParent());
             String script = Files.readString(scriptFile);
-            return parseScript(script);
+            return parseScript(backupSetDir, script);
         } catch (Exception e) {
             logger.warn("Failed to read/parse restore script {}", scriptFile, e);
             return RestoreScriptData.empty();
@@ -137,10 +139,11 @@ public class RestoreScriptReader {
     /**
      * Parses an existing restore script, extracting relevant data.
      *
+     * @param backupSetDir the backup set directory
      * @param script the restore script
      * @return the data from the script
      */
-    public RestoreScriptData parseScript(String script) {
+    public RestoreScriptData parseScript(Path backupSetDir, String script) {
         boolean collectingCrypts = false;
         boolean collectingArchives = false;
         boolean collectingFiles = false;
@@ -203,7 +206,7 @@ public class RestoreScriptReader {
         List<DataFileV2> filesV2 = List.of();
         if (dataFormatVersion == DataFormatVersion.VERSION_2) {
             cryptsV2 = cryptLines.stream()
-                    .map(this::deserializeCryptV2)
+                    .map(l -> deserializeCryptV2(backupSetDir, l))
                     .toList();
             archivesV2 = archiveLines.stream()
                     .map(this::deserializeArchiveV2)
@@ -220,16 +223,17 @@ public class RestoreScriptReader {
      * Deserializes V2 crypt line which looks like this: "
      * 124221499,1eb326ca04a97a48,de275e40fe159cce2b5f198cad71b0d9,A-D.crypt"
      *
+     * @param backupSetDir the backup set directory
      * @param l the line
      * @return the decrypted data.
      */
-    private DataCryptV2 deserializeCryptV2(String l) {
+    private DataCryptV2 deserializeCryptV2(Path backupSetDir, String l) {
         logger.trace("See '{}'", l);
         long length = Long.parseLong(l.substring(1, IX_LENGTH_END).trim());
         Xxh3 xxh3 = Xxh3.ofHex(l.substring(IX_XXH3_START, IX_XXH3_END));
         Md5 md5 = Md5.ofHex(l.substring(IX_MD5_START, IX_MD5_END));
         String name = l.substring(IX_CRYPT_NAME_START, l.length() - 1);
-        return new DataCryptV2(length, xxh3, md5, name);
+        return new DataCryptV2(length, xxh3, md5, backupSetDir.resolve(name));
     }
 
     /**

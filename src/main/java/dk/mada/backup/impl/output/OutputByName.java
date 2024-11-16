@@ -111,6 +111,11 @@ public final class OutputByName implements BackupStreamWriter {
 //        logger.info("GOT: {}", rootElementEntry);
         String rootElementName = rootElementEntry.unwrappedFolderName();
 
+        // Find the matching entry in the old backup set (if available)
+        // If the old archive data matches the newly created archive data,
+        // the encrypted file can be reused. Note that the encrypted data
+        // cannot be used for comparison, because there is time variance
+        // in these (even for the same input data).
         DataArchiveV2 oldArchive = prevBackupData.archivesV2().stream()
 //                .peek(da -> logger.info(" see {}", da))
                 .filter(da -> rootElementName.equals(da.name()))
@@ -121,6 +126,8 @@ public final class OutputByName implements BackupStreamWriter {
             if (oldArchive.size() == rootElementEntry.size()
                     && oldArchive.xxh3().equals(rootElementEntry.xxh3())) {
                 logger.info(" - keeping");
+                
+                
                 // FIXME: make new entry from old
                 return;
             } else {
