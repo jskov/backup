@@ -105,9 +105,9 @@ class NamedBackupKeepingValidArchivesTest {
 
         logger.info("Matching crypts: {}", sharedCrypts);
         assertThat(cryptNamesOnlyInOriginalSet)
-            .containsExactlyInAnyOrder("dir-a.crypt", "file-tricky.tar.crypt");
+                .containsExactlyInAnyOrder("dir-a.crypt", "file-tricky.tar.crypt");
         assertThat(cryptNamesOnlyInUpdatedSet)
-            .containsExactlyInAnyOrder("dir-a.crypt", "extra-dir.crypt", "extra-file.crypt");
+                .containsExactlyInAnyOrder("dir-a.crypt", "extra-dir.crypt", "extra-file.crypt");
     }
 
     private Path parentDir(Path restoreScript) {

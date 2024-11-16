@@ -24,7 +24,7 @@ public final class MakeBackup {
     /**
      * Create backup from test data.
      *
-     * @param outputType the output type
+     * @param outputType       the output type
      * @param cleanDestination flag to enable cleaning of the output directory before creating backup
      * @return restore script
      */
@@ -35,12 +35,13 @@ public final class MakeBackup {
     /**
      * Create backup from test data.
      *
-     * @param outputType the output type
+     * @param outputType       the output type
      * @param cleanDestination flag to enable cleaning of the output directory before creating backup
-     * @param srcModifier consumer able to modify the src directory before the backup is created 
+     * @param srcModifier      consumer able to modify the src directory before the backup is created
      * @return restore script
      */
-    public static Path makeBackup(BackupOutputType outputType, boolean cleanDestination, @Nullable SrcTreeModifier srcModifier) throws IOException, ArchiveException {
+    public static Path makeBackup(BackupOutputType outputType, boolean cleanDestination, @Nullable SrcTreeModifier srcModifier)
+            throws IOException, ArchiveException {
         LoggerConfig.loadConfig("/logging-test.properties");
 
         Path srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree");
@@ -80,7 +81,7 @@ public final class MakeBackup {
 
         return restoreScript;
     }
-    
+
     public interface SrcTreeModifier {
         void accept(Path srcDir) throws IOException;
     }

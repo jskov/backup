@@ -140,7 +140,7 @@ public class RestoreScriptReader {
      * Parses an existing restore script, extracting relevant data.
      *
      * @param backupSetDir the backup set directory
-     * @param script the restore script
+     * @param script       the restore script
      * @return the data from the script
      */
     public RestoreScriptData parseScript(Path backupSetDir, String script) {
@@ -224,7 +224,7 @@ public class RestoreScriptReader {
      * 124221499,1eb326ca04a97a48,de275e40fe159cce2b5f198cad71b0d9,A-D.crypt"
      *
      * @param backupSetDir the backup set directory
-     * @param l the line
+     * @param l            the line
      * @return the decrypted data.
      */
     private DataCryptV2 deserializeCryptV2(Path backupSetDir, String l) {

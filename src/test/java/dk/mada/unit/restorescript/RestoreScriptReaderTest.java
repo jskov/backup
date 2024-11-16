@@ -30,7 +30,8 @@ class RestoreScriptReaderTest {
             """;
     /** The subject under test. */
     private RestoreScriptReader sut = new RestoreScriptReader();
-    @TempDir private Path backupDir;
+    @TempDir
+    private Path backupDir;
 
     @Test
     void invalidInputGivesEmpty() {

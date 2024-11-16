@@ -170,8 +170,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
 
         // Step 1 - creation of a folder containing the previous backup
         // TODO: create clone folder, check for marker|delete, clone, set marker
-        
-        
+
         Path oldSetDir = targetDir.resolve(".old-sets").resolve(data.time());
         Path validMarker = oldSetDir.resolve("_valid_old_set");
         if (Files.exists(validMarker)) {
@@ -180,28 +179,28 @@ public final class NamedBackupPolicy implements BackupPolicy {
         try {
             DirectoryDeleter.delete(oldSetDir);
             Files.createDirectories(oldSetDir);
-            
+
             try (Stream<Path> files = Files.list(targetDir)) {
                 files
-                    .filter(Files::isRegularFile)
-                    .forEach(origin -> createHardLink(oldSetDir.resolve(origin.getFileName()), origin));
+                        .filter(Files::isRegularFile)
+                        .forEach(origin -> createHardLink(oldSetDir.resolve(origin.getFileName()), origin));
             }
         } catch (IOException e) {
             throw new BackupException("Failed to create old-set copy in " + oldSetDir, e);
-        }        
+        }
     }
 
     @Override
     public Path completeBackup(RestoreScriptWriter scriptWriter) {
         scriptWriter.write(restoreScriptInDir(newTargetDir));
-        
+
         // Step 3 - move files from .new-set to the backup destination
         moveNewSetToDist();
 
         return restoreScript();
     }
-    
-    private void moveNewSetToDist()  {
+
+    private void moveNewSetToDist() {
         try (Stream<Path> files = Files.list(newTargetDir)) {
             files.forEach(this::moveNewFileToDist);
             Files.delete(newTargetDir);
@@ -209,7 +208,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
             throw new BackupException("Failed to move new-set files to backup destination", e);
         }
     }
-    
+
     private void moveNewFileToDist(Path newFile) {
         Path targetFile = targetDir.resolve(newFile.getFileName());
         logger.info(" mv {} {}", newFile, targetFile);
@@ -222,7 +221,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
             throw new BackupException("Failed to move new-set file " + newFile + " to backup destination " + targetFile, e);
         }
     }
-    
+
     private void createHardLink(Path link, Path existing) {
         try {
             Files.createLink(link, existing);
