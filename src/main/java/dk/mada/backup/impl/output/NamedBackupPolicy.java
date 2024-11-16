@@ -4,14 +4,17 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.mada.backup.api.BackupArguments.Limits;
+import dk.mada.backup.api.BackupException;
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.gpg.GpgEncrypterException;
@@ -103,7 +106,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
 
     @Override
     public Path restoreScript() {
-        return newTargetDir.resolve(name + ".sh");
+        return restoreScriptInDir(targetDir);
     }
 
     @Override
@@ -113,15 +116,16 @@ public final class NamedBackupPolicy implements BackupPolicy {
 
     @Override
     public BackupStreamWriter writer() throws GpgEncrypterException {
+        // Step 2 - create new backup (possibly making use of existing data files)
         RestoreScriptData oldData = Objects.requireNonNull(oldBackupData);
-        return new OutputByName(oldData, newTargetDir, name, gpgInfo, restoreScript());
+        return new OutputByName(oldData, newTargetDir, gpgInfo);
     }
 
     @Override
     public void backupPrep() {
         DirectoryDeleter.delete(newTargetDir);
-        assertExistingBackupIsValid();
-        createBackupClone();
+        oldBackupData = assertExistingBackupIsValid();
+        createBackupClone(oldBackupData);
 
         try {
             Files.createDirectories(newTargetDir);
@@ -130,43 +134,100 @@ public final class NamedBackupPolicy implements BackupPolicy {
         }
     }
 
-    private void assertExistingBackupIsValid() {
+    private RestoreScriptData assertExistingBackupIsValid() {
         Path restoreScript = restoreScript();
-        if (Files.isRegularFile(restoreScript)) {
-            try {
-                Process p = new ProcessBuilder("bash", restoreScript.toString(), "verify")
-                        .directory(targetDir.toFile())
-                        .redirectErrorStream(true)
-                        .start();
-                p.waitFor(BACKUP_VALIDATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                String output = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                if (p.exitValue() != 0) {
-                    logger.warn("Validation failed:\n{}", output);
-                    throw new IllegalStateException("Validation of old backup failed");
-                }
+        if (!Files.isRegularFile(restoreScript)) {
+            return RestoreScriptData.empty();
+        }
 
-                logger.info("Old backup validated OK\n{}", output);
-            } catch (IOException e) {
-                throw new IllegalStateException("Failed to run verification of old backup " + restoreScript, e);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new IllegalStateException("Interrupted while running verification of old backup " + restoreScript, e);
+        try {
+            Process p = new ProcessBuilder("bash", restoreScript.toString(), "verify")
+                    .directory(targetDir.toFile())
+                    .redirectErrorStream(true)
+                    .start();
+            p.waitFor(BACKUP_VALIDATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            String output = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            if (p.exitValue() != 0) {
+                logger.warn("Validation failed:\n{}", output);
+                throw new IllegalStateException("Validation of old backup failed");
             }
 
-            oldBackupData = new RestoreScriptReader().readRestoreScriptData(restoreScript);
-        } else {
-            oldBackupData = RestoreScriptData.empty();
+            logger.info("Old backup validated OK\n{}", output);
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to run verification of old backup " + restoreScript, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while running verification of old backup " + restoreScript, e);
         }
+
+        return new RestoreScriptReader().readRestoreScriptData(restoreScript);
     }
 
-    private void createBackupClone() {
+    private void createBackupClone(RestoreScriptData data) {
+        if (!data.isValid()) {
+            return;
+        }
+
+        // Step 1 - creation of a folder containing the previous backup
         // TODO: create clone folder, check for marker|delete, clone, set marker
+        
+        
+        Path oldSetDir = targetDir.resolve(".old-sets").resolve(data.time());
+        Path validMarker = oldSetDir.resolve("_valid_old_set");
+        if (Files.exists(validMarker)) {
+            return;
+        }
+        try {
+            DirectoryDeleter.delete(oldSetDir);
+            Files.createDirectories(oldSetDir);
+            
+            try (Stream<Path> files = Files.list(targetDir)) {
+                files
+                    .filter(Files::isRegularFile)
+                    .forEach(origin -> createHardLink(oldSetDir.resolve(origin.getFileName()), origin));
+            }
+        } catch (IOException e) {
+            throw new BackupException("Failed to create old-set copy in " + oldSetDir, e);
+        }        
     }
 
     @Override
     public Path completeBackup(RestoreScriptWriter scriptWriter) {
-        scriptWriter.write(restoreScript());
-        // TODO: move hardlinks around
+        scriptWriter.write(restoreScriptInDir(newTargetDir));
+        
+        // Step 3 - move files from .new-set to the backup destination
+        moveNewSetToDist();
+
         return restoreScript();
+    }
+    
+    private void moveNewSetToDist()  {
+        try (Stream<Path> files = Files.list(newTargetDir)) {
+            files.forEach(this::moveNewFileToDist);
+            Files.delete(newTargetDir);
+        } catch (IOException e) {
+            throw new BackupException("Failed to move new-set files to backup destination", e);
+        }
+    }
+    
+    private void moveNewFileToDist(Path newFile) {
+        Path targetFile = targetDir.resolve(newFile.getFileName());
+        try {
+            Files.move(newFile, targetFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new BackupException("Failed to move new-set file " + newFile + " to backup destination " +targetFile, e);
+        }
+    }
+    
+    private void createHardLink(Path link, Path existing) {
+        try {
+            Files.createLink(link, existing);
+        } catch (IOException e) {
+            throw new BackupException("Failed to create hard link from " + existing + " to " + link, e);
+        }
+    }
+
+    private Path restoreScriptInDir(Path dir) {
+        return dir.resolve(name + ".sh");
     }
 }

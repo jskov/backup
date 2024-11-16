@@ -57,11 +57,9 @@ public final class OutputByName implements BackupStreamWriter {
      *
      * @param prevBackupData data about the previous backup
      * @param targetDir      the target directory of the new backup
-     * @param backupName     the name of the new backup
      * @param gpgInfo        the GPG information
-     * @param restoreScript  the location of the restore script
      */
-    public OutputByName(RestoreScriptData prevBackupData, Path targetDir, String backupName, GpgStreamInfo gpgInfo, Path restoreScript) {
+    public OutputByName(RestoreScriptData prevBackupData, Path targetDir, GpgStreamInfo gpgInfo) {
         this.targetDir = targetDir;
         this.gpgInfo = gpgInfo;
         this.prevBackupData = prevBackupData;
