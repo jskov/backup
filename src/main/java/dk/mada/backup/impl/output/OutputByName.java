@@ -17,11 +17,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.mada.backup.FileInfo;
+import dk.mada.backup.api.BackupException;
 import dk.mada.backup.api.BackupTargetExistsException;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.impl.output.TarContainerBuilder.Entry;
 import dk.mada.backup.restore.RestoreScriptReader.DataArchiveV2;
+import dk.mada.backup.restore.RestoreScriptReader.DataCryptV2;
 import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
 
 public final class OutputByName implements BackupStreamWriter {
@@ -122,13 +124,16 @@ public final class OutputByName implements BackupStreamWriter {
                 .findFirst()
                 .orElse(null);
         if (oldArchive != null) {
+            int i = prevBackupData.archivesV2().indexOf(oldArchive);
+            DataCryptV2 oldCrypt = prevBackupData.cryptsV2().get(i);
+
             logger.info("Existing backup has entry for root element {}", rootElementName);
             if (oldArchive.size() == rootElementEntry.size()
                     && oldArchive.xxh3().equals(rootElementEntry.xxh3())) {
                 logger.info(" - keeping");
-                
-                
-                // FIXME: make new entry from old
+                Path oldSetCryptFile = oldCrypt.file();
+                createHardLink(targetDir.resolve(oldSetCryptFile.getFileName()), oldSetCryptFile);
+                // FIXME: add new entry to restore script
                 return;
             } else {
                 logger.info(" - changed");
@@ -244,5 +249,13 @@ public final class OutputByName implements BackupStreamWriter {
             }
         }
         return sb.toString();
+    }
+    
+    private void createHardLink(Path link, Path existing) {
+        try {
+            Files.createLink(link, existing);
+        } catch (IOException e) {
+            throw new BackupException("Failed to create hard link from " + existing + " to " + link, e);
+        }
     }
 }

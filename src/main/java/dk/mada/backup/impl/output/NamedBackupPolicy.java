@@ -212,10 +212,14 @@ public final class NamedBackupPolicy implements BackupPolicy {
     
     private void moveNewFileToDist(Path newFile) {
         Path targetFile = targetDir.resolve(newFile.getFileName());
+        logger.info(" mv {} {}", newFile, targetFile);
         try {
-            Files.move(newFile, targetFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            Files.move(newFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
+            // Remove the source file, since (java?) move does not do anything if the
+            // two files are hard-linked to the same inode.
+            Files.deleteIfExists(newFile);
         } catch (IOException e) {
-            throw new BackupException("Failed to move new-set file " + newFile + " to backup destination " +targetFile, e);
+            throw new BackupException("Failed to move new-set file " + newFile + " to backup destination " + targetFile, e);
         }
     }
     
