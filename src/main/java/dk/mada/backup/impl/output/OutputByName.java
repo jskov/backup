@@ -68,8 +68,6 @@ public final class OutputByName implements BackupStreamWriter {
 
         int TODO_maxContainerSize = 200 * 1024 * 1024;
         inMemoryBufferStream = new InternalBufferStream(TODO_maxContainerSize);
-
-        System.out.println("PREV: " + prevBackupData);
     }
 
     @Override
@@ -113,6 +111,7 @@ public final class OutputByName implements BackupStreamWriter {
 //        logger.info("GOT: {}", rootElementEntry);
         String rootElementName = rootElementEntry.unwrappedFolderName();
 
+        
         // Find the matching entry in the old backup set (if available)
         // If the old archive data matches the newly created archive data,
         // the encrypted file can be reused. Note that the encrypted data
@@ -123,7 +122,9 @@ public final class OutputByName implements BackupStreamWriter {
                 .filter(da -> rootElementName.equals(da.name()))
                 .findFirst()
                 .orElse(null);
-        if (oldArchive != null) {
+        if (oldArchive != null
+                && prevBackupData.gpgKeyId().equals(gpgInfo.recipientKeyId())) {
+            // TODO: bind crypts and archives tighter in the backup data
             int i = prevBackupData.archivesV2().indexOf(oldArchive);
             DataCryptV2 oldCrypt = prevBackupData.cryptsV2().get(i);
 
@@ -136,44 +137,10 @@ public final class OutputByName implements BackupStreamWriter {
                 createHardLink(newSetCryptFile, oldSetCryptFile);
                 outputFiles.add(newSetCryptFile);
                 return;
-            } else {
-                logger.info(" - changed");
-                // FIXME: update
             }
-            // check prev archive xxh3 vs current
-            logger.info("Old archive {}:{}:{}", oldArchive.name(), oldArchive.xxh3(), oldArchive.size());
-
-//            if (oldArchive.name().equals(rootElementEntry.archiveName())
-        } else {
-            logger.info("No prior data for root element {}", rootElementName);
-            // TODO:
-            // Write out crypted container
         }
 
-        // TODO:
-        // Handle:
-        // * adding new folder
-        // * removing existing folder
-        // * ensure reused encrypted archives use same certificate!
-
-        // For output replacing:
-        // 1. make new .update_temp folder
-        // 2. new/changed files created there
-        // reused files hardlinked to old archives (Files#createLink)
-        // ...
-        // N. move all current backup files to .prev-YYYYMMDD-HHMMSS
-        // move all files from .update_temp to parent folder
-
-        // HOWTO?
-        // if updating single crypted files, and aborting the backup, the entire previous backup
-        // will be compromised.
-        // store replacements as _new_xxx and only replace at completion when writing new restore script?
-
-        //
-
-        // FIXME: NEXT: restore must iterate over named archives, not cat them
-
-        // See above: write files to holders, move into place when all succeeds
+        logger.info("No prior data for root element {}", rootElementName);
 
         logger.info("------- Crypting archive to {}", workingOnFileName);
 
