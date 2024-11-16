@@ -14,7 +14,9 @@ import java.util.logging.SimpleFormatter;
  * Controls (JUL) logging backend.
  */
 public final class LoggerConfig {
+    /** Creates new instance. */
     private LoggerConfig() {
+        // empty
     }
 
     /** Loads default logger configuration. */
