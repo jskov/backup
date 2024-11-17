@@ -22,10 +22,14 @@ import dk.mada.backup.api.BackupTargetExistsException;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.impl.output.TarContainerBuilder.Entry;
-import dk.mada.backup.restore.RestoreScriptReader.DataArchiveV2;
-import dk.mada.backup.restore.RestoreScriptReader.DataCryptV2;
+import dk.mada.backup.restore.RestoreScriptReader.DataArchive;
+import dk.mada.backup.restore.RestoreScriptReader.DataRootFile;
 import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
 
+/**
+ * Write backup into separate files. Each file is an encrypted archive of a
+ * root file from the source tree.
+ */
 public final class OutputByName implements BackupStreamWriter {
     private static final Logger logger = LoggerFactory.getLogger(OutputByName.class);
     /** Characters allowed in crypt file names. */
@@ -116,22 +120,20 @@ public final class OutputByName implements BackupStreamWriter {
         // the encrypted file can be reused. Note that the encrypted data
         // cannot be used for comparison, because there is time variance
         // in these (even for the same input data).
-        DataArchiveV2 oldArchive = prevBackupData.archivesV2().stream()
+        DataRootFile oldRootFile = prevBackupData.rootFilesV2().stream()
 //                .peek(da -> logger.info(" see {}", da))
                 .filter(da -> rootElementName.equals(da.name()))
                 .findFirst()
                 .orElse(null);
-        if (oldArchive != null
+        if (oldRootFile != null
                 && prevBackupData.gpgKeyId().equals(gpgInfo.recipientKeyId())) {
-            // TODO: bind crypts and archives tighter in the backup data
-            int i = prevBackupData.archivesV2().indexOf(oldArchive);
-            DataCryptV2 oldCrypt = prevBackupData.cryptsV2().get(i);
 
             logger.info("Existing backup has entry for root element {}", rootElementName);
+            DataArchive oldArchive = oldRootFile.archive();
             if (oldArchive.size() == rootElementEntry.size()
                     && oldArchive.xxh3().equals(rootElementEntry.xxh3())) {
                 logger.info(" - keeping");
-                Path oldSetCryptFile = oldCrypt.file();
+                Path oldSetCryptFile = oldRootFile.crypt().file();
                 Path newSetCryptFile = targetDir.resolve(oldSetCryptFile.getFileName());
                 createHardLink(newSetCryptFile, oldSetCryptFile);
                 outputFiles.add(newSetCryptFile);

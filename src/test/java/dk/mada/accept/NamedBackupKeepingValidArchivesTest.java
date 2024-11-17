@@ -18,7 +18,8 @@ import org.slf4j.LoggerFactory;
 
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.restore.RestoreScriptReader;
-import dk.mada.backup.restore.RestoreScriptReader.DataCryptV2;
+import dk.mada.backup.restore.RestoreScriptReader.DataCrypt;
+import dk.mada.backup.restore.RestoreScriptReader.DataRootFile;
 import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
 import dk.mada.fixture.ExitHandlerFixture.TestFailedWithException;
 import dk.mada.fixture.MakeBackup;
@@ -88,17 +89,24 @@ class NamedBackupKeepingValidArchivesTest {
 
         RestoreScriptData updatedSet = reader.readRestoreScriptData(updatedRestoreScriptFile);
 
-        logger.info("Original: {}", originalSet.cryptsV2());
-        logger.info("Updated: {}", updatedSet.cryptsV2());
-
-        List<DataCryptV2> sharedCrypts = originalSet.cryptsV2().stream()
-                .filter(updatedSet.cryptsV2()::contains)
+        List<DataCrypt> originalCrypts = originalSet.rootFilesV2().stream()
+                .map(DataRootFile::crypt)
                 .toList();
-        List<String> cryptNamesOnlyInOriginalSet = originalSet.cryptsV2().stream()
+        List<DataCrypt> updatedCrypts = updatedSet.rootFilesV2().stream()
+                .map(DataRootFile::crypt)
+                .toList();
+
+        logger.info("Original: {}", originalCrypts);
+        logger.info("Updated: {}", updatedCrypts);
+
+        List<DataCrypt> sharedCrypts = originalCrypts.stream()
+                .filter(updatedCrypts::contains)
+                .toList();
+        List<String> cryptNamesOnlyInOriginalSet = originalCrypts.stream()
                 .filter(c -> !sharedCrypts.contains(c))
                 .map(c -> c.file().getFileName().toString())
                 .toList();
-        List<String> cryptNamesOnlyInUpdatedSet = updatedSet.cryptsV2().stream()
+        List<String> cryptNamesOnlyInUpdatedSet = updatedCrypts.stream()
                 .filter(c -> !sharedCrypts.contains(c))
                 .map(c -> c.file().getFileName().toString())
                 .toList();

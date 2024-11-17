@@ -9,9 +9,10 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dk.mada.backup.restore.DataFormatVersion;
 import dk.mada.backup.restore.RestoreScriptReader;
-import dk.mada.backup.restore.RestoreScriptReader.DataArchiveV2;
-import dk.mada.backup.restore.RestoreScriptReader.DataCryptV2;
-import dk.mada.backup.restore.RestoreScriptReader.DataFileV2;
+import dk.mada.backup.restore.RestoreScriptReader.DataArchive;
+import dk.mada.backup.restore.RestoreScriptReader.DataCrypt;
+import dk.mada.backup.restore.RestoreScriptReader.DataFile;
+import dk.mada.backup.restore.RestoreScriptReader.DataRootFile;
 import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
 import dk.mada.backup.types.GpgId;
 import dk.mada.backup.types.Md5;
@@ -85,25 +86,28 @@ class RestoreScriptReaderTest {
                         )
                         """);
 
-        assertThat(data.cryptsV2())
+        assertThat(data.rootFilesV2())
                 .containsExactly(
-                        new DataCryptV2(124221499L, Xxh3.ofHex("1eb326ca04a97a48"), Md5.ofHex("de275e40fe159cce2b5f198cad71b0d9"),
-                                backupDir.resolve("A-D.crypt")),
-                        new DataCryptV2(69264274L, Xxh3.ofHex("663b0cb7a10aaa62"), Md5.ofHex("9d9576cec753d39605e22e9937816448"),
-                                backupDir.resolve("E-H.crypt")),
-                        new DataCryptV2(140L, Xxh3.ofHex("223b0cb7a10aaa62"), Md5.ofHex("4d9576cec753d39605e22e9937816448"),
-                                backupDir.resolve("info.txt.crypt")));
-        assertThat(data.archivesV2())
-                .containsExactly(
-                        new DataArchiveV2(124164608L, Xxh3.ofHex("2957dcbcb03b43e7"), "A-D", true),
-                        new DataArchiveV2(69231616L, Xxh3.ofHex("9753f3e03054f863"), "E-H", true),
-                        new DataArchiveV2(120L, Xxh3.ofHex("4453f3e03054f863"), "info.txt", false));
+                        new DataRootFile("A-D", true,
+                                new DataCrypt(124221499L, Xxh3.ofHex("1eb326ca04a97a48"), Md5.ofHex("de275e40fe159cce2b5f198cad71b0d9"),
+                                        backupDir.resolve("A-D.crypt")),
+                                new DataArchive(124164608L, Xxh3.ofHex("2957dcbcb03b43e7"))),
+
+                        new DataRootFile("E-H", true,
+                                new DataCrypt(69264274L, Xxh3.ofHex("663b0cb7a10aaa62"), Md5.ofHex("9d9576cec753d39605e22e9937816448"),
+                                        backupDir.resolve("E-H.crypt")),
+                                new DataArchive(69231616L, Xxh3.ofHex("9753f3e03054f863"))),
+
+                        new DataRootFile("info.txt", false,
+                                new DataCrypt(140L, Xxh3.ofHex("223b0cb7a10aaa62"), Md5.ofHex("4d9576cec753d39605e22e9937816448"),
+                                        backupDir.resolve("info.txt.crypt")),
+                                new DataArchive(120L, Xxh3.ofHex("4453f3e03054f863"))));
 
         assertThat(data.filesV2())
                 .contains(
-                        new DataFileV2(1021388L, Xxh3.ofHex("73ac231869538a9d"), "A-D/Abrahams, Tom/Descent - Tom Abrahams.epub"),
-                        new DataFileV2(2155175L, Xxh3.ofHex("3a23e1befbac7319"),
+                        new DataFile(1021388L, Xxh3.ofHex("73ac231869538a9d"), "A-D/Abrahams, Tom/Descent - Tom Abrahams.epub"),
+                        new DataFile(2155175L, Xxh3.ofHex("3a23e1befbac7319"),
                                 "A-D/Anderson, Kevin J./2113 - Stories Inspired by...epub"),
-                        new DataFileV2(100L, Xxh3.ofHex("668e8f28402bbc54"), "info.txt"));
+                        new DataFile(100L, Xxh3.ofHex("668e8f28402bbc54"), "info.txt"));
     }
 }
