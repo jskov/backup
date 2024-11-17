@@ -4,6 +4,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +51,7 @@ public class RestoreScriptReader {
 
     /** Creates new instance. */
     public RestoreScriptReader() {
-        // silence sonarcloud
+        // empty
     }
 
     /**
@@ -59,18 +61,15 @@ public class RestoreScriptReader {
      * @param time              a string describing the backup creation time
      * @param dataFormatVersion the script data format version
      * @param gpgKeyId          the GPG key id used for encryption
-     * @param cryptsV2          a list of V2 crypt entries
-     * @param archivesV2        a list of V2 archive entries
+     * @param rootFilesV2       a list of V2 root file entries
      * @param filesV2           a list of V2 file entries
      */
     public record RestoreScriptData(String version, String time, DataFormatVersion dataFormatVersion, GpgId gpgKeyId,
-            List<DataCryptV2> cryptsV2,
-            List<DataArchiveV2> archivesV2, List<DataFileV2> filesV2) {
+            List<DataRootFile> rootFilesV2, List<DataFile> filesV2) {
 
         /** {@return an empty data instance} */
         public static RestoreScriptData empty() {
             return new RestoreScriptData(UNKNOWN_BACKUP_VERSION, "", DataFormatVersion.VERSION_INVALID, UNKNOWN_GPG_ID, List.of(),
-                    List.of(),
                     List.of());
         }
 
@@ -81,25 +80,34 @@ public class RestoreScriptReader {
     }
 
     /**
+     * V2 information about root file entry.
+     *
+     * @param name        the file name
+     * @param isDirectory true if the root file was a directory
+     * @param crypt       information about the encrypted file
+     * @param archive     information about the archive file
+     */
+    public record DataRootFile(String name, boolean isDirectory, DataCrypt crypt, DataArchive archive) {
+    }
+
+    /**
      * V2 information about an encrypted file.
      *
      * @param size the size of the file
      * @param xxh3 the XXH3 checksum of the file
      * @param md5  the MD5 checksum of the file
-     * @param name the file name
+     * @param file the encrypted file
      */
-    public record DataCryptV2(long size, Xxh3 xxh3, Md5 md5, String name) {
+    public record DataCrypt(long size, Xxh3 xxh3, Md5 md5, Path file) {
     }
 
     /**
      * V2 information about an archive file.
      *
-     * @param size        the size of the file
-     * @param xxh3        the XXH3 checksum of the file
-     * @param name        the file name
-     * @param isDirectory true if the archive contains a directory, false if it contains a root file
+     * @param size the size of the file
+     * @param xxh3 the XXH3 checksum of the file
      */
-    public record DataArchiveV2(long size, Xxh3 xxh3, String name, boolean isDirectory) {
+    public record DataArchive(long size, Xxh3 xxh3) {
     }
 
     /**
@@ -109,7 +117,7 @@ public class RestoreScriptReader {
      * @param xxh3 the XXH3 checksum of the file
      * @param name the file name
      */
-    public record DataFileV2(long size, Xxh3 xxh3, String name) {
+    public record DataFile(long size, Xxh3 xxh3, String name) {
     }
 
     /**
@@ -126,8 +134,9 @@ public class RestoreScriptReader {
         }
 
         try {
+            Path backupSetDir = Objects.requireNonNull(scriptFile.getParent());
             String script = Files.readString(scriptFile);
-            return parseScript(script);
+            return parseScript(backupSetDir, script);
         } catch (Exception e) {
             logger.warn("Failed to read/parse restore script {}", scriptFile, e);
             return RestoreScriptData.empty();
@@ -137,10 +146,11 @@ public class RestoreScriptReader {
     /**
      * Parses an existing restore script, extracting relevant data.
      *
-     * @param script the restore script
+     * @param backupSetDir the backup set directory
+     * @param script       the restore script
      * @return the data from the script
      */
-    public RestoreScriptData parseScript(String script) {
+    public RestoreScriptData parseScript(Path backupSetDir, String script) {
         boolean collectingCrypts = false;
         boolean collectingArchives = false;
         boolean collectingFiles = false;
@@ -191,60 +201,81 @@ public class RestoreScriptReader {
                 collectingArchives = false;
                 collectingFiles = false;
 
-                // files are the last part of the script of interest
+                // when data about files has been collected, bail - nothing more of interest
                 if (!fileLines.isEmpty()) {
                     break;
                 }
             }
         }
 
-        List<DataCryptV2> cryptsV2 = List.of();
-        List<DataArchiveV2> archivesV2 = List.of();
-        List<DataFileV2> filesV2 = List.of();
-        if (dataFormatVersion == DataFormatVersion.VERSION_2) {
-            cryptsV2 = cryptLines.stream()
-                    .map(this::deserializeCryptV2)
-                    .toList();
-            archivesV2 = archiveLines.stream()
-                    .map(this::deserializeArchiveV2)
-                    .toList();
-            filesV2 = fileLines.stream()
-                    .map(this::deserializeFileV2)
-                    .toList();
+        List<DataRootFile> rootFiles = decodeRootFiles(backupSetDir, dataFormatVersion, cryptLines, archiveLines);
+        List<DataFile> files = decodeFiles(dataFormatVersion, fileLines);
+        return new RestoreScriptData(version, time, dataFormatVersion, gpgId, rootFiles, files);
+    }
+
+    private List<DataRootFile> decodeRootFiles(Path backupSetDir, DataFormatVersion dataFormatVersion, List<String> cryptLines,
+            List<String> archiveLines) {
+        if (dataFormatVersion != DataFormatVersion.VERSION_2) {
+            return List.of();
+        }
+        int rootElementCount = cryptLines.size();
+        if (rootElementCount != archiveLines.size()) {
+            throw new IllegalStateException("Expect same number of encrypted files and archives!");
         }
 
-        return new RestoreScriptData(version, time, dataFormatVersion, gpgId, cryptsV2, archivesV2, filesV2);
+        return IntStream.range(0, rootElementCount)
+                .mapToObj(i -> {
+                    DataCrypt dc = deserializeCryptV2(backupSetDir, cryptLines.get(i));
+                    return deserializeArchiveV2(dc, archiveLines.get(i));
+                })
+                .toList();
+    }
+
+    private List<DataFile> decodeFiles(DataFormatVersion dataFormatVersion, List<String> fileLines) {
+        if (dataFormatVersion != DataFormatVersion.VERSION_2) {
+            return List.of();
+        }
+
+        return fileLines.stream()
+                .map(this::deserializeFileV2)
+                .toList();
     }
 
     /**
      * Deserializes V2 crypt line which looks like this: "
      * 124221499,1eb326ca04a97a48,de275e40fe159cce2b5f198cad71b0d9,A-D.crypt"
      *
-     * @param l the line
+     * @param backupSetDir the backup set directory
+     * @param l            the line
      * @return the decrypted data.
      */
-    private DataCryptV2 deserializeCryptV2(String l) {
+    private DataCrypt deserializeCryptV2(Path backupSetDir, String l) {
         logger.trace("See '{}'", l);
         long length = Long.parseLong(l.substring(1, IX_LENGTH_END).trim());
         Xxh3 xxh3 = Xxh3.ofHex(l.substring(IX_XXH3_START, IX_XXH3_END));
         Md5 md5 = Md5.ofHex(l.substring(IX_MD5_START, IX_MD5_END));
         String name = l.substring(IX_CRYPT_NAME_START, l.length() - 1);
-        return new DataCryptV2(length, xxh3, md5, name);
+        return new DataCrypt(length, xxh3, md5, backupSetDir.resolve(name));
     }
 
     /**
-     * Deserializes V2 archive line which looks like this: " 124164608,2957dcbcb03b43e7,./A-D.tar"
+     * Deserializes V2 archive line and uses it to complete a root file description.
      *
-     * @param l the line
-     * @return the decrypted data.
+     * The archive line looks like this: " 124164608,2957dcbcb03b43e7,./A-D.tar"
+     *
+     * @param dc the matching encrypted file data
+     * @param l  the line
+     * @return a root file data entry containing both encrypted and archive information
      */
-    private DataArchiveV2 deserializeArchiveV2(String l) {
+    private DataRootFile deserializeArchiveV2(DataCrypt dc, String l) {
         long length = Long.parseLong(l.substring(1, IX_LENGTH_END).trim());
         Xxh3 xxh3 = Xxh3.ofHex(l.substring(IX_XXH3_START, IX_XXH3_END));
         String name = l.substring(IX_NAME_START, l.length() - 1);
         boolean isDirectory = TarContainerBuilder.Entry.isWrappedFolderName(name);
         name = TarContainerBuilder.Entry.unwrapFolderName(name);
-        return new DataArchiveV2(length, xxh3, name, isDirectory);
+
+        DataArchive da = new DataArchive(length, xxh3);
+        return new DataRootFile(name, isDirectory, dc, da);
     }
 
     /**
@@ -253,10 +284,10 @@ public class RestoreScriptReader {
      * @param l the line
      * @return the decrypted data.
      */
-    private DataFileV2 deserializeFileV2(String l) {
+    private DataFile deserializeFileV2(String l) {
         long length = Long.parseLong(l.substring(1, IX_LENGTH_END).trim());
         Xxh3 xxh3 = Xxh3.ofHex(l.substring(IX_XXH3_START, IX_XXH3_END));
         String name = l.substring(IX_NAME_START, l.length() - 1);
-        return new DataFileV2(length, xxh3, name);
+        return new DataFile(length, xxh3, name);
     }
 }
