@@ -8,6 +8,11 @@ plugins {
     id 'dk.mada.reproducible' version '1.0.2'
 }
 
+interface InjectedExecOps {
+    @Inject //@javax.inject.Inject
+    ExecOperations getExecOps()
+}
+
 group "${groupId}"
 
 repositories {
@@ -26,25 +31,18 @@ ext {
 }
 
 dependencies {
-    implementation 'com.dynatrace.hash4j:hash4j:0.18.0'
-    implementation 'info.picocli:picocli:4.7.6'
-    implementation 'org.slf4j:slf4j-jdk14:2.0.16'
-    implementation 'org.apache.commons:commons-compress:1.27.1'
+    implementation     (libs.compress)
+    implementation     (libs.hash4j)
+    implementation     (libs.picocli)
+    implementation     (libs.slf4j)
 
-    compileOnly    'org.jspecify:jspecify:1.0.0'
+    compileOnly        (libs.jspecify)
 
-    testImplementation  "org.assertj:assertj-core:3.26.3"
-
-    testImplementation  platform('org.junit:junit-bom:5.11.3')
-    testImplementation  'org.junit.jupiter:junit-jupiter'
-    testImplementation  'org.junit.jupiter:junit-jupiter-api'
-    testImplementation  'org.junit.jupiter:junit-jupiter-engine'
-    testImplementation  'org.junit.jupiter:junit-jupiter-params'
-    testImplementation  'org.junit.platform:junit-platform-runner'
-    testImplementation  'org.jspecify:jspecify:1.0.0'
+    testImplementation (libs.bundles.testUnit)
 }
 
-task makeActionsDockerImage() {
+tasks.register('makeActionsDockerImage') {
+    def injected = project.objects.newInstance(InjectedExecOps)
     doFirst {
         copy {
             into "build/actions-docker"
@@ -53,7 +51,7 @@ task makeActionsDockerImage() {
                 include "*.asc"
             }
         }
-         project.exec {
+        injected.execOps.exec {
             commandLine("podman", "build", "-t", "actions-backup", "build/actions-docker")
         }
     }
@@ -68,16 +66,16 @@ java {
     withSourcesJar()
 }
 
-compileJava {
+tasks.named('compileJava').configure {
     options.encoding = 'UTF-8'
     options.compilerArgs << '-parameters'
 }
 
-compileTestJava {
+tasks.named('compileTestJava').configure {
     options.encoding = 'UTF-8'
 }
 
-processResources {
+tasks.named('processResources').configure {
     inputs.property("version", project.version)
     inputs.property("builtOn", builtOn)
 
@@ -89,29 +87,31 @@ processResources {
     }
 }
 
-task prepareActionsGpgTestHome() {
+tasks.register('prepareActionsGpgTestHome') {
+    def injected = project.objects.newInstance(InjectedExecOps)
+
     doFirst {
         project.mkdir(testGpgHome)
-        project.exec {
+        injected.execOps.exec {
             commandLine("chmod", "og-rxw",testGpgHome)
         }
-        project.exec {
+        injected.execOps.exec {
             commandLine("gpg", "--homedir", testGpgHome, "--import", "src/test/data/gpghome/exported-secret-key.asc")
         }
-        project.exec {
+        injected.execOps.exec {
             commandLine("gpg", "--homedir", testGpgHome, "--import-ownertrust", "src/test/data/gpghome/exported-owner-trust.asc")
         }
     }
 }
 
-task makeSuccessMarker() {
+tasks.register('makeSuccessMarker') {
     doFirst {
         project.mkdir("build")
         successMarker.createNewFile()
     }
 }
 
-test {
+tasks.named('test').configure {
     dependsOn(makeSuccessMarker)
     dependsOn(prepareActionsGpgTestHome)
     useJUnitPlatform {
@@ -128,7 +128,7 @@ test {
     }
 }
 
-task acceptTest(type: Test) {
+tasks.register('acceptTest', Test) {
     shouldRunAfter(test)
     dependsOn(makeSuccessMarker)
     dependsOn(prepareActionsGpgTestHome)
@@ -150,7 +150,7 @@ task acceptTest(type: Test) {
     }
 }
 
-tasks.check {
+tasks.named('check').configure {
     dependsOn(acceptTest)
     finalizedBy jacocoTestReport // report is always generated after tests run
     doLast {
@@ -160,16 +160,19 @@ tasks.check {
     }
 }
 
-task preCommit(dependsOn: ['check', 'javadoc'])
+tasks.register('preCommit') {
+    dependsOn('check')
+    dependsOn('javadoc')
+}
 
-jacocoTestReport {
+tasks.named('jacocoTestReport').configure {
     reports {
         xml.required.set(true)
     }
     dependsOn acceptTest // tests are required to run before generating the report
 }
 
-jar {
+tasks.named('jar').configure {
     manifest {
         attributes(
             'Git-Hash' : (System.getenv('BUILD_SOURCEVERSION') ?: "no-version"),
@@ -180,17 +183,20 @@ jar {
     archiveBaseName = "backup"
 }
 
-shadowJar {
+tasks.named('shadowJar').configure {
     archiveClassifier = ""
     archiveFileName = "backup-shadow.jar"
 }
 
-tasks.clean { delete("dist") }
+tasks.named('clean').configure { delete("dist") }
 
-tasks.eclipseClasspath.dependsOn("cleanEclipseClasspath")
+tasks.named('eclipseClasspath').configure {
+    dependsOn('cleanEclipseClasspath')
+}
 
 
-task buildNative(type: Exec, dependsOn: jar) {
+tasks.register('buildNative', Exec) {
+    dependsOn('jar')
     doFirst {
         project.delete("build/backup")
     }
