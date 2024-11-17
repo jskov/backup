@@ -7,9 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.compress.archivers.ArchiveException;
+import org.jspecify.annotations.Nullable;
 
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.cli.CliMain;
+import dk.mada.backup.impl.output.DirectoryDeleter;
 import dk.mada.logging.LoggerConfig;
 
 /**
@@ -22,12 +24,32 @@ public final class MakeBackup {
     /**
      * Create backup from test data.
      *
+     * @param outputType       the output type
+     * @param cleanDestination flag to enable cleaning of the output directory before creating backup
      * @return restore script
      */
     public static Path makeBackup(BackupOutputType outputType, boolean cleanDestination) throws IOException, ArchiveException {
+        return makeBackup(outputType, cleanDestination, null);
+    }
+
+    /**
+     * Create backup from test data.
+     *
+     * @param outputType       the output type
+     * @param cleanDestination flag to enable cleaning of the output directory before creating backup
+     * @param srcModifier      consumer able to modify the src directory before the backup is created
+     * @return restore script
+     */
+    public static Path makeBackup(BackupOutputType outputType, boolean cleanDestination, @Nullable SrcTreeModifier srcModifier)
+            throws IOException, ArchiveException {
         LoggerConfig.loadConfig("/logging-test.properties");
 
         Path srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree");
+
+        if (srcModifier != null) {
+            srcModifier.accept(srcDir);
+        }
+
         Path targetDir = Paths.get("build/backup-dest").toAbsolutePath();
         Path repositoryDir = targetDir.resolve("_repository");
 
@@ -58,5 +80,9 @@ public final class MakeBackup {
         CliMain.main(ExitHandlerFixture.exitForTesting(), args.toArray(new String[args.size()]));
 
         return restoreScript;
+    }
+
+    public interface SrcTreeModifier {
+        void accept(Path srcDir) throws IOException;
     }
 }
