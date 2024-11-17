@@ -2,7 +2,10 @@ package dk.mada.unit.restorescript;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import dk.mada.backup.restore.DataFormatVersion;
 import dk.mada.backup.restore.RestoreScriptReader;
@@ -27,10 +30,12 @@ class RestoreScriptReaderTest {
             """;
     /** The subject under test. */
     private RestoreScriptReader sut = new RestoreScriptReader();
+    @TempDir
+    private Path backupDir;
 
     @Test
     void invalidInputGivesEmpty() {
-        RestoreScriptData data = sut.parseScript("""
+        RestoreScriptData data = sut.parseScript(backupDir, """
                 # not a valid script
                 """);
 
@@ -40,7 +45,7 @@ class RestoreScriptReaderTest {
 
     @Test
     void canReadHeader() {
-        RestoreScriptData data = sut.parseScript("""
+        RestoreScriptData data = sut.parseScript(backupDir, """
                 # @version: 1.2.3
                 # @data_format_version: 1
                 # @gpg_key_id: 7012345678901234567890123456789012345678
@@ -59,7 +64,7 @@ class RestoreScriptReaderTest {
 
     @Test
     void canReadV2Data() {
-        RestoreScriptData data = sut.parseScript(
+        RestoreScriptData data = sut.parseScript(backupDir,
                 HEADER + """
                         crypts=(
                         "  124221499,1eb326ca04a97a48,de275e40fe159cce2b5f198cad71b0d9,A-D.crypt"
@@ -83,11 +88,11 @@ class RestoreScriptReaderTest {
         assertThat(data.cryptsV2())
                 .containsExactly(
                         new DataCryptV2(124221499L, Xxh3.ofHex("1eb326ca04a97a48"), Md5.ofHex("de275e40fe159cce2b5f198cad71b0d9"),
-                                "A-D.crypt"),
+                                backupDir.resolve("A-D.crypt")),
                         new DataCryptV2(69264274L, Xxh3.ofHex("663b0cb7a10aaa62"), Md5.ofHex("9d9576cec753d39605e22e9937816448"),
-                                "E-H.crypt"),
+                                backupDir.resolve("E-H.crypt")),
                         new DataCryptV2(140L, Xxh3.ofHex("223b0cb7a10aaa62"), Md5.ofHex("4d9576cec753d39605e22e9937816448"),
-                                "info.txt.crypt"));
+                                backupDir.resolve("info.txt.crypt")));
         assertThat(data.archivesV2())
                 .containsExactly(
                         new DataArchiveV2(124164608L, Xxh3.ofHex("2957dcbcb03b43e7"), "A-D", true),
