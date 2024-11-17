@@ -24,9 +24,7 @@ repositories {
 
 ext {
     successMarker = project.file("build/all-tests-passed")
-    builtOn = LocalDateTime.now()
-                .atZone(ZoneId.of('Europe/Copenhagen'))
-                .withNano(0)
+    builtOn = LocalDate.now();
     testGpgHome = project.file("build/actions-gpg-home")
 }
 
