@@ -51,7 +51,7 @@ jobs:
         # v4.2.0
         with:
           validate-wrappers: true
-          cache-encryption-key: {{ secrets.GRADLE_ENCRYPTION_KEY }}
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Run tests
         run: ./gradlew --configuration-cache check shadow javadoc sonar -s -Pversion=${BUILD_LABEL//\//_}
