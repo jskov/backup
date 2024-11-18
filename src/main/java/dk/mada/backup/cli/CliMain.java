@@ -104,10 +104,6 @@ public final class CliMain implements Runnable {
     @Option(names = { "-V", "--version" }, versionHelp = true, description = "print version information and exit")
     @SuppressWarnings("UnusedVariable")
     private boolean printVersion;
-    /** Flag to print help. */
-    @Option(names = "--help", description = "print this help and exit", help = true)
-    @SuppressWarnings("UnusedVariable")
-    private boolean printHelp;
     /** Repository location. */
     @Option(names = OPT_REPOSITORY_DIR, description = "repository for restore scripts")
     @Nullable private Path repositoryDir;
