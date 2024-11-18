@@ -8,9 +8,10 @@ plugins {
     id 'dk.mada.reproducible' version '1.0.2'
 }
 
-interface InjectedExecOps {
+interface Injected {
     @Inject //@javax.inject.Inject
     ExecOperations getExecOps()
+    @Inject FileSystemOperations getFs()
 }
 
 group "${groupId}"
@@ -23,9 +24,9 @@ repositories {
 }
 
 ext {
-    successMarker = project.file("build/all-tests-passed")
-    builtOn = LocalDate.now();
-    testGpgHome = project.file("build/actions-gpg-home")
+    successMarker = layout.buildDirectory.file("all-tests-passed").get().getAsFile()
+    builtOn = LocalDate.now().toString();
+    testGpgHome = layout.buildDirectory.dir("actions-gpg-home").get().getAsFile()
 }
 
 dependencies {
@@ -40,7 +41,7 @@ dependencies {
 }
 
 tasks.register('makeActionsDockerImage') {
-    def injected = project.objects.newInstance(InjectedExecOps)
+    def injected = project.objects.newInstance(Injected)
     doFirst {
         copy {
             into "build/actions-docker"
@@ -79,34 +80,36 @@ tasks.named('processResources').configure {
 
     filesMatching("**/backup-version.properties") {
         filter(s -> s
-            .replaceAll("version.*", "version = ${project.version}")
             .replaceAll("builtOn.*", "builtOn = ${builtOn}")
+            .replaceAll("version.*", "version = ${project.version}")
         )
     }
 }
 
 tasks.register('prepareActionsGpgTestHome') {
-    def injected = project.objects.newInstance(InjectedExecOps)
-
+    def injected = project.objects.newInstance(Injected)
+    def gpgHome = testGpgHome
     doFirst {
-        project.mkdir(testGpgHome)
+        gpgHome.mkdirs()
         injected.execOps.exec {
-            commandLine("chmod", "og-rxw",testGpgHome)
+            commandLine("chmod", "og-rxw", gpgHome)
         }
         injected.execOps.exec {
-            commandLine("gpg", "--homedir", testGpgHome, "--import", "src/test/data/gpghome/exported-secret-key.asc")
+            commandLine("gpg", "--homedir", gpgHome, "--import", "src/test/data/gpghome/exported-secret-key.asc")
         }
         injected.execOps.exec {
-            commandLine("gpg", "--homedir", testGpgHome, "--import-ownertrust", "src/test/data/gpghome/exported-owner-trust.asc")
+            commandLine("gpg", "--homedir", gpgHome, "--import-ownertrust", "src/test/data/gpghome/exported-owner-trust.asc")
         }
     }
 }
 
 tasks.register('makeSuccessMarker') {
+    def buildDir = layout.buildDirectory.get().getAsFile()
+    def marker = successMarker
     doFirst {
-        project.mkdir("build")
-        successMarker.createNewFile()
-    }
+        buildDir.mkdirs()
+        marker.createNewFile()
+    } 
 }
 
 tasks.named('test').configure {
