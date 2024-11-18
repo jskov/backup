@@ -51,10 +51,6 @@ public final class OutputByName implements BackupStreamWriter {
     /** The name of the file currently being created. */
     @Nullable private String workingOnFileName;
 
-//    /** The current file being written to. */
-//    @Nullable private OutputStream currentFileStream = null;
-//    /** The GPG stream writing to the file. */
-//    @Nullable private GpgEncryptedOutputStream eos;
     /** The tar container builder. */
     @Nullable private TarContainerBuilder tarBuilder;
 
@@ -99,6 +95,7 @@ public final class OutputByName implements BackupStreamWriter {
     // close current tar archive
     // compare captured checksum with existing backup info
     // iff same, skip encrypt && replace
+    
     private void closeCurrentFileAndEncrypt() throws IOException {
         if (tarBuilder == null || workingOnFileName == null) {
             return;
@@ -112,7 +109,6 @@ public final class OutputByName implements BackupStreamWriter {
         logger.info("Current input count: {}", inMemoryBufferStream.count());
         logger.info("Current input xxh3: {}", inMemoryBufferStream.xxh3());
 
-//        logger.info("GOT: {}", rootElementEntry);
         String rootElementName = rootElementEntry.unwrappedFolderName();
 
         // Find the matching entry in the old backup set (if available)
@@ -121,7 +117,6 @@ public final class OutputByName implements BackupStreamWriter {
         // cannot be used for comparison, because there is time variance
         // in these (even for the same input data).
         DataRootFile oldRootFile = prevBackupData.rootFilesV2().stream()
-//                .peek(da -> logger.info(" see {}", da))
                 .filter(da -> rootElementName.equals(da.name()))
                 .findFirst()
                 .orElse(null);
