@@ -24,8 +24,8 @@ repositories {
 }
 
 ext {
-    successMarker = layout.buildDirectory.file("all-tests-passed").get().getAsFile()
-    testGpgHome = layout.buildDirectory.dir("actions-gpg-home").get().getAsFile()
+    successMarkerProp = layout.buildDirectory.file("all-tests-passed")
+    testGpgHomeProp = layout.buildDirectory.dir("actions-gpg-home")
     builtOn = project.getProviders().provider(() -> LocalDate.now().toString());
     appVersion = project.getProviders().gradleProperty("version")
 }
@@ -91,7 +91,10 @@ tasks.named('processResources').configure {
 
 tasks.register('prepareActionsGpgTestHome') {
     def injected = project.objects.newInstance(Injected)
-    def gpgHome = testGpgHome
+    def gpgHome = testGpgHomeProp.get().getAsFile()
+    
+    inputs.property('gpgHome', gpgHome)
+
     doFirst {
         gpgHome.mkdirs()
         injected.execOps.exec {
@@ -107,15 +110,21 @@ tasks.register('prepareActionsGpgTestHome') {
 }
 
 tasks.register('makeSuccessMarker') {
-    def buildDir = layout.buildDirectory.get().getAsFile()
-    def marker = successMarker
+    def successMarker = successMarkerProp.get().getAsFile()
+    
+    outputs.file(successMarkerProp)
+    
     doFirst {
-        buildDir.mkdirs()
-        marker.createNewFile()
+        successMarker.getParentFile().mkdirs()
+        successMarker.createNewFile()
     } 
 }
 
 tasks.named('test').configure {
+    def successMarker = successMarkerProp.get().getAsFile()
+
+    outputs.file(successMarkerProp)
+
     dependsOn(makeSuccessMarker)
     dependsOn(prepareActionsGpgTestHome)
     useJUnitPlatform {
@@ -133,7 +142,11 @@ tasks.named('test').configure {
 }
 
 tasks.register('acceptTest', Test) {
-    shouldRunAfter(test)
+    def successMarker = successMarkerProp.get().getAsFile()
+
+    outputs.file(successMarkerProp)
+
+    mustRunAfter(test)
     dependsOn(makeSuccessMarker)
     dependsOn(prepareActionsGpgTestHome)
 
@@ -155,6 +168,10 @@ tasks.register('acceptTest', Test) {
 }
 
 tasks.named('check').configure {
+    def successMarker = successMarkerProp.get().getAsFile()
+
+    inputs.file(successMarkerProp)
+
     dependsOn(acceptTest)
     finalizedBy jacocoTestReport // report is always generated after tests run
     doLast {
