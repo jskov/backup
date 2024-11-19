@@ -25,8 +25,9 @@ repositories {
 
 ext {
     successMarker = layout.buildDirectory.file("all-tests-passed").get().getAsFile()
-    builtOn = LocalDate.now().toString();
     testGpgHome = layout.buildDirectory.dir("actions-gpg-home").get().getAsFile()
+    builtOn = project.getProviders().provider(() -> LocalDate.now().toString());
+    appVersion = project.getProviders().gradleProperty("version")
 }
 
 dependencies {
@@ -75,13 +76,15 @@ tasks.named('compileTestJava').configure {
 }
 
 tasks.named('processResources').configure {
-    inputs.property("version", project.version)
-    inputs.property("builtOn", builtOn)
+    def capturedAppVersion = appVersion
+    def capturedBuiltOn = builtOn
+    inputs.property("version", capturedAppVersion)
+    inputs.property("builtOn", capturedBuiltOn)
 
     filesMatching("**/backup-version.properties") {
         filter(s -> s
-            .replaceAll("builtOn.*", "builtOn = ${builtOn}")
-            .replaceAll("version.*", "version = ${project.version}")
+            .replaceAll("version.*", "version = ${capturedAppVersion.get()}")
+            .replaceAll("builtOn.*", "builtOn = ${capturedBuiltOn.get()}")
         )
     }
 }
