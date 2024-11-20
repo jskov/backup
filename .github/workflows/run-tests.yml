@@ -38,12 +38,6 @@ jobs:
         with:
           fetch-depth: 0 # Allows sonar to collect blame information
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@d156388eb19639ec20ade50009f3d199ce1e2808
-        # v4
-        with:
-          validate-wrappers: true
-
       # From https://docs.sonarqube.org/latest/analysis/github-integration/
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
@@ -52,8 +46,15 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@473878a77f1b98e2b5ac4af93489d1656a80a5ed
+        # v4.2.0
+        with:
+          validate-wrappers: true
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+
       - name: Run tests
-        run: ./gradlew check shadow javadoc sonar -s -Pversion=${BUILD_LABEL//\//_}
+        run: ./gradlew --configuration-cache check javadoc sonar shadow -s -Pversion=${BUILD_LABEL//\//_}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
