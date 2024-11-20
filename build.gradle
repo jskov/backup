@@ -24,7 +24,6 @@ repositories {
 }
 
 ext {
-    successMarkerProp = layout.buildDirectory.file("all-tests-passed")
     testGpgHomeProp = layout.buildDirectory.dir("actions-gpg-home")
     builtOn = project.getProviders().provider(() -> LocalDate.now().toString());
     appVersion = project.getProviders().gradleProperty("version")
@@ -109,45 +108,17 @@ tasks.register('prepareActionsGpgTestHome') {
     }
 }
 
-tasks.register('makeSuccessMarker') {
-    def successMarker = successMarkerProp.get().getAsFile()
-    
-    outputs.file(successMarkerProp)
-    
-    doFirst {
-        successMarker.getParentFile().mkdirs()
-        successMarker.createNewFile()
-    } 
-}
-
 tasks.named('test').configure {
-    def successMarker = successMarkerProp.get().getAsFile()
-
-    outputs.file(successMarkerProp)
-
-    dependsOn(makeSuccessMarker)
     dependsOn(prepareActionsGpgTestHome)
     useJUnitPlatform {
         excludeTags "accept"
     }  
-    ignoreFailures = true
 
     testLogging.showStandardStreams = false
-
-    afterTest { td, tr ->
-        if (tr.resultType == org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE) {
-            successMarker.delete()
-        }
-    }
 }
 
 tasks.register('acceptTest', Test) {
-    def successMarker = successMarkerProp.get().getAsFile()
-
-    outputs.file(successMarkerProp)
-
     mustRunAfter(test)
-    dependsOn(makeSuccessMarker)
     dependsOn(prepareActionsGpgTestHome)
 
     testClassesDirs = testing.suites.test.sources.output.classesDirs
@@ -156,29 +127,13 @@ tasks.register('acceptTest', Test) {
     useJUnitPlatform {
         includeTags "accept"
     }
-    ignoreFailures = true
 
     testLogging.showStandardStreams = true
-
-    afterTest { td, tr ->
-        if (tr.resultType == org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE) {
-            successMarker.delete()
-        }
-    }
 }
 
 tasks.named('check').configure {
-    def successMarker = successMarkerProp.get().getAsFile()
-
-    inputs.file(successMarkerProp)
-
     dependsOn(acceptTest)
     finalizedBy jacocoTestReport // report is always generated after tests run
-    doLast {
-        if (!successMarker.exists()) {
-            throw new IllegalStateException("Tests failed")
-        }
-    }
 }
 
 tasks.register('preCommit') {
