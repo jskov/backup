@@ -54,7 +54,7 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Run tests
-        run: ./gradlew --configuration-cache check shadow javadoc sonar -s -Pversion=${BUILD_LABEL//\//_}
+        run: ./gradlew --configuration-cache check javadoc sonar shadow -s -Pversion=${BUILD_LABEL//\//_}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
