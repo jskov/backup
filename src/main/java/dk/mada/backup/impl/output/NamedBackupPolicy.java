@@ -25,7 +25,7 @@ import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
 /**
  * Policy for a output per (named) root-element.
  *
- * Allows making incremental backups easier.
+ * Allows making incremental backups easier (and faster).
  *
  * The new backup is created in three steps:
  *
@@ -134,6 +134,13 @@ public final class NamedBackupPolicy implements BackupPolicy {
         }
     }
 
+    /**
+     * Asserts that an existing backup (if present) is valid.
+     *
+     * Otherwise the new backup set cannot be based on it, and the backup is aborted.
+     *
+     * @return the data about the valid backup set.
+     */
     private RestoreScriptData assertExistingBackupIsValid() {
         Path restoreScript = restoreScript();
         if (!Files.isRegularFile(restoreScript)) {
@@ -163,13 +170,19 @@ public final class NamedBackupPolicy implements BackupPolicy {
         return new RestoreScriptReader().readRestoreScriptData(restoreScript);
     }
 
+    /**
+     * Creates a copy of the old backup set into the folder .old-sets.
+     *
+     * A file is used to mark completion of the copy, so it can be (a) skipped if already done, or (b) retried if not.
+     * 
+     * @param data the old backup set
+     */
     private void createBackupClone(RestoreScriptData data) {
         if (!data.isValid()) {
             return;
         }
 
         // Step 1 - creation of a folder containing the previous backup
-        // TODO: create clone folder, check for marker|delete, clone, set marker
 
         Path oldSetDir = targetDir.resolve(".old-sets").resolve(data.time());
         Path validMarker = oldSetDir.resolve("_valid_old_set");
@@ -185,6 +198,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
                         .filter(Files::isRegularFile)
                         .forEach(origin -> createHardLink(oldSetDir.resolve(origin.getFileName()), origin));
             }
+            Files.createFile(validMarker);
         } catch (IOException e) {
             throw new BackupException("Failed to create old-set copy in " + oldSetDir, e);
         }
@@ -195,23 +209,19 @@ public final class NamedBackupPolicy implements BackupPolicy {
         scriptWriter.write(restoreScriptInDir(newTargetDir));
 
         // Step 3 - move files from .new-set to the backup destination
-        moveNewSetToDist();
-
-        return restoreScript();
-    }
-
-    private void moveNewSetToDist() {
         try (Stream<Path> files = Files.list(newTargetDir)) {
             files.forEach(this::moveNewFileToDist);
             Files.delete(newTargetDir);
         } catch (IOException e) {
             throw new BackupException("Failed to move new-set files to backup destination", e);
         }
+
+        return restoreScript();
     }
 
     private void moveNewFileToDist(Path newFile) {
         Path targetFile = targetDir.resolve(newFile.getFileName());
-        logger.info(" mv {} {}", newFile, targetFile);
+        logger.debug(" mv {} {}", newFile, targetFile);
         try {
             Files.move(newFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
             // Remove the source file, since (java?) move does not do anything if the
