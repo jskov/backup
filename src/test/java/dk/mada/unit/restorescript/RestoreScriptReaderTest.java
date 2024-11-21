@@ -47,12 +47,15 @@ class RestoreScriptReaderTest {
     @Test
     void canReadHeader() {
         RestoreScriptData data = sut.parseScript(backupDir, """
+                # @name: name-is-defined
                 # @version: 1.2.3
                 # @data_format_version: 1
                 # @gpg_key_id: 7012345678901234567890123456789012345678
                 # @time: 2024.10.31-09.02
                 """);
 
+        assertThat(data.name())
+                .isEqualTo("name-is-defined");
         assertThat(data.dataFormatVersion())
                 .isEqualTo(DataFormatVersion.VERSION_1);
         assertThat(data.time())
