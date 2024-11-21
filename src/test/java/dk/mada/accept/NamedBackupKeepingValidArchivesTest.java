@@ -133,12 +133,12 @@ class NamedBackupKeepingValidArchivesTest {
                 .containsExactlyInAnyOrder("dir-a.crypt", "dir-b.crypt", "file-tricky.tar.crypt");
         assertThat(cryptNamesOnlyInUpdatedSet)
                 .containsExactlyInAnyOrder("dir-a.crypt", "extra-dir.crypt", "extra-file.crypt");
-        
+
         // Check that deleted files are removed from the new backup set
         assertThat(updatedSet.location().resolve("dir-b.crypt"))
-            .doesNotExist();
+                .doesNotExist();
         assertThat(updatedSet.location().resolve("file-tricky.tar.crypt"))
-            .doesNotExist();
+                .doesNotExist();
     }
 
     private RestoreScriptData makeNewChangedBackup(RestoreScriptReader reader) throws IOException, ArchiveException {

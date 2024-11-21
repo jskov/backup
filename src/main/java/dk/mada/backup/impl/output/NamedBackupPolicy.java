@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -19,8 +18,8 @@ import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.gpg.GpgEncrypterException;
 import dk.mada.backup.restore.RestoreScriptReader;
-import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
+import dk.mada.backup.restore.RestoreScriptWriter;
 
 /**
  * Policy for a output per (named) root-element.
@@ -209,6 +208,17 @@ public final class NamedBackupPolicy implements BackupPolicy {
         scriptWriter.write(restoreScriptInDir(newTargetDir));
 
         // Step 3 - move files from .new-set to the backup destination
+
+        // First delete all regular files in the target dir
+        try (Stream<Path> files = Files.list(targetDir)) {
+            files
+                    .filter(Files::isRegularFile)
+                    .forEach(this::deleteFile);
+        } catch (IOException e) {
+            throw new BackupException("Failed to delete files in target directory " + targetDir, e);
+        }
+
+        // Then move files up
         try (Stream<Path> files = Files.list(newTargetDir)) {
             files.forEach(this::moveNewFileToDist);
             Files.delete(newTargetDir);
@@ -223,10 +233,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
         Path targetFile = targetDir.resolve(newFile.getFileName());
         logger.debug(" mv {} {}", newFile, targetFile);
         try {
-            Files.move(newFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
-            // Remove the source file, since (java?) move does not do anything if the
-            // two files are hard-linked to the same inode.
-            Files.deleteIfExists(newFile);
+            Files.move(newFile, targetFile);
         } catch (IOException e) {
             throw new BackupException("Failed to move new-set file " + newFile + " to backup destination " + targetFile, e);
         }
@@ -237,6 +244,14 @@ public final class NamedBackupPolicy implements BackupPolicy {
             Files.createLink(link, existing);
         } catch (IOException e) {
             throw new BackupException("Failed to create hard link from " + existing + " to " + link, e);
+        }
+    }
+
+    private void deleteFile(Path file) {
+        try {
+            Files.delete(file);
+        } catch (IOException e) {
+            throw new BackupException("Failed to create delete file " + file, e);
         }
     }
 
