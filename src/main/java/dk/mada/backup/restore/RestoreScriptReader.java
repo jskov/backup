@@ -2,6 +2,7 @@ package dk.mada.backup.restore;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -36,6 +37,8 @@ public class RestoreScriptReader {
     private static final int IX_MD5_END = 62;
     /** Data line MD5 index start. */
     private static final int IX_MD5_START = 30;
+    /** Marker prefix for backup set name. */
+    private static final String BACKUP_NAME_PREFIX = "# @name: ";
     /** Marker prefix for backup script version. */
     private static final String BACKUP_VERSION_PREFIX = "# @version: ";
     /** Marker prefix for data format version. */
@@ -57,6 +60,8 @@ public class RestoreScriptReader {
     /**
      * Data extracted from an existing restore script.
      *
+     * @param name              the name of the set (and thus the name of the restore file)
+     * @param location          the location of the backup set
      * @param version           the backup application version
      * @param time              a string describing the backup creation time
      * @param dataFormatVersion the script data format version
@@ -64,12 +69,18 @@ public class RestoreScriptReader {
      * @param rootFilesV2       a list of V2 root file entries
      * @param filesV2           a list of V2 file entries
      */
-    public record RestoreScriptData(String version, String time, DataFormatVersion dataFormatVersion, GpgId gpgKeyId,
+    public record RestoreScriptData(String name, Path location, String version, String time, DataFormatVersion dataFormatVersion,
+            GpgId gpgKeyId,
             List<DataRootFile> rootFilesV2, List<DataFile> filesV2) {
 
         /** {@return an empty data instance} */
         public static RestoreScriptData empty() {
-            return new RestoreScriptData(UNKNOWN_BACKUP_VERSION, "", DataFormatVersion.VERSION_INVALID, UNKNOWN_GPG_ID, List.of(),
+            // Provide a dummy non-existing dir as location in case
+            // it is ever tried accessed/deleted.
+            Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"));
+            Path nonExistingSetDir = tmpDir.resolve("empty-backup-set");
+            return new RestoreScriptData("empty-set", nonExistingSetDir, UNKNOWN_BACKUP_VERSION, "", DataFormatVersion.VERSION_INVALID,
+                    UNKNOWN_GPG_ID, List.of(),
                     List.of());
         }
 
@@ -157,6 +168,7 @@ public class RestoreScriptReader {
         List<String> cryptLines = new ArrayList<>();
         List<String> archiveLines = new ArrayList<>();
         List<String> fileLines = new ArrayList<>();
+        String name = "unknown";
         String version = UNKNOWN_BACKUP_VERSION;
         GpgId gpgId = UNKNOWN_GPG_ID;
         String time = "";
@@ -164,6 +176,9 @@ public class RestoreScriptReader {
 
         List<String> lines = script.lines().toList();
         for (String l : lines) {
+            if (l.startsWith(BACKUP_NAME_PREFIX)) {
+                name = l.substring(BACKUP_NAME_PREFIX.length()).trim();
+            }
             if (l.startsWith(BACKUP_VERSION_PREFIX)) {
                 version = l.substring(BACKUP_VERSION_PREFIX.length()).trim();
             }
@@ -210,7 +225,7 @@ public class RestoreScriptReader {
 
         List<DataRootFile> rootFiles = decodeRootFiles(backupSetDir, dataFormatVersion, cryptLines, archiveLines);
         List<DataFile> files = decodeFiles(dataFormatVersion, fileLines);
-        return new RestoreScriptData(version, time, dataFormatVersion, gpgId, rootFiles, files);
+        return new RestoreScriptData(name, backupSetDir, version, time, dataFormatVersion, gpgId, rootFiles, files);
     }
 
     private List<DataRootFile> decodeRootFiles(Path backupSetDir, DataFormatVersion dataFormatVersion, List<String> cryptLines,

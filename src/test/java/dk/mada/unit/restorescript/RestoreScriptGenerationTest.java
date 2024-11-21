@@ -30,8 +30,8 @@ class RestoreScriptGenerationTest {
      */
     @Test
     void allThreeFileInfoBlocksAreFilled() throws IOException {
-
         Map<VariableName, String> vars = Map.of(
+                VariableName.BACKUP_NAME, "some-name",
                 VariableName.VERSION, "1.2.7");
 
         List<BackupElement> crypts = toBackupElements("backup.tar");
@@ -53,6 +53,7 @@ class RestoreScriptGenerationTest {
         String fullText = String.join("\n", lines);
         assertThat(fullText)
                 .contains("made with backup version 1.2.7",
+                        "@name: some-name",
                         "@version: 1.2.7",
                         "@data_format_version: 2" // this one matching the writer static
                 );
