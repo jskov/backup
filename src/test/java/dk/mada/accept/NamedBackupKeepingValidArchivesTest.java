@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.mada.backup.api.BackupOutputType;
+import dk.mada.backup.impl.output.DirectoryDeleter;
 import dk.mada.backup.restore.RestoreScriptReader;
 import dk.mada.backup.restore.RestoreScriptReader.DataCrypt;
 import dk.mada.backup.restore.RestoreScriptReader.DataRootFile;
@@ -126,11 +127,18 @@ class NamedBackupKeepingValidArchivesTest {
                 .map(c -> c.file().getFileName().toString())
                 .toList();
 
+        // Note that dir-a appears in both sets - but with different content
         logger.info("Matching crypts: {}", sharedCrypts);
         assertThat(cryptNamesOnlyInOriginalSet)
-                .containsExactlyInAnyOrder("dir-a.crypt", "file-tricky.tar.crypt");
+                .containsExactlyInAnyOrder("dir-a.crypt", "dir-b.crypt", "file-tricky.tar.crypt");
         assertThat(cryptNamesOnlyInUpdatedSet)
                 .containsExactlyInAnyOrder("dir-a.crypt", "extra-dir.crypt", "extra-file.crypt");
+        
+        // Check that deleted files are removed from the new backup set
+        assertThat(updatedSet.location().resolve("dir-b.crypt"))
+            .doesNotExist();
+        assertThat(updatedSet.location().resolve("file-tricky.tar.crypt"))
+            .doesNotExist();
     }
 
     private RestoreScriptData makeNewChangedBackup(RestoreScriptReader reader) throws IOException, ArchiveException {
@@ -143,11 +151,14 @@ class NamedBackupKeepingValidArchivesTest {
             Files.createDirectories(extraDir);
             Files.createFile(extraDir.resolve("dummy-file"));
 
-            Path existingDir = srcDir.resolve("dir-a");
-            Files.createFile(existingDir.resolve("new-a-file"));
+            Path changedDir = srcDir.resolve("dir-a");
+            Files.createFile(changedDir.resolve("new-a-file"));
 
-            Path existingFile = srcDir.resolve("file-tricky.tar");
-            Files.delete(existingFile);
+            Path deletedFile = srcDir.resolve("file-tricky.tar");
+            Files.delete(deletedFile);
+
+            Path deletedDir = srcDir.resolve("dir-b");
+            DirectoryDeleter.delete(deletedDir);
         });
 
         return reader.readRestoreScriptData(updatedRestoreScriptFile);
