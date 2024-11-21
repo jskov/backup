@@ -24,15 +24,16 @@ import dk.mada.fixture.MakeRestore;
  * Makes a backup, runs multiple checks on the restore of this backup.
  */
 @Tag("accept")
-class BackupVerificationNumberedTest {
+class BackupVerificationNamedTest {
     /** Restore script for created backup. */
     private static Path restoreScript;
-    private static Path backupDestDir;
+    /** Backup destination folder. */
+    private static Path backupDestination;
 
     @BeforeAll
     static void makeBackup() throws IOException, ArchiveException {
-        restoreScript = MakeBackup.makeBackup(BackupOutputType.NUMBERED, true);
-        backupDestDir = Objects.requireNonNull(restoreScript.getParent());
+        restoreScript = MakeBackup.makeBackup(BackupOutputType.NAMED, true);
+        backupDestination = Objects.requireNonNull(restoreScript.getParent(), "No parent for restore script?!");
     }
 
     /**
@@ -45,7 +46,19 @@ class BackupVerificationNumberedTest {
         assertThat(res.exitValue())
                 .isZero();
         assertThat(res.output())
-                .contains("(1/1) test-01.crypt... ok");
+                .contains("(1/12) dir-a.crypt... ok")
+                .contains("(2/12) dir-b.crypt... ok")
+                .contains("(3/12) dir-c.crypt... ok")
+                .contains("(4/12) dir-d_with_space.crypt... ok")
+                .contains("(5/12) dir-deep.crypt... ok")
+                .contains("(6/12) dir-e.crypt... ok")
+                .contains(
+                        "(7/12) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.crypt... ok")
+                .contains("(8/12) dir-m-with-_brackets_-and-_parens_-dir.crypt... ok")
+                .contains("(9/12) dir-tricky.tar.crypt... ok")
+                .contains("(10/12) file-root1.bin.crypt... ok")
+                .contains("(11/12) file-root2_with_space.bin.crypt... ok")
+                .contains("(12/12) file-tricky.tar.crypt... ok");
     }
 
     /**
@@ -58,7 +71,7 @@ class BackupVerificationNumberedTest {
         assertThat(res.exitValue())
                 .isZero();
         assertThat(res.output())
-                .contains("test-01.crypt");
+                .contains("dir-a.crypt");
     }
 
     /**
@@ -98,8 +111,6 @@ class BackupVerificationNumberedTest {
         DirectoryDeleter.delete(restoreDir);
 
         Result res = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
-
-        System.out.println(res.output());
 
         assertThat(res.output())
                 .contains(" - (1/12) dir-a/file-a1.bin... ok",
@@ -142,7 +153,7 @@ class BackupVerificationNumberedTest {
     @Test
     void brokenBackupFilesCanBeFoundByStreamVerifier() throws IOException {
         // replace last 4 chars of checksum with "dead"
-        Path badRestoreScript = backupDestDir.resolve("bad.sh");
+        Path badRestoreScript = backupDestination.resolve("bad.sh");
         String withBrokenChecksum = Files.readAllLines(restoreScript).stream()
                 .map(s -> s.replaceAll("....,dir-b/file-b1.bin", "dead,dir-b/file-b1.bin"))
                 .collect(Collectors.joining("\n"));
@@ -160,7 +171,7 @@ class BackupVerificationNumberedTest {
     @Test
     void restoreScriptIsWrittenToRepository() {
         assertThat(restoreScript)
-                .hasSameTextualContentAs(backupDestDir.resolve("_repository/test.sh"));
+                .hasSameTextualContentAs(backupDestination.resolve("_repository/test.sh"));
     }
 
     private Result runRestoreCmd(String... args) {

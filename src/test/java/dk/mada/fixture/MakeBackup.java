@@ -11,6 +11,7 @@ import org.jspecify.annotations.Nullable;
 
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.cli.CliMain;
+import dk.mada.backup.impl.output.DirectoryDeleter;
 import dk.mada.logging.LoggerConfig;
 
 /**

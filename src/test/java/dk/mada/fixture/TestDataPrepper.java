@@ -11,6 +11,8 @@ import java.util.stream.Stream;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.examples.Expander;
 
+import dk.mada.backup.impl.output.DirectoryDeleter;
+
 /**
  * Prepares test data.
  *

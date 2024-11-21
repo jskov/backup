@@ -222,7 +222,6 @@ public class RestoreScriptReader {
                 }
             }
         }
-
         List<DataRootFile> rootFiles = decodeRootFiles(backupSetDir, dataFormatVersion, cryptLines, archiveLines);
         List<DataFile> files = decodeFiles(dataFormatVersion, fileLines);
         return new RestoreScriptData(name, backupSetDir, version, time, dataFormatVersion, gpgId, rootFiles, files);
@@ -270,6 +269,7 @@ public class RestoreScriptReader {
         Xxh3 xxh3 = Xxh3.ofHex(l.substring(IX_XXH3_START, IX_XXH3_END));
         Md5 md5 = Md5.ofHex(l.substring(IX_MD5_START, IX_MD5_END));
         String name = l.substring(IX_CRYPT_NAME_START, l.length() - 1);
+
         return new DataCrypt(length, xxh3, md5, backupSetDir.resolve(name));
     }
 
