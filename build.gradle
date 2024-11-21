@@ -8,9 +8,10 @@ plugins {
     id 'dk.mada.reproducible' version '1.0.2'
 }
 
-interface InjectedExecOps {
+interface Injected {
     @Inject //@javax.inject.Inject
     ExecOperations getExecOps()
+    @Inject FileSystemOperations getFs()
 }
 
 group "${groupId}"
@@ -23,9 +24,9 @@ repositories {
 }
 
 ext {
-    successMarker = project.file("build/all-tests-passed")
-    builtOn = LocalDate.now();
-    testGpgHome = project.file("build/actions-gpg-home")
+    testGpgHomeProp = layout.buildDirectory.dir("actions-gpg-home")
+    builtOn = project.getProviders().provider(() -> LocalDate.now().toString());
+    appVersion = project.getProviders().gradleProperty("version")
 }
 
 dependencies {
@@ -40,7 +41,7 @@ dependencies {
 }
 
 tasks.register('makeActionsDockerImage') {
-    def injected = project.objects.newInstance(InjectedExecOps)
+    def injected = project.objects.newInstance(Injected)
     doFirst {
         copy {
             into "build/actions-docker"
@@ -74,61 +75,50 @@ tasks.named('compileTestJava').configure {
 }
 
 tasks.named('processResources').configure {
-    inputs.property("version", project.version)
-    inputs.property("builtOn", builtOn)
+    def capturedAppVersion = appVersion
+    def capturedBuiltOn = builtOn
+    inputs.property("version", capturedAppVersion)
+    inputs.property("builtOn", capturedBuiltOn)
 
     filesMatching("**/backup-version.properties") {
         filter(s -> s
-            .replaceAll("version.*", "version = ${project.version}")
-            .replaceAll("builtOn.*", "builtOn = ${builtOn}")
+            .replaceAll("version.*", "version = ${capturedAppVersion.get()}")
+            .replaceAll("builtOn.*", "builtOn = ${capturedBuiltOn.get()}")
         )
     }
 }
 
 tasks.register('prepareActionsGpgTestHome') {
-    def injected = project.objects.newInstance(InjectedExecOps)
+    def injected = project.objects.newInstance(Injected)
+    def gpgHome = testGpgHomeProp.get().getAsFile()
+    
+    inputs.property('gpgHome', gpgHome)
 
     doFirst {
-        project.mkdir(testGpgHome)
+        gpgHome.mkdirs()
         injected.execOps.exec {
-            commandLine("chmod", "og-rxw",testGpgHome)
+            commandLine("chmod", "og-rxw", gpgHome)
         }
         injected.execOps.exec {
-            commandLine("gpg", "--homedir", testGpgHome, "--import", "src/test/data/gpghome/exported-secret-key.asc")
+            commandLine("gpg", "--homedir", gpgHome, "--import", "src/test/data/gpghome/exported-secret-key.asc")
         }
         injected.execOps.exec {
-            commandLine("gpg", "--homedir", testGpgHome, "--import-ownertrust", "src/test/data/gpghome/exported-owner-trust.asc")
+            commandLine("gpg", "--homedir", gpgHome, "--import-ownertrust", "src/test/data/gpghome/exported-owner-trust.asc")
         }
-    }
-}
-
-tasks.register('makeSuccessMarker') {
-    doFirst {
-        project.mkdir("build")
-        successMarker.createNewFile()
     }
 }
 
 tasks.named('test').configure {
-    dependsOn(makeSuccessMarker)
     dependsOn(prepareActionsGpgTestHome)
     useJUnitPlatform {
         excludeTags "accept"
     }  
-    ignoreFailures = true
 
     testLogging.showStandardStreams = false
-
-    afterTest { td, tr ->
-        if (tr.resultType == org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE) {
-            successMarker.delete()
-        }
-    }
 }
 
 tasks.register('acceptTest', Test) {
-    shouldRunAfter(test)
-    dependsOn(makeSuccessMarker)
+    mustRunAfter(test)
     dependsOn(prepareActionsGpgTestHome)
 
     testClassesDirs = testing.suites.test.sources.output.classesDirs
@@ -137,25 +127,13 @@ tasks.register('acceptTest', Test) {
     useJUnitPlatform {
         includeTags "accept"
     }
-    ignoreFailures = true
 
     testLogging.showStandardStreams = true
-
-    afterTest { td, tr ->
-        if (tr.resultType == org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE) {
-            successMarker.delete()
-        }
-    }
 }
 
 tasks.named('check').configure {
     dependsOn(acceptTest)
     finalizedBy jacocoTestReport // report is always generated after tests run
-    doLast {
-        if (!successMarker.exists()) {
-            throw new IllegalStateException("Tests failed")
-        }
-    }
 }
 
 tasks.register('preCommit') {
