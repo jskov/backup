@@ -27,8 +27,7 @@ import dk.mada.backup.restore.RestoreScriptReader.DataRootFile;
 import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
 
 /**
- * Write backup into separate files. Each file is an encrypted archive of a
- * root file from the source tree.
+ * Write backup into separate files. Each file is an encrypted archive of a root file from the source tree.
  */
 public final class OutputByName implements BackupStreamWriter {
     private static final Logger logger = LoggerFactory.getLogger(OutputByName.class);
@@ -95,7 +94,7 @@ public final class OutputByName implements BackupStreamWriter {
     // close current tar archive
     // compare captured checksum with existing backup info
     // iff same, skip encrypt && replace
-    
+
     private void closeCurrentFileAndEncrypt() throws IOException {
         if (tarBuilder == null || workingOnFileName == null) {
             return;
