@@ -6,6 +6,8 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -28,11 +30,19 @@ import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
 
 /**
  * Write backup into separate files. Each file is an encrypted archive of a root file from the source tree.
+ *
+ * The root file is archived and the archive's checksum is compared to the matching archive file from the previous
+ * backup set (if available). If the archive files match, the encryption is skipped (and the encrypted file from the
+ * previous set is used).
+ *
+ * The archive is built in memory, so size is limited.
  */
 public final class OutputByName implements BackupStreamWriter {
     private static final Logger logger = LoggerFactory.getLogger(OutputByName.class);
     /** Characters allowed in crypt file names. */
     private static final Pattern ALLOWED_FS_CHARS = Pattern.compile("[a-zA-Z0-9æøåÆØÅ.-]");
+    /** The maximal container size. Limited by InternalBufferStream implementation. */
+    private static final int MAX_CONTAINER_SIZE = 200 * 1024 * 1024;
 
     /** Accruing list of files created from the stream. */
     private final List<Path> outputFiles = new ArrayList<>();
@@ -53,6 +63,13 @@ public final class OutputByName implements BackupStreamWriter {
     /** The tar container builder. */
     @Nullable private TarContainerBuilder tarBuilder;
 
+    /** Total amount of time spent encrypting data. */
+    private Duration totalEncryptionTime = Duration.ZERO;
+    /** Total amount of reading data into tar archive. */
+    private Duration totalTarTime = Duration.ZERO;
+    /** Start time for current tar creation. */
+    private Instant tarCollectionStart = Instant.EPOCH;
+
     /**
      * Construct new instance.
      *
@@ -65,8 +82,7 @@ public final class OutputByName implements BackupStreamWriter {
         this.gpgInfo = gpgInfo;
         this.prevBackupData = prevBackupData;
 
-        int TODO_maxContainerSize = 200 * 1024 * 1024;
-        inMemoryBufferStream = new InternalBufferStream(TODO_maxContainerSize);
+        inMemoryBufferStream = new InternalBufferStream(MAX_CONTAINER_SIZE);
     }
 
     @Override
@@ -77,23 +93,9 @@ public final class OutputByName implements BackupStreamWriter {
         workingOnFileName = name;
 
         tarBuilder = new TarContainerBuilder(inMemoryBufferStream);
+        tarCollectionStart = Instant.now();
         return tarBuilder;
     }
-
-    // XXXX: next
-
-    // $ rm -rf /tmp/xx ; ./backup-t --skip-verify /opt/ebooks /tmp/xx
-    // real 0m16,599s
-    // user 0m18,932s
-    // sys 0m2,673s
-
-    // FIXME:NEXT: test writing tar just to internal buffer and see what speed change there is - if any
-
-    // TODO: javadoc
-    // TODO:
-    // close current tar archive
-    // compare captured checksum with existing backup info
-    // iff same, skip encrypt && replace
 
     private void closeCurrentFileAndEncrypt() throws IOException {
         if (tarBuilder == null || workingOnFileName == null) {
@@ -103,6 +105,9 @@ public final class OutputByName implements BackupStreamWriter {
         tarBuilder.close();
         Entry rootElementEntry = tarBuilder.firstEntry();
         tarBuilder = null;
+
+        Duration tarTime = Duration.between(tarCollectionStart, Instant.now());
+        totalTarTime = totalTarTime.plus(tarTime);
 
         logger.info("Relative for {}", workingOnFileName);
         logger.info("Current input count: {}", inMemoryBufferStream.count());
@@ -137,12 +142,14 @@ public final class OutputByName implements BackupStreamWriter {
 
         logger.info("No prior data for root element {}", rootElementName);
 
-        logger.info("------- Crypting archive to {}", workingOnFileName);
-
+        Instant start = Instant.now();
         try (OutputStream output = openNextFile(workingOnFileName);
                 var eos = new GpgEncryptedOutputStream(output, gpgInfo)) {
             inMemoryBufferStream.writeTo(eos);
         }
+        Duration time = Duration.between(start, Instant.now());
+        logger.info("------- Crypted archive to {} in {}", workingOnFileName, time);
+        totalEncryptionTime = totalEncryptionTime.plus(time);
     }
 
     @Override
@@ -154,6 +161,9 @@ public final class OutputByName implements BackupStreamWriter {
                 .toList();
 
         outputFilesFuture.complete(fileInfos);
+
+        logger.info("Tar archiving time total: {}", totalTarTime);
+        logger.info("Encryption time total: {}", totalEncryptionTime);
     }
 
     @Override
@@ -163,9 +173,6 @@ public final class OutputByName implements BackupStreamWriter {
 
     /**
      * Prepare for streaming into the next encrypted file.
-     *
-     * FIXME: The data is written to a temporary file (in memory?) and only copied to the target iff: o target is missing o
-     * target would be changed
      *
      * Get expected target checksum from target restore file. o file hash o hash of content filenames + file contents
      *
@@ -184,8 +191,6 @@ public final class OutputByName implements BackupStreamWriter {
         }
 
         outputFiles.add(outputFile);
-
-        logger.debug("OPENING {}", outputFile);
 
         OutputStream fileOutput = Files.newOutputStream(outputFile, StandardOpenOption.CREATE_NEW,
                 StandardOpenOption.WRITE);
