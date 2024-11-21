@@ -173,7 +173,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
      * Creates a copy of the old backup set into the folder .old-sets.
      *
      * A file is used to mark completion of the copy, so it can be (a) skipped if already done, or (b) retried if not.
-     * 
+     *
      * @param data the old backup set
      */
     private void createBackupClone(RestoreScriptData data) {
