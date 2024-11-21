@@ -78,7 +78,7 @@ class BackupVerificationNamedTest {
      * Tests that the contained archives can be decrypted and verified.
      */
     @Test
-    void backupArchivesCanBeRestored() throws IOException {
+    void backupArchivesCanBeRestored() {
         Path restoreDir = Paths.get("build/backup-restored");
         DirectoryDeleter.delete(restoreDir);
 
@@ -106,7 +106,7 @@ class BackupVerificationNamedTest {
      * Tests that the full backup can be decrypted and verified.
      */
     @Test
-    void backupFilesCanBeRestored() throws IOException {
+    void backupFilesCanBeRestored() {
         Path restoreDir = Paths.get("build/backup-restored");
         DirectoryDeleter.delete(restoreDir);
 
