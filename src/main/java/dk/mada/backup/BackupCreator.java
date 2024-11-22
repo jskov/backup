@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import dk.mada.backup.cli.HumanByteCount;
 import dk.mada.backup.impl.output.BackupPolicy;
 import dk.mada.backup.impl.output.BackupStreamWriter;
-import dk.mada.backup.impl.output.InternalBufferStream;
+import dk.mada.backup.impl.output.MemorySegmentOutputStream;
 import dk.mada.backup.impl.output.TarContainerBuilder;
 import dk.mada.backup.impl.output.TarContainerBuilder.Entry;
 import dk.mada.backup.restore.RestoreScriptWriter;
@@ -38,7 +38,7 @@ public class BackupCreator {
     /** Total size of the files in the backup (does not include directory sizes). */
     private long totalInputSize;
     /** The internal buffer used for archiving root directories. */
-    private final InternalBufferStream dirPackBuffer;
+    private final MemorySegmentOutputStream dirPackBuffer;
 
     /**
      * Creates a new instance.
@@ -48,7 +48,7 @@ public class BackupCreator {
     public BackupCreator(BackupPolicy policy) {
         this.policy = policy;
 
-        dirPackBuffer = new InternalBufferStream(policy.limits().maxRootDirectorySize());
+        dirPackBuffer = new MemorySegmentOutputStream(policy.limits().maxRootDirectorySize());
     }
 
     /**

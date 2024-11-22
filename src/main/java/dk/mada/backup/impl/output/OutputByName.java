@@ -56,7 +56,7 @@ public final class OutputByName implements BackupStreamWriter {
     /** Data about the previous backup. */
     private final RestoreScriptData prevBackupData;
     /** Memory buffer holding each backup file as it is created. */
-    private final InternalBufferStream inMemoryBufferStream;
+    private final MemorySegmentOutputStream inMemoryBufferStream;
     /** The name of the file currently being created. */
     @Nullable private String workingOnFileName;
 
@@ -82,7 +82,7 @@ public final class OutputByName implements BackupStreamWriter {
         this.gpgInfo = gpgInfo;
         this.prevBackupData = prevBackupData;
 
-        inMemoryBufferStream = new InternalBufferStream(MAX_CONTAINER_SIZE);
+        inMemoryBufferStream = new MemorySegmentOutputStream(MAX_CONTAINER_SIZE);
     }
 
     @Override
