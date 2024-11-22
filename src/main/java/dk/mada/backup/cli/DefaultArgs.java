@@ -37,10 +37,7 @@ public final class DefaultArgs implements IDefaultValueProvider {
         if (isNamedOption(arg, CliMain.OPT_NUMBERED_SPLIT_SIZE)) {
             return "1g";
         }
-        if (isNamedOption(arg, CliMain.OPT_MAX_CONTAINER_SIZE)) {
-            return "500m";
-        }
-        if (isNamedOption(arg, CliMain.OPT_MAX_ROOT_DIR_SIZE)) {
+        if (isNamedOption(arg, CliMain.OPT_MAX_ROOT_ELEMENT_SIZE)) {
             return "200m";
         }
         if (isNamedOption(arg, CliMain.OPT_REPOSITORY_DIR)) {

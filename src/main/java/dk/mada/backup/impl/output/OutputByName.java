@@ -41,8 +41,6 @@ public final class OutputByName implements BackupStreamWriter {
     private static final Logger logger = LoggerFactory.getLogger(OutputByName.class);
     /** Characters allowed in crypt file names. */
     private static final Pattern ALLOWED_FS_CHARS = Pattern.compile("[a-zA-Z0-9æøåÆØÅ.-]");
-    /** The maximal container size. Limited by InternalBufferStream implementation. */
-    private static final int MAX_CONTAINER_SIZE = 200 * 1024 * 1024;
 
     /** Accruing list of files created from the stream. */
     private final List<Path> outputFiles = new ArrayList<>();
@@ -73,16 +71,17 @@ public final class OutputByName implements BackupStreamWriter {
     /**
      * Construct new instance.
      *
-     * @param prevBackupData data about the previous backup
-     * @param targetDir      the target directory of the new backup
-     * @param gpgInfo        the GPG information
+     * @param maxRootElementSize the maximal size of an archived root element
+     * @param prevBackupData     data about the previous backup
+     * @param targetDir          the target directory of the new backup
+     * @param gpgInfo            the GPG information
      */
-    public OutputByName(RestoreScriptData prevBackupData, Path targetDir, GpgStreamInfo gpgInfo) {
+    public OutputByName(long maxRootElementSize, RestoreScriptData prevBackupData, Path targetDir, GpgStreamInfo gpgInfo) {
         this.targetDir = targetDir;
         this.gpgInfo = gpgInfo;
         this.prevBackupData = prevBackupData;
 
-        inMemoryBufferStream = new MemorySegmentOutputStream(MAX_CONTAINER_SIZE);
+        inMemoryBufferStream = new MemorySegmentOutputStream(maxRootElementSize);
     }
 
     @Override

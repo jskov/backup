@@ -44,9 +44,7 @@ public final class CliMain implements Runnable {
     /** Name of option for numbered file split size. */
     public static final String OPT_NUMBERED_SPLIT_SIZE = "--numbered-split-size";
     /** Name of option for max root directory size. */
-    public static final String OPT_MAX_ROOT_DIR_SIZE = "--max-root-dir-size";
-    /** Name of option for max container size. */
-    public static final String OPT_MAX_CONTAINER_SIZE = "--max-container-size";
+    public static final String OPT_MAX_ROOT_ELEMENT_SIZE = "--max-root-element-size";
     /** Name of option for GPG recipient identity. */
     public static final String OPT_RECIPIENT = "-r";
     /** Name of option for repository directory. */
@@ -86,20 +84,12 @@ public final class CliMain implements Runnable {
     private long numberedBackupSplitSize;
     /** Max root directory size. */
     @Option(
-            names = OPT_MAX_ROOT_DIR_SIZE,
+            names = OPT_MAX_ROOT_ELEMENT_SIZE,
             converter = HumanSizeInputConverter.class,
             description = "max root directory size",
             showDefaultValue = Visibility.ALWAYS,
             paramLabel = "ROOT-DIR-SIZE")
     private long maxRootDirSize;
-    /** Max container size. */
-    @Option(
-            names = OPT_MAX_CONTAINER_SIZE,
-            converter = HumanSizeInputConverter.class,
-            description = "max container size",
-            showDefaultValue = Visibility.ALWAYS,
-            paramLabel = "CONTAINER-SIZE")
-    private long maxContainerSize;
     /** Flag to print version. */
     @Option(names = { "-V", "--version" }, versionHelp = true, description = "print version information and exit")
     @SuppressWarnings("UnusedVariable")
@@ -181,7 +171,7 @@ public final class CliMain implements Runnable {
 
         Path repositoryScriptPath = adjustment.targetPath().resolve(backupName + ".sh");
 
-        Limits limits = new BackupArguments.Limits(maxRootDirSize, maxContainerSize, numberedBackupSplitSize);
+        Limits limits = new BackupArguments.Limits(maxRootDirSize, numberedBackupSplitSize);
 
         return new BackupArguments(
                 Objects.requireNonNull(gpgRecipientId, "GPG recipient id null"),

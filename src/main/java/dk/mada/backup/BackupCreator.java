@@ -48,7 +48,7 @@ public class BackupCreator {
     public BackupCreator(BackupPolicy policy) {
         this.policy = policy;
 
-        dirPackBuffer = new MemorySegmentOutputStream(policy.limits().maxRootDirectorySize());
+        dirPackBuffer = new MemorySegmentOutputStream(policy.limits().maxRootElementSize());
     }
 
     /**
