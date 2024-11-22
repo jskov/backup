@@ -17,6 +17,8 @@ import dk.mada.backup.types.Xxh3;
  * In-memory buffer which can be streamed to, backed by a MemorySegement.
  */
 public final class MemorySegmentOutputStream extends OutputStream {
+    /** The memory size. */
+    private final long size;
     /** The memory used for streaming. */
     private final MemorySegment memory;
     /** The number of valid bytes in the buffer. */
@@ -28,19 +30,24 @@ public final class MemorySegmentOutputStream extends OutputStream {
      * @param size the size of the buffer to allocate.
      */
     public MemorySegmentOutputStream(long size) {
+        this.size = size;
         memory = Arena.global().allocate(size);
     }
 
     @Override
     public synchronized void write(byte[] b, int off, int len) {
-//        MemorySegment ms = MemorySegment.ofArray(b);
-//        MemorySegment.copy(ms, off, memory, count, len);
+        if (count + len > size) {
+            throw new IllegalStateException("Write would breach size of " + size);
+        }
         MemorySegment.copy(b, off, memory, JAVA_BYTE, count, len);
         count = count + len;
     }
 
     @Override
     public synchronized void write(int b) {
+        if (count + 1 > size) {
+            throw new IllegalStateException("Write would breach size of " + size);
+        }
         memory.set(JAVA_BYTE, count, (byte) b);
         count = count + 1;
     }
