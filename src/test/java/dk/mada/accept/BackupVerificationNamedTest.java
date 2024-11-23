@@ -198,7 +198,7 @@ class BackupVerificationNamedTest {
      * @throws IOException if there is an IO failure
      */
     static void assertValidationFailsForFile(Path restoreScript, String breakingElementPath) throws IOException {
-        Path badScriptFile = backupDestination.resolve("bad.sh");
+        Path badScriptFile = Objects.requireNonNull(restoreScript.getParent()).resolve("bad.sh");
         String goodRestoreScript = Files.readString(restoreScript, StandardCharsets.UTF_8);
         String withBrokenChecksum = goodRestoreScript.lines()
                 .map(s -> s.replaceAll(",[0-9a-f]{16},(?=.*" + breakingElementPath + ")", ",deaddeaddeaddead,"))
