@@ -3,6 +3,7 @@ package dk.mada.accept;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -146,23 +147,72 @@ class BackupVerificationNamedTest {
     }
 
     /**
-     * Tests that the a faulty file in the backup set can be found by the streaming verifier.
-     *
-     * Done by breaking the checksum in the restore script before running verify.
+     * Tests that a faulty deep file in the backup set can be found by the streaming verifier.
      */
     @Test
-    void brokenBackupFilesCanBeFoundByStreamVerifier() throws IOException {
+    void brokenDeepFileCanBeFoundByStreamVerifier() throws IOException {
         // replace last 4 chars of checksum with "dead"
-        Path badRestoreScript = backupDestination.resolve("bad.sh");
-        String withBrokenChecksum = Files.readAllLines(restoreScript).stream()
-                .map(s -> s.replaceAll("....,dir-b/file-b1.bin", "dead,dir-b/file-b1.bin"))
-                .collect(Collectors.joining("\n"));
-        Files.writeString(badRestoreScript, withBrokenChecksum);
+        assertValidationFailsForFile(restoreScript, "dir-b/file-b1.bin");
+    }
 
-        Result res = MakeRestore.runRestoreCmd(badRestoreScript, "verify", "-s");
+    /**
+     * Tests that a faulty root-element file in the backup set can be found by the streaming verifier.
+     */
+    @Test
+    void brokenRootFileCanBeFoundByStreamVerifier() throws IOException {
+        // replace last 4 chars of checksum with "dead"
+        assertValidationFailsForFile(restoreScript, "file-root1.bin");
+    }
+
+    /**
+     * Tests that a faulty deep file in the backup set can be found by the streaming verifier.
+     */
+    @Test
+    void DeepFileCanBeFoundByStreamVerifier() throws IOException {
+        // replace last 4 chars of checksum with "dead"
+        assertValidationFailsForFile(restoreScript, "dir-b/file-b1.bin");
+    }
+
+    /**
+     * Tests that a faulty root-element file in the backup set can be found by the streaming verifier.
+     */
+    @Test
+    void missingCryptFileBreaksStreamVerifier() throws IOException {
+        Files.delete(backupDestination.resolve("dir-b.crypt"));
+        Result res = MakeRestore.runRestoreCmd(restoreScript, "verify", "-s");
 
         assertThat(res.output())
-                .contains("Did not find matching checksum for file 'dir-b/file-b1.bin'");
+                .contains("dir-b.crypt: No such file or directory");
+
+        assertThat(res.exitValue())
+                .isNotZero();
+    }
+
+    /**
+     * Breaks one of the XXH3 checksum lines in the script and runs verification.
+     *
+     * Finds a line with an XXH3 checksum and the given path. The checksum is replaced.
+     *
+     * @param restoreScript       the script to break validation in
+     * @param breakingElementPath the path of a backup element to break
+     * @throws IOException if there is an IO failure
+     */
+    static void assertValidationFailsForFile(Path restoreScript, String breakingElementPath) throws IOException {
+        Path badScriptFile = backupDestination.resolve("bad.sh");
+        String goodRestoreScript = Files.readString(restoreScript, StandardCharsets.UTF_8);
+        String withBrokenChecksum = goodRestoreScript.lines()
+                .map(s -> s.replaceAll(",[0-9a-f]{16},(?=.*" + breakingElementPath + ")", ",deaddeaddeaddead,"))
+                .collect(Collectors.joining("\n")) + "\n";
+        Files.writeString(badScriptFile, withBrokenChecksum);
+
+        if (withBrokenChecksum.equals(goodRestoreScript)) {
+            throw new IllegalArgumentException("Bad script matches good script!?!");
+        }
+
+        Result res = MakeRestore.runRestoreCmd(badScriptFile, "verify", "-s");
+
+        assertThat(res.output())
+                .contains("Did not find matching checksum for file '" + breakingElementPath + "'");
 
         assertThat(res.exitValue())
                 .isNotZero();
