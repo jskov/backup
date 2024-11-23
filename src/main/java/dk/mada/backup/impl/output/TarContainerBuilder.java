@@ -107,12 +107,12 @@ public final class TarContainerBuilder implements AutoCloseable {
      * @param folderName the origin folder's name
      * @return the information for the created container entry
      */
-    public Entry addStream(InternalBufferStream buffer, String folderName) {
+    public Entry addStream(MemorySegmentOutputStream buffer, String folderName) {
         String inArchiveName = Entry.wrapFolderName(folderName);
 
         try {
             TarArchiveEntry tae = new TarArchiveEntry(inArchiveName);
-            int size = buffer.size();
+            long size = buffer.count();
             tae.setSize(size);
 
             FileTime zeroTime = FileTime.fromMillis(0);

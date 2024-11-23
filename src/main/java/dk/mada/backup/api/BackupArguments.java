@@ -36,13 +36,11 @@ public record BackupArguments(
     /**
      * Limits for the backup operation.
      *
-     * @param maxRootDirectorySize the maximal root directory size
-     * @param maxContainerSize     the maximal container size
-     * @param numberedSplitSize    the split size for numbered backups
+     * @param maxRootElementSize the maximal archived size of a root element
+     * @param numberedSplitSize  the split size for numbered backups
      */
     public record Limits(
-            long maxRootDirectorySize,
-            long maxContainerSize,
+            long maxRootElementSize,
             long numberedSplitSize) {
     }
 }

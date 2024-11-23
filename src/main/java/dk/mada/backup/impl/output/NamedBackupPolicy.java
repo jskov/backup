@@ -117,7 +117,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
     public BackupStreamWriter writer() throws GpgEncrypterException {
         // Step 2 - create new backup (possibly making use of existing data files)
         RestoreScriptData oldData = Objects.requireNonNull(oldBackupData);
-        return new OutputByName(oldData, newTargetDir, gpgInfo);
+        return new OutputByName(limits().maxRootElementSize(), oldData, newTargetDir, gpgInfo);
     }
 
     @Override

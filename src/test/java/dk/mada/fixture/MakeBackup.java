@@ -67,8 +67,7 @@ public final class MakeBackup {
                 "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME));
 
         args.addAll(List.of(
-                CliMain.OPT_MAX_CONTAINER_SIZE, "20m",
-                CliMain.OPT_MAX_ROOT_DIR_SIZE, "10m"));
+                CliMain.OPT_MAX_ROOT_ELEMENT_SIZE, "10m"));
 
         if (outputType == BackupOutputType.NAMED) {
             args.add("--by-name");

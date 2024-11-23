@@ -46,7 +46,7 @@ class NondestructionTest {
 
     @BeforeEach
     void createBackupApi() {
-        Limits limits = new Limits(MAX_BACKUP_SIZE, MAX_BACKUP_SIZE, MAX_BACKUP_SIZE);
+        Limits limits = new Limits(MAX_BACKUP_SIZE, MAX_BACKUP_SIZE);
         api = new BackupApi(TestCertificateInfo.TEST_GPG_INFO, BackupOutputType.NUMBERED, limits);
     }
 
