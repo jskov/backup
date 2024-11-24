@@ -19,8 +19,13 @@ public final class ExitHandlerFixture {
         return new ExitHandler() {
             @Override
             public void systemExit(int exitCode, @Nullable Throwable cause) {
+                String message = "";
+                if (cause != null) {
+                    message = cause.getMessage();
+                }
                 if (exitCode != 0) {
-                    throw new TestFailedWithException("Backup/restore failed, would system exit: " + exitCode, cause);
+                    throw new TestFailedWithException(
+                            "Backup/restore failed, would system exit: " + exitCode + " with message: " + message, cause);
                 }
             }
 
