@@ -5,6 +5,7 @@
 # @data_format_version: @@DATA_FORMAT_VERSION@@
 # @gpg_key_id: @@BACKUP_KEY_ID@@
 # @time: @@BACKUP_DATE_TIME@@
+# @output_type: @@BACKUP_OUTPUT_TYPE@@
 
 set -e
 

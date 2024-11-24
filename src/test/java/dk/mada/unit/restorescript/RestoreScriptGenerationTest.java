@@ -32,7 +32,8 @@ class RestoreScriptGenerationTest {
     void allThreeFileInfoBlocksAreFilled() throws IOException {
         Map<VariableName, String> vars = Map.of(
                 VariableName.BACKUP_NAME, "some-name",
-                VariableName.VERSION, "1.2.7");
+                VariableName.VERSION, "1.2.7",
+                VariableName.BACKUP_OUTPUT_TYPE, "named");
 
         List<BackupElement> crypts = toBackupElements("backup.tar");
         List<BackupElement> tars = toBackupElements("fun.tar", "sun.tar");
@@ -55,8 +56,8 @@ class RestoreScriptGenerationTest {
                 .contains("made with backup version 1.2.7",
                         "@name: some-name",
                         "@version: 1.2.7",
-                        "@data_format_version: 2" // this one matching the writer static
-                );
+                        "@data_format_version: 2", // this one matching the writer static
+                        "@output_type: named");
     }
 
     @Test

@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.restore.DataFormatVersion;
 import dk.mada.backup.restore.RestoreScriptReader;
 import dk.mada.backup.restore.RestoreScriptReader.DataArchive;
@@ -28,6 +29,7 @@ class RestoreScriptReaderTest {
             # @data_format_version: 2
             # @gpg_key_id: 0123456789012345678901234567890123456789
             # @time: 2024.12.31-17.01
+            # @output_type: pip
             """;
     /** The subject under test. */
     private RestoreScriptReader sut = new RestoreScriptReader();
@@ -52,6 +54,7 @@ class RestoreScriptReaderTest {
                 # @data_format_version: 1
                 # @gpg_key_id: 7012345678901234567890123456789012345678
                 # @time: 2024.10.31-09.02
+                # @output_type: named
                 """);
 
         assertThat(data.name())
@@ -64,6 +67,8 @@ class RestoreScriptReaderTest {
                 .isEqualTo("1.2.3");
         assertThat(data.gpgKeyId())
                 .isEqualTo(new GpgId("7012345678901234567890123456789012345678"));
+        assertThat(data.dataType())
+                .isEqualTo(BackupOutputType.NAMED);
     }
 
     @Test
