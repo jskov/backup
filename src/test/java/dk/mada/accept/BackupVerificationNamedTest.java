@@ -3,6 +3,7 @@ package dk.mada.accept;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -113,18 +114,21 @@ class BackupVerificationNamedTest {
         Result res = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
 
         assertThat(res.output())
-                .contains(" - (1/12) dir-a/file-a1.bin... ok",
-                        " - (2/12) dir-a/file-a2.bin... ok",
-                        " - (3/12) dir-b/file-b1.bin... ok",
-                        " - (4/12) dir-c/file-c-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.bin... ok", // NOSONAR
-                        " - (5/12) dir-d with space/file-d1.bin... ok",
-                        " - (6/12) dir-deep/dir-sub-a/file-deep-a.bin... ok",
-                        " - (7/12) dir-deep/dir-sub-b/file-deep-b.bin... ok",
-                        " - (8/12) dir-e/file-e with space.bin... ok",
-                        " - (9/12) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890/file-long1.bin... ok", // NOSONAR
-                        " - (10/12) dir-m-with-[brackets]-and-(parens)-dir/empty-file... ok",
-                        " - (11/12) dir-m-with-[brackets]-and-(parens)-dir/text-file.txt... ok",
-                        " - (12/12) dir-tricky.tar/file-in-tricky... ok",
+                .contains(" - (1/15) dir-a/file-a1.bin... ok",
+                        " - (2/15) dir-a/file-a2.bin... ok",
+                        " - (3/15) dir-b/file-b1.bin... ok",
+                        " - (4/15) dir-c/file-c-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.bin... ok", // NOSONAR
+                        " - (5/15) dir-d with space/file-d1.bin... ok",
+                        " - (6/15) dir-deep/dir-sub-a/file-deep-a.bin... ok",
+                        " - (7/15) dir-deep/dir-sub-b/file-deep-b.bin... ok",
+                        " - (8/15) dir-e/file-e with space.bin... ok",
+                        " - (9/15) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890/file-long1.bin... ok", // NOSONAR
+                        " - (10/15) dir-m-with-[brackets]-and-(parens)-dir/empty-file... ok",
+                        " - (11/15) dir-m-with-[brackets]-and-(parens)-dir/text-file.txt... ok",
+                        " - (12/15) dir-tricky.tar/file-in-tricky... ok",
+                        " - (13/15) file-root1.bin... ok",
+                        " - (14/15) file-root2 with space.bin... ok",
+                        " - (15/15) file-tricky.tar... ok",
                         "Success!");
 
         assertThat(res.exitValue())
@@ -146,23 +150,72 @@ class BackupVerificationNamedTest {
     }
 
     /**
-     * Tests that the a faulty file in the backup set can be found by the streaming verifier.
-     *
-     * Done by breaking the checksum in the restore script before running verify.
+     * Tests that a faulty deep file in the backup set can be found by the streaming verifier.
      */
     @Test
-    void brokenBackupFilesCanBeFoundByStreamVerifier() throws IOException {
+    void brokenDeepFileCanBeFoundByStreamVerifier() throws IOException {
         // replace last 4 chars of checksum with "dead"
-        Path badRestoreScript = backupDestination.resolve("bad.sh");
-        String withBrokenChecksum = Files.readAllLines(restoreScript).stream()
-                .map(s -> s.replaceAll("....,dir-b/file-b1.bin", "dead,dir-b/file-b1.bin"))
-                .collect(Collectors.joining("\n"));
-        Files.writeString(badRestoreScript, withBrokenChecksum);
+        assertValidationFailsForFile(restoreScript, "dir-b/file-b1.bin");
+    }
 
-        Result res = MakeRestore.runRestoreCmd(badRestoreScript, "verify", "-s");
+    /**
+     * Tests that a faulty root-element file in the backup set can be found by the streaming verifier.
+     */
+    @Test
+    void brokenRootFileCanBeFoundByStreamVerifier() throws IOException {
+        // replace last 4 chars of checksum with "dead"
+        assertValidationFailsForFile(restoreScript, "file-root1.bin");
+    }
+
+    /**
+     * Tests that a faulty deep file in the backup set can be found by the streaming verifier.
+     */
+    @Test
+    void deepFileCanBeFoundByStreamVerifier() throws IOException {
+        // replace last 4 chars of checksum with "dead"
+        assertValidationFailsForFile(restoreScript, "dir-b/file-b1.bin");
+    }
+
+    /**
+     * Tests that a faulty root-element file in the backup set can be found by the streaming verifier.
+     */
+    @Test
+    void missingCryptFileBreaksStreamVerifier() throws IOException {
+        Files.delete(backupDestination.resolve("dir-b.crypt"));
+        Result res = MakeRestore.runRestoreCmd(restoreScript, "verify", "-s");
 
         assertThat(res.output())
-                .contains("Did not find matching checksum for file 'dir-b/file-b1.bin'");
+                .contains("dir-b.crypt: No such file or directory");
+
+        assertThat(res.exitValue())
+                .isNotZero();
+    }
+
+    /**
+     * Breaks one of the XXH3 checksum lines in the script and runs verification.
+     *
+     * Finds a line with an XXH3 checksum and the given path. The checksum is replaced.
+     *
+     * @param script              the script to break validation in
+     * @param breakingElementPath the path of a backup element to break
+     * @throws IOException if there is an IO failure
+     */
+    static void assertValidationFailsForFile(Path script, String breakingElementPath) throws IOException {
+        Path badScriptFile = Objects.requireNonNull(script.getParent()).resolve("bad.sh");
+        String goodRestoreScript = Files.readString(script, StandardCharsets.UTF_8);
+        String withBrokenChecksum = goodRestoreScript.lines()
+                .map(s -> s.replaceAll(",[0-9a-f]{16},(?=.*" + breakingElementPath + ")", ",deaddeaddeaddead,"))
+                .collect(Collectors.joining("\n")) + "\n";
+        Files.writeString(badScriptFile, withBrokenChecksum);
+
+        if (withBrokenChecksum.equals(goodRestoreScript)) {
+            throw new IllegalArgumentException("Bad script matches good script!?!");
+        }
+
+        Result res = MakeRestore.runRestoreCmd(badScriptFile, "verify", "-s");
+
+        assertThat(res.output())
+                .contains("Did not find matching checksum for file '" + breakingElementPath + "'");
 
         assertThat(res.exitValue())
                 .isNotZero();
