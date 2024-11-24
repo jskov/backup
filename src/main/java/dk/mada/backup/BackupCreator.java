@@ -31,8 +31,8 @@ import dk.mada.backup.restore.VariableName;
  */
 public class BackupCreator {
     private static final Logger logger = LoggerFactory.getLogger(BackupCreator.class);
-    /** Information about the directories included in the backup. */
-    private List<DirInfo> fileElements = new ArrayList<>();
+    /** Information about the root elements included in the backup. */
+    private List<BackupElement> rootFileElements = new ArrayList<>();
     /** Backup policy. */
     private final BackupPolicy policy;
     /** Total size of the files in the backup (does not include directory sizes). */
@@ -105,7 +105,7 @@ public class BackupCreator {
                 VariableName.BACKUP_INPUT_SIZE, HumanByteCount.humanReadableByteCount(totalInputSize),
                 VariableName.BACKUP_KEY_ID, policy.gpgInfo().recipientKeyId().id(),
                 VariableName.BACKUP_OUTPUT_TYPE, policy.outputType().name());
-        RestoreScriptWriter restoreWriter = new RestoreScriptWriter(vars, cryptElements, archiveElements, fileElements);
+        RestoreScriptWriter restoreWriter = new RestoreScriptWriter(vars, cryptElements, archiveElements, rootFileElements);
 
         return policy.completeBackup(restoreWriter);
     }
@@ -141,7 +141,9 @@ public class BackupCreator {
     }
 
     private FileInfo processFile(Path rootDir, TarContainerBuilder backupsetTarBuilder, Path file) {
-        return copyToTar(rootDir, file, backupsetTarBuilder);
+        FileInfo fileInfo = copyToTar(rootDir, file, backupsetTarBuilder);
+        rootFileElements.add(fileInfo);
+        return fileInfo;
     }
 
     /**
@@ -159,7 +161,7 @@ public class BackupCreator {
      */
     private FileInfo processDir(Path rootDir, TarContainerBuilder backupsetTarBuilder, Path dir) {
         DirInfo dirInfo = newCreateArchiveFromDir(rootDir, dir);
-        fileElements.add(dirInfo);
+        rootFileElements.add(dirInfo);
 
         Entry entry = backupsetTarBuilder.addStream(dirPackBuffer, dir.getFileName().toString());
         return FileInfo.of(entry.archiveName(), entry.size(), entry.xxh3().value());

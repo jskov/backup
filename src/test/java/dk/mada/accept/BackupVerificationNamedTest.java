@@ -114,18 +114,21 @@ class BackupVerificationNamedTest {
         Result res = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
 
         assertThat(res.output())
-                .contains(" - (1/12) dir-a/file-a1.bin... ok",
-                        " - (2/12) dir-a/file-a2.bin... ok",
-                        " - (3/12) dir-b/file-b1.bin... ok",
-                        " - (4/12) dir-c/file-c-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.bin... ok", // NOSONAR
-                        " - (5/12) dir-d with space/file-d1.bin... ok",
-                        " - (6/12) dir-deep/dir-sub-a/file-deep-a.bin... ok",
-                        " - (7/12) dir-deep/dir-sub-b/file-deep-b.bin... ok",
-                        " - (8/12) dir-e/file-e with space.bin... ok",
-                        " - (9/12) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890/file-long1.bin... ok", // NOSONAR
-                        " - (10/12) dir-m-with-[brackets]-and-(parens)-dir/empty-file... ok",
-                        " - (11/12) dir-m-with-[brackets]-and-(parens)-dir/text-file.txt... ok",
-                        " - (12/12) dir-tricky.tar/file-in-tricky... ok",
+                .contains(" - (1/15) dir-a/file-a1.bin... ok",
+                        " - (2/15) dir-a/file-a2.bin... ok",
+                        " - (3/15) dir-b/file-b1.bin... ok",
+                        " - (4/15) dir-c/file-c-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.bin... ok", // NOSONAR
+                        " - (5/15) dir-d with space/file-d1.bin... ok",
+                        " - (6/15) dir-deep/dir-sub-a/file-deep-a.bin... ok",
+                        " - (7/15) dir-deep/dir-sub-b/file-deep-b.bin... ok",
+                        " - (8/15) dir-e/file-e with space.bin... ok",
+                        " - (9/15) dir-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890/file-long1.bin... ok", // NOSONAR
+                        " - (10/15) dir-m-with-[brackets]-and-(parens)-dir/empty-file... ok",
+                        " - (11/15) dir-m-with-[brackets]-and-(parens)-dir/text-file.txt... ok",
+                        " - (12/15) dir-tricky.tar/file-in-tricky... ok",
+                        " - (13/15) file-root1.bin... ok",
+                        " - (14/15) file-root2 with space.bin... ok",
+                        " - (15/15) file-tricky.tar... ok",
                         "Success!");
 
         assertThat(res.exitValue())
