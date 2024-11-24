@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.impl.output.TarContainerBuilder;
 import dk.mada.backup.types.GpgId;
 import dk.mada.backup.types.Md5;
@@ -41,6 +42,8 @@ public class RestoreScriptReader {
     private static final String BACKUP_NAME_PREFIX = "# @name: ";
     /** Marker prefix for backup script version. */
     private static final String BACKUP_VERSION_PREFIX = "# @version: ";
+    /** Marker prefix for backup output type. */
+    private static final String BACKUP_OUTPUT_TYPE_PREFIX = "# @output_type: ";
     /** Marker prefix for data format version. */
     private static final String DATA_FORMAT_VERSION_PREFIX = "# @data_format_version: ";
     /** Marker prefix for backup key Id used for encryption. */
@@ -65,12 +68,13 @@ public class RestoreScriptReader {
      * @param version           the backup application version
      * @param time              a string describing the backup creation time
      * @param dataFormatVersion the script data format version
+     * @param dataType          the script's data type (i.e. the backup creation output type)
      * @param gpgKeyId          the GPG key id used for encryption
      * @param rootFilesV2       a list of V2 root file entries
      * @param filesV2           a list of V2 file entries
      */
     public record RestoreScriptData(String name, Path location, String version, String time, DataFormatVersion dataFormatVersion,
-            GpgId gpgKeyId,
+            BackupOutputType dataType, GpgId gpgKeyId,
             List<DataRootFile> rootFilesV2, List<DataFile> filesV2) {
 
         /** {@return an empty data instance} */
@@ -80,7 +84,7 @@ public class RestoreScriptReader {
             Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"));
             Path nonExistingSetDir = tmpDir.resolve("empty-backup-set");
             return new RestoreScriptData("empty-set", nonExistingSetDir, UNKNOWN_BACKUP_VERSION, "", DataFormatVersion.VERSION_INVALID,
-                    UNKNOWN_GPG_ID, List.of(),
+                    BackupOutputType.UNKNOWN, UNKNOWN_GPG_ID, List.of(),
                     List.of());
         }
 
@@ -172,6 +176,7 @@ public class RestoreScriptReader {
         String version = UNKNOWN_BACKUP_VERSION;
         GpgId gpgId = UNKNOWN_GPG_ID;
         String time = "";
+        BackupOutputType outputType = BackupOutputType.UNKNOWN;
         DataFormatVersion dataFormatVersion = DataFormatVersion.VERSION_INVALID;
 
         List<String> lines = script.lines().toList();
@@ -187,6 +192,9 @@ public class RestoreScriptReader {
             }
             if (l.startsWith(DATA_FORMAT_VERSION_PREFIX)) {
                 dataFormatVersion = DataFormatVersion.parse(l.substring(DATA_FORMAT_VERSION_PREFIX.length()).trim());
+            }
+            if (l.startsWith(BACKUP_OUTPUT_TYPE_PREFIX)) {
+                outputType = BackupOutputType.from(l.substring(BACKUP_OUTPUT_TYPE_PREFIX.length()).trim());
             }
             if (l.startsWith(GPG_KEY_ID_PREFIX)) {
                 gpgId = new GpgId(l.substring(GPG_KEY_ID_PREFIX.length()).trim());
@@ -224,7 +232,7 @@ public class RestoreScriptReader {
         }
         List<DataRootFile> rootFiles = decodeRootFiles(backupSetDir, dataFormatVersion, cryptLines, archiveLines);
         List<DataFile> files = decodeFiles(dataFormatVersion, fileLines);
-        return new RestoreScriptData(name, backupSetDir, version, time, dataFormatVersion, gpgId, rootFiles, files);
+        return new RestoreScriptData(name, backupSetDir, version, time, dataFormatVersion, outputType, gpgId, rootFiles, files);
     }
 
     private List<DataRootFile> decodeRootFiles(Path backupSetDir, DataFormatVersion dataFormatVersion, List<String> cryptLines,
