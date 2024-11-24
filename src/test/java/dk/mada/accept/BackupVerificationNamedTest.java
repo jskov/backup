@@ -171,7 +171,7 @@ class BackupVerificationNamedTest {
      * Tests that a faulty deep file in the backup set can be found by the streaming verifier.
      */
     @Test
-    void DeepFileCanBeFoundByStreamVerifier() throws IOException {
+    void deepFileCanBeFoundByStreamVerifier() throws IOException {
         // replace last 4 chars of checksum with "dead"
         assertValidationFailsForFile(restoreScript, "dir-b/file-b1.bin");
     }
@@ -196,13 +196,13 @@ class BackupVerificationNamedTest {
      *
      * Finds a line with an XXH3 checksum and the given path. The checksum is replaced.
      *
-     * @param restoreScript       the script to break validation in
+     * @param script              the script to break validation in
      * @param breakingElementPath the path of a backup element to break
      * @throws IOException if there is an IO failure
      */
-    static void assertValidationFailsForFile(Path restoreScript, String breakingElementPath) throws IOException {
-        Path badScriptFile = Objects.requireNonNull(restoreScript.getParent()).resolve("bad.sh");
-        String goodRestoreScript = Files.readString(restoreScript, StandardCharsets.UTF_8);
+    static void assertValidationFailsForFile(Path script, String breakingElementPath) throws IOException {
+        Path badScriptFile = Objects.requireNonNull(script.getParent()).resolve("bad.sh");
+        String goodRestoreScript = Files.readString(script, StandardCharsets.UTF_8);
         String withBrokenChecksum = goodRestoreScript.lines()
                 .map(s -> s.replaceAll(",[0-9a-f]{16},(?=.*" + breakingElementPath + ")", ",deaddeaddeaddead,"))
                 .collect(Collectors.joining("\n")) + "\n";

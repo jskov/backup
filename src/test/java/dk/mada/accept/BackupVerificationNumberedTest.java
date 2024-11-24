@@ -146,7 +146,7 @@ class BackupVerificationNumberedTest {
      * Tests that a faulty deep file in the backup set can be found by the streaming verifier.
      */
     @Test
-    void DeepFileCanBeFoundByStreamVerifier() throws IOException {
+    void deepFileCanBeFoundByStreamVerifier() throws IOException {
         // replace last 4 chars of checksum with "dead"
         BackupVerificationNamedTest.assertValidationFailsForFile(restoreScript, "dir-b/file-b1.bin");
     }

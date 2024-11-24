@@ -17,6 +17,8 @@ import dk.mada.backup.types.Xxh3;
  * In-memory buffer which can be streamed to, backed by a MemorySegement.
  */
 public final class MemorySegmentOutputStream extends OutputStream {
+    /** Default buffer size allocation. */
+    private static final int DEFAULT_BUFFER_ALLOCATION = 16 * 1024;
     /** The memory size. */
     private final long size;
     /** The memory used for streaming. */
@@ -90,7 +92,7 @@ public final class MemorySegmentOutputStream extends OutputStream {
     }
 
     private void consumeSegments(ByteArraySegmentConsumer consumer) throws IOException {
-        consumeSegments(new byte[16 * 1024], consumer);
+        consumeSegments(new byte[DEFAULT_BUFFER_ALLOCATION], consumer);
     }
 
     private synchronized void consumeSegments(byte[] buffer, ByteArraySegmentConsumer consumer) throws IOException {
