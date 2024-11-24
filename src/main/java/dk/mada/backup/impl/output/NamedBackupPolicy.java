@@ -49,7 +49,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
     /** The target directory. The final location of the new backup set. */
     private final Path targetDir;
     /** The working target directory - where the new backup set is being constructed. */
-    private final Path newTargetDir;
+    private final Path newTempTargetDir;
     /** The backup limits. */
     private final Limits limits;
     /** The GPG information. */
@@ -75,7 +75,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
         this.rootDir = rootDir;
         this.targetDir = targetDir;
 
-        newTargetDir = targetDir.resolve(".new-set");
+        newTempTargetDir = targetDir.resolve(".new-set");
     }
 
     @Override
@@ -117,17 +117,17 @@ public final class NamedBackupPolicy implements BackupPolicy {
     public BackupStreamWriter writer() throws GpgEncrypterException {
         // Step 2 - create new backup (possibly making use of existing data files)
         RestoreScriptData oldData = Objects.requireNonNull(oldBackupData);
-        return new OutputByName(limits().maxRootElementSize(), oldData, newTargetDir, gpgInfo);
+        return new OutputByName(limits().maxRootElementSize(), oldData, newTempTargetDir, gpgInfo);
     }
 
     @Override
     public void backupPrep() {
-        DirectoryDeleter.delete(newTargetDir);
+        DirectoryDeleter.delete(newTempTargetDir);
         oldBackupData = assertExistingBackupIsValid();
         createBackupClone(oldBackupData);
 
         try {
-            Files.createDirectories(newTargetDir);
+            Files.createDirectories(newTempTargetDir);
         } catch (IOException e1) {
             throw new IllegalStateException("Failed to create target dir", e1);
         }
@@ -143,7 +143,15 @@ public final class NamedBackupPolicy implements BackupPolicy {
     private RestoreScriptData assertExistingBackupIsValid() {
         Path restoreScript = restoreScript();
         if (!Files.isRegularFile(restoreScript)) {
+            if (Files.isDirectory(targetDir)) {
+                throw new IllegalStateException("No existing restore script, will not write to " + targetDir);
+            }
             return RestoreScriptData.empty();
+        }
+
+        RestoreScriptData data = new RestoreScriptReader().readRestoreScriptData(restoreScript);
+        if (data.dataType() != BackupOutputType.NAMED) {
+            throw new IllegalStateException("Will not create a named backup in folder with existing " + data.dataType() + " backup set");
         }
 
         try {
@@ -205,7 +213,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
 
     @Override
     public Path completeBackup(RestoreScriptWriter scriptWriter) {
-        scriptWriter.write(restoreScriptInDir(newTargetDir));
+        scriptWriter.write(restoreScriptInDir(newTempTargetDir));
 
         // Step 3 - move files from .new-set to the backup destination
 
@@ -219,9 +227,9 @@ public final class NamedBackupPolicy implements BackupPolicy {
         }
 
         // Then move files up
-        try (Stream<Path> files = Files.list(newTargetDir)) {
+        try (Stream<Path> files = Files.list(newTempTargetDir)) {
             files.forEach(this::moveNewFileToDist);
-            Files.delete(newTargetDir);
+            Files.delete(newTempTargetDir);
         } catch (IOException e) {
             throw new BackupException("Failed to move new-set files to backup destination", e);
         }
