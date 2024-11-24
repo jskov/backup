@@ -24,6 +24,7 @@ import dk.mada.backup.restore.RestoreScriptReader.DataRootFile;
 import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
 import dk.mada.fixture.ExitHandlerFixture.TestFailedWithException;
 import dk.mada.fixture.MakeBackup;
+import dk.mada.fixture.TestDataPrepper;
 
 /**
  * Makes a backup, tweaks subset of data folders, makes another backup. Ensures that only the changed data folders are
@@ -47,7 +48,33 @@ class NamedBackupKeepingValidArchivesTest {
         assertThatExceptionOfType(TestFailedWithException.class)
                 .isThrownBy(() -> MakeBackup.makeBackup(BackupOutputType.NAMED, false))
                 .havingCause()
-                .withMessage("Validation of old backup failed");
+                .withMessageContaining("Validation of old backup failed");
+    }
+
+    /**
+     * Tests that an existing target folder with unknown contents is not clobbered.
+     */
+    @Test
+    void cannotWriteToExistingFolder() throws IOException, ArchiveException {
+        MakeBackup.makeBackup(BackupOutputType.NUMBERED, true);
+
+        assertThatExceptionOfType(TestFailedWithException.class)
+                .isThrownBy(() -> MakeBackup.makeBackup(BackupOutputType.NAMED, false))
+                .havingCause()
+                .withMessageContaining("Will not create a named backup in folder with existing");
+    }
+
+    /**
+     * Tests that an existing target folder with unknown contents is not clobbered.
+     */
+    @Test
+    void cannotWriteToExistingNonNamedBakupSet() throws IOException {
+        DirectoryDeleter.delete(TestDataPrepper.BACKUP_DEST_DIR);
+        Files.createDirectories(TestDataPrepper.BACKUP_DEST_DIR);
+        assertThatExceptionOfType(TestFailedWithException.class)
+                .isThrownBy(() -> MakeBackup.makeBackup(BackupOutputType.NAMED, false))
+                .havingCause()
+                .withMessageContaining("No existing restore script, will not write to");
     }
 
     /**

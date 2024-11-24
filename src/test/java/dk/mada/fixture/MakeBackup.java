@@ -2,7 +2,6 @@ package dk.mada.fixture;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +49,7 @@ public final class MakeBackup {
             srcModifier.accept(srcDir);
         }
 
-        Path targetDir = Paths.get("build/backup-dest").toAbsolutePath();
+        Path targetDir = TestDataPrepper.BACKUP_DEST_DIR.toAbsolutePath();
         Path repositoryDir = targetDir.resolve("_repository");
 
         if (cleanDestination) {

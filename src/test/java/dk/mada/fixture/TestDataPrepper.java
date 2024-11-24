@@ -22,6 +22,8 @@ import dk.mada.backup.impl.output.DirectoryDeleter;
 public final class TestDataPrepper {
     /** Time used for data time to ensure stability in tests. */
     private static final FileTime ARBITRARY_KNOWN_TIME = FileTime.fromMillis(1561574109070L);
+    /** The destination directory for test backups. */
+    public static final Path BACKUP_DEST_DIR = Paths.get("build/backup-dest");
 
     private TestDataPrepper() {
     }

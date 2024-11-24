@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import dk.mada.backup.api.BackupApi;
 import dk.mada.backup.api.BackupArguments;
-import dk.mada.backup.api.BackupTargetExistsException;
 import dk.mada.backup.cli.Console;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.restore.RestoreExecutor;
@@ -81,7 +80,7 @@ public class BackupApplication {
             GpgStreamInfo gpgStreamInfo = new GpgStreamInfo(args.gpgRecipientKeyId(), args.envOverrides());
             BackupApi backupApi = new BackupApi(gpgStreamInfo, args.outputType(), args.limits());
             return backupApi.makeBackup(args.name(), args.sourceDir(), args.targetDir());
-        } catch (BackupTargetExistsException e) {
+        } catch (Exception e) {
             logger.info("Failed to create backup: {}", e.getMessage());
             logger.debug("Failure", e);
             exitHandler.systemExit(1, e);
