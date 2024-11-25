@@ -78,6 +78,23 @@ class NamedBackupKeepingValidArchivesTest {
     }
 
     /**
+     * Tests that an existing target folder with a differently named backup is not clobbered.
+     */
+    @Test
+    void cannotWriteToAnotherNamedBackupFolder() throws IOException, ArchiveException {
+        Path rs = MakeBackup.makeBackup(BackupOutputType.NAMED, true);
+
+        String script = Files.readString(rs);
+        String updatedScript = script.replaceAll("# @name:.*", "# @name: another-name");
+        Files.writeString(rs, updatedScript);
+
+        assertThatExceptionOfType(TestFailedWithException.class)
+                .isThrownBy(() -> MakeBackup.makeBackup(BackupOutputType.NAMED, false))
+                .havingCause()
+                .withMessageContaining("Will not clobber existing named backup set 'another-name'");
+    }
+
+    /**
      * Tests that a new updated backup set will contain a clone of the old state in the .prev-sets/ directory.
      */
     @Test
