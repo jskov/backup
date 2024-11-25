@@ -154,6 +154,10 @@ public final class NamedBackupPolicy implements BackupPolicy {
             throw new IllegalStateException("Will not create a named backup in folder with existing " + data.dataType() + " backup set");
         }
 
+        if (!name.equals(data.name())) {
+            throw new IllegalStateException("Will not clobber existing named backup set '" + data.name() + "'");
+        }
+
         try {
             Process p = new ProcessBuilder("bash", restoreScript.toString(), "verify")
                     .directory(targetDir.toFile())
