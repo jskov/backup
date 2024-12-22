@@ -14,7 +14,7 @@ interface Injected {
     @Inject FileSystemOperations getFs()
 }
 
-group "${groupId}"
+group = "${groupId}"
 
 repositories {
     repositories {
