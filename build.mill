@@ -14,12 +14,13 @@ object backup extends JavaModule {
 
   def sources = Task.Sources(build.millSourcePath / "src/main")
 
-  object test extends JavaTests with TestModule.Junit4 {
+  object test extends JavaTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"org.assertj:assertj-core:3.27.0",
       ivy"org.junit.jupiter:junit-jupiter:5.11.4",
       ivy"org.junit.platform:junit-platform-runner:1.11.4"
     )
+    def compileIvyDeps = super.compileIvyDeps
 
     def sources = Task.Sources(build.millSourcePath / "src/test")
   }

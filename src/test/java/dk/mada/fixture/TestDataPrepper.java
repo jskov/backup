@@ -41,7 +41,12 @@ public final class TestDataPrepper {
         Path testSetDir = srcDir.resolve(name);
         DirectoryDeleter.delete(testSetDir);
 
-        Path tar = Paths.get("src/test/data").resolve(name + ".tar");
+        String workspaceRoot = System.getenv("MILL_WORKSPACE_ROOT");
+        if (workspaceRoot == null) {
+            workspaceRoot = ".";
+        }
+        
+        Path tar = Paths.get(workspaceRoot).resolve("src/test/data/" + name + ".tar");
         new Expander().expand(tar.toFile(), srcDir.toFile());
         setTimeOfTestFiles(srcDir);
 
