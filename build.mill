@@ -1,0 +1,26 @@
+package build
+import mill._, javalib._
+
+object backup extends JavaModule {
+  def ivyDeps = Agg(
+    ivy"org.apache.commons:commons-compress:1.27.1",
+    ivy"com.dynatrace.hash4j:hash4j:0.19.0",
+    ivy"info.picocli:picocli:4.7.6",
+    ivy"org.slf4j:slf4j-jdk14:2.0.16"
+  )
+  def compileIvyDeps = Agg(
+    ivy"org.jspecify:jspecify:1.0.0"
+  )
+
+  def sources = Task.Sources(build.millSourcePath / "src/main")
+
+  object test extends JavaTests with TestModule.Junit4 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"org.assertj:assertj-core:3.27.0",
+      ivy"org.junit.jupiter:junit-jupiter:5.11.4",
+      ivy"org.junit.platform:junit-platform-runner:1.11.4"
+    )
+
+    def sources = Task.Sources(build.millSourcePath / "src/test")
+  }
+}
