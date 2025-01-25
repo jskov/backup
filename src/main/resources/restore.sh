@@ -50,7 +50,9 @@ expect_file() {
     fi
 
     local xxh3_output=$(/bin/xxhsum -H3 "$file")
-    local actual_xxh3=${xxh3_output: -16}
+    # This output used to be extraced by " -16", but the format changed to
+    # 'XXH3_hex16 name' hence this extraction
+    local actual_xxh3=${xxh3_output:5:16}
     if [[ "$actual_xxh3" != "$xxh3" ]]; then
         fail "\nFile $file has xxh3 '$actual_xxh3', but expected '$xxh3'"
     fi
@@ -297,7 +299,7 @@ set -e
 
 filename="\$1"
 
-a=\$(/bin/xxhsum -H3 - | echo "\$(/bin/cut -d' ' -f4),\$filename")
+a=\$(/bin/xxhsum -H3 - | echo "\$(/bin/cut -c 6-21),\$filename")
 
 if ! (/bin/grep -F -q "\$a" /tmp/valid-input.txt) ; then
   echo >/dev/stderr "Did not find matching checksum for file '\$filename'"
