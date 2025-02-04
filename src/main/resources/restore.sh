@@ -170,7 +170,7 @@ unpack() {
         onlyArchives=true
         shift
     fi
-    
+
     if [ $# -ne 1 ]; then
         fail "Unpack expects one argument, the destination directory"
     fi
@@ -231,11 +231,11 @@ verify_jotta() {
     local bad="\xE2\x9D\x8C"
 
     local success=1
-    
+
     echo -e "Checking backup files at Jotta cloud path $jotta_path\n"
-    
+
     local jotta_state=$(mktemp)
-    /bin/jotta-cli ls -l "$jotta_path" > $jotta_state
+    /bin/jotta-cli ls -l -a "$jotta_path" > $jotta_state
 
     local file=$(basename $0)
     if match_jotta $file $(/bin/md5sum $0 | /bin/cut -f 1 -d' ') $jotta_state; then
@@ -395,5 +395,5 @@ elif [ "$1" == info ]; then
 else
     usage_and_exit
 fi
-    
+
 echo $#
