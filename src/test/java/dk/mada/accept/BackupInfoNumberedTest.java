@@ -2,15 +2,6 @@ package dk.mada.accept;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
-
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.restore.RestoreExecutor;
 import dk.mada.backup.restore.RestoreExecutor.Result;
@@ -18,6 +9,13 @@ import dk.mada.fixture.InfoParser;
 import dk.mada.fixture.InfoParser.Info;
 import dk.mada.fixture.MakeBackup;
 import dk.mada.fixture.TestCertificateInfo;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Makes a backup, checks info in backup.
@@ -43,8 +41,7 @@ class BackupInfoNumberedTest {
     void backupContainsInfo() {
         Result res = runRestoreCmd("info");
 
-        assertThat(res.exitValue())
-                .isZero();
+        assertThat(res.exitValue()).isZero();
         assertThat(res.output())
                 .contains(
                         "Backup 'test'",
@@ -64,17 +61,13 @@ class BackupInfoNumberedTest {
     void backupInfoCrypted() {
         Result res = runRestoreCmd("info", "-c");
 
-        assertThat(res.exitValue())
-                .isZero();
+        assertThat(res.exitValue()).isZero();
 
         List<Info> infos = new InfoParser().parse(res.output());
-        assertThat(infos)
-                .hasSize(1)
-                .first()
-                .satisfies(i -> {
-                    assertThat(i.filename()).isEqualTo("test-01.crypt");
-                    assertThat(i.size()).isBetween(SIZE_LOWER_BOUND, SIZE_UPPER_BOUND);
-                });
+        assertThat(infos).hasSize(1).first().satisfies(i -> {
+            assertThat(i.filename()).isEqualTo("test-01.crypt");
+            assertThat(i.size()).isBetween(SIZE_LOWER_BOUND, SIZE_UPPER_BOUND);
+        });
     }
 
     /**
@@ -84,8 +77,7 @@ class BackupInfoNumberedTest {
     void backupInfoTars() {
         Result res = runRestoreCmd("info", "-a");
 
-        assertThat(res.exitValue())
-                .isZero();
+        assertThat(res.exitValue()).isZero();
         assertThat(res.output())
                 .containsPattern("dir-a.tar [0-9a-f]{16}        2560")
                 .containsPattern("dir-deep.tar [0-9a-f]{16}        2048")
@@ -99,8 +91,7 @@ class BackupInfoNumberedTest {
     void backupInfoFiles() {
         Result res = runRestoreCmd("info", "-f");
 
-        assertThat(res.exitValue())
-                .isZero();
+        assertThat(res.exitValue()).isZero();
         assertThat(res.output())
                 .contains(
                         "dir-a/file-a1.bin 2d06800538d394c2           0",

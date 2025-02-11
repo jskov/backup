@@ -1,5 +1,7 @@
 package dk.mada.backup;
 
+import com.dynatrace.hash4j.hashing.HashStream64;
+import com.dynatrace.hash4j.hashing.Hashing;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,11 +12,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.Objects;
-
 import org.jspecify.annotations.Nullable;
-
-import com.dynatrace.hash4j.hashing.HashStream64;
-import com.dynatrace.hash4j.hashing.Hashing;
 
 /**
  * Captures information about a file.
@@ -100,8 +98,8 @@ public final class FileInfo implements BackupElement {
             }
             String relPath = rootDir.relativize(file).getFileName().toString();
 
-            return new FileInfo(relPath, size, hashStream.getAsLong(),
-                    includeMd5Sum ? digestToString(digestMd5) : null);
+            return new FileInfo(
+                    relPath, size, hashStream.getAsLong(), includeMd5Sum ? digestToString(digestMd5) : null);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } catch (NoSuchAlgorithmException e) {

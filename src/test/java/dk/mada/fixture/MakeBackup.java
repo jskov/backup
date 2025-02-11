@@ -1,24 +1,21 @@
 package dk.mada.fixture;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.jspecify.annotations.Nullable;
-
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.cli.CliMain;
 import dk.mada.backup.impl.output.DirectoryDeleter;
 import dk.mada.logging.LoggerConfig;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Makes a backup from canned input. Mostly used for testing the resulting restore script.
  */
 public final class MakeBackup {
-    private MakeBackup() {
-    }
+    private MakeBackup() {}
 
     /**
      * Create backup from test data.
@@ -27,7 +24,8 @@ public final class MakeBackup {
      * @param cleanDestination flag to enable cleaning of the output directory before creating backup
      * @return restore script
      */
-    public static Path makeBackup(BackupOutputType outputType, boolean cleanDestination) throws IOException, ArchiveException {
+    public static Path makeBackup(BackupOutputType outputType, boolean cleanDestination)
+            throws IOException, ArchiveException {
         return makeBackup(outputType, cleanDestination, null);
     }
 
@@ -39,7 +37,8 @@ public final class MakeBackup {
      * @param srcModifier      consumer able to modify the src directory before the backup is created
      * @return restore script
      */
-    public static Path makeBackup(BackupOutputType outputType, boolean cleanDestination, @Nullable SrcTreeModifier srcModifier)
+    public static Path makeBackup(
+            BackupOutputType outputType, boolean cleanDestination, @Nullable SrcTreeModifier srcModifier)
             throws IOException, ArchiveException {
         LoggerConfig.loadConfig("/logging-test.properties");
 
@@ -60,13 +59,16 @@ public final class MakeBackup {
 
         List<String> args = new ArrayList<>();
         args.addAll(List.of(
-                "-n", "test",
-                "--repository", repositoryDir.toString(),
-                "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),
-                "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME));
+                "-n",
+                "test",
+                "--repository",
+                repositoryDir.toString(),
+                "-r",
+                TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),
+                "--gpg-homedir",
+                TestCertificateInfo.ABS_TEST_GNUPG_HOME));
 
-        args.addAll(List.of(
-                CliMain.OPT_MAX_ROOT_ELEMENT_SIZE, "10m"));
+        args.addAll(List.of(CliMain.OPT_MAX_ROOT_ELEMENT_SIZE, "10m"));
 
         if (outputType == BackupOutputType.NAMED) {
             args.add("--by-name");

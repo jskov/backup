@@ -2,24 +2,22 @@ package dk.mada.unit.arguments;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import dk.mada.backup.api.BackupArguments;
 import dk.mada.backup.cli.CliMain;
 import dk.mada.backup.cli.DefaultArgs;
 import dk.mada.backup.cli.EnvironmentInputs;
 import dk.mada.fixture.TestCertificateInfo;
 import dk.mada.fixture.TestDataPrepper;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import picocli.CommandLine;
 
 /**
@@ -36,7 +34,7 @@ class NameAndDestinationTests {
     @BeforeAll
     static void prepSource() throws IOException, ArchiveException {
         srcDir = TestDataPrepper.prepareTestInputTree("simple-input-tree").toAbsolutePath(); // line length
-                                                                                             // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
         envAtRootOfSrc = new EnvironmentInputs() {
             @Override
@@ -53,10 +51,8 @@ class NameAndDestinationTests {
     void sourceAndTargetDirsAreRelativeToCurrentDir() {
         BackupArguments args = runBackup("dir-a", "output-test");
 
-        assertThat(args.sourceDir())
-                .isEqualTo(srcDir.resolve("dir-a"));
-        assertThat(args.targetDir())
-                .isEqualTo(srcDir.resolve("output-test"));
+        assertThat(args.sourceDir()).isEqualTo(srcDir.resolve("dir-a"));
+        assertThat(args.targetDir()).isEqualTo(srcDir.resolve("output-test"));
     }
 
     /**
@@ -66,12 +62,9 @@ class NameAndDestinationTests {
     void translatesDotSrcDir() {
         BackupArguments args = runBackup(".", targetDir.toString());
 
-        assertThat(args.name())
-                .isEqualTo("simple-input-tree");
-        assertThat(args.sourceDir())
-                .isEqualTo(srcDir.toAbsolutePath());
-        assertThat(args.targetDir())
-                .isEqualTo(targetDir);
+        assertThat(args.name()).isEqualTo("simple-input-tree");
+        assertThat(args.sourceDir()).isEqualTo(srcDir.toAbsolutePath());
+        assertThat(args.targetDir()).isEqualTo(targetDir);
     }
 
     /**
@@ -83,12 +76,9 @@ class NameAndDestinationTests {
     void absolutePathsOverrideChanges() {
         BackupArguments args = runBackup(srcDir.toString(), targetDir.toString());
 
-        assertThat(args.name())
-                .isEqualTo("simple-input-tree");
-        assertThat(args.sourceDir())
-                .isEqualTo(srcDir);
-        assertThat(args.targetDir())
-                .isEqualTo(targetDir);
+        assertThat(args.name()).isEqualTo("simple-input-tree");
+        assertThat(args.sourceDir()).isEqualTo(srcDir);
+        assertThat(args.targetDir()).isEqualTo(targetDir);
     }
 
     /**
@@ -101,17 +91,17 @@ class NameAndDestinationTests {
     void sourceAndTargetMayBeRelative() {
         BackupArguments args = runBackup("./dir-deep/dir-sub-a", targetDir.toString());
 
-        assertThat(args.name())
-                .isEqualTo("dir-deep-dir-sub-a");
-        assertThat(args.targetDir())
-                .isEqualTo(targetDir.resolve("dir-deep"));
+        assertThat(args.name()).isEqualTo("dir-deep-dir-sub-a");
+        assertThat(args.targetDir()).isEqualTo(targetDir.resolve("dir-deep"));
     }
 
     private BackupArguments runBackup(String... args) {
         List<String> combinedArgs = new ArrayList<>();
         combinedArgs.addAll(List.of(
-                "-r", TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),
-                "--gpg-homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME));
+                "-r",
+                TestCertificateInfo.TEST_RECIPIEND_KEY_ID.id(),
+                "--gpg-homedir",
+                TestCertificateInfo.ABS_TEST_GNUPG_HOME));
         combinedArgs.addAll(List.of(args));
 
         AtomicReference<BackupArguments> ref = new AtomicReference<>();
@@ -123,9 +113,7 @@ class NameAndDestinationTests {
                 .execute(combinedArgs.toArray(new String[combinedArgs.size()]));
 
         BackupArguments returned = ref.get();
-        assertThat(returned)
-                .withFailMessage("Failed processing arguments?!")
-                .isNotNull();
+        assertThat(returned).withFailMessage("Failed processing arguments?!").isNotNull();
 
         return Objects.requireNonNull(returned);
     }

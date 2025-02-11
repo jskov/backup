@@ -2,21 +2,19 @@ package dk.mada.accept;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Objects;
-
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.impl.output.DirectoryDeleter;
 import dk.mada.backup.restore.RestoreExecutor.Result;
 import dk.mada.fixture.MakeBackup;
 import dk.mada.fixture.MakeRestore;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Objects;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Makes a backup, runs multiple checks on the restore of this backup.
@@ -25,6 +23,7 @@ import dk.mada.fixture.MakeRestore;
 class BackupVerificationNumberedTest {
     /** Restore script for created backup. */
     private static Path restoreScript;
+
     private static Path backupDestDir;
 
     @BeforeAll
@@ -40,10 +39,8 @@ class BackupVerificationNumberedTest {
     void backupCryptFilesCanBeVerified() {
         Result res = runRestoreCmd("verify");
 
-        assertThat(res.exitValue())
-                .isZero();
-        assertThat(res.output())
-                .contains("(1/1) test-01.crypt... ok");
+        assertThat(res.exitValue()).isZero();
+        assertThat(res.output()).contains("(1/1) test-01.crypt... ok");
     }
 
     /**
@@ -53,10 +50,8 @@ class BackupVerificationNumberedTest {
     void cryptContentStableOverTime() {
         Result res = runRestoreCmd("info", "-c");
 
-        assertThat(res.exitValue())
-                .isZero();
-        assertThat(res.output())
-                .contains("test-01.crypt");
+        assertThat(res.exitValue()).isZero();
+        assertThat(res.output()).contains("test-01.crypt");
     }
 
     /**
@@ -70,7 +65,8 @@ class BackupVerificationNumberedTest {
         Result res = runRestoreCmd("unpack", "-a", restoreDir.toAbsolutePath().toString());
 
         assertThat(res.output())
-                .contains(" - (1/12) ./dir-a.tar... ok",
+                .contains(
+                        " - (1/12) ./dir-a.tar... ok",
                         " - (2/12) ./dir-b.tar... ok",
                         " - (3/12) ./dir-c.tar... ok",
                         " - (4/12) ./dir-d with space.tar... ok",
@@ -83,8 +79,7 @@ class BackupVerificationNumberedTest {
                         " - (11/12) file-root2 with space.bin... ok",
                         " - (12/12) file-tricky.tar... ok",
                         "Success!");
-        assertThat(res.exitValue())
-                .isZero();
+        assertThat(res.exitValue()).isZero();
     }
 
     /**
@@ -98,7 +93,8 @@ class BackupVerificationNumberedTest {
         Result res = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
 
         assertThat(res.output())
-                .contains(" - (1/15) dir-a/file-a1.bin... ok",
+                .contains(
+                        " - (1/15) dir-a/file-a1.bin... ok",
                         " - (2/15) dir-a/file-a2.bin... ok",
                         " - (3/15) dir-b/file-b1.bin... ok",
                         " - (4/15) dir-c/file-c-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.bin... ok", // NOSONAR
@@ -115,8 +111,7 @@ class BackupVerificationNumberedTest {
                         " - (15/15) file-tricky.tar... ok",
                         "Success!");
 
-        assertThat(res.exitValue())
-                .isZero();
+        assertThat(res.exitValue()).isZero();
     }
 
     /**
@@ -126,11 +121,9 @@ class BackupVerificationNumberedTest {
     void backupFilesCanBeVerifiedByStream() {
         Result res = runRestoreCmd("verify", "-s");
 
-        assertThat(res.output())
-                .contains("All files verified ok.");
+        assertThat(res.output()).contains("All files verified ok.");
 
-        assertThat(res.exitValue())
-                .isZero();
+        assertThat(res.exitValue()).isZero();
     }
 
     /**
@@ -153,8 +146,7 @@ class BackupVerificationNumberedTest {
 
     @Test
     void restoreScriptIsWrittenToRepository() {
-        assertThat(restoreScript)
-                .hasSameTextualContentAs(backupDestDir.resolve("_repository/test.sh"));
+        assertThat(restoreScript).hasSameTextualContentAs(backupDestDir.resolve("_repository/test.sh"));
     }
 
     private Result runRestoreCmd(String... args) {

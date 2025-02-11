@@ -1,19 +1,17 @@
 package dk.mada.backup.impl;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import dk.mada.backup.api.BackupApi;
 import dk.mada.backup.api.BackupArguments;
 import dk.mada.backup.cli.Console;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.restore.RestoreExecutor;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Backup implementation - drives backup and post-verification.
@@ -91,10 +89,11 @@ public class BackupApplication {
     private void verifyBackup(Path script) {
         try {
             logger.info("Verifying backup...");
-            String cryptVerifyOutput = RestoreExecutor.runRestoreScriptExitOnFail(exitHandler, script, args.envOverrides(), "verify");
+            String cryptVerifyOutput =
+                    RestoreExecutor.runRestoreScriptExitOnFail(exitHandler, script, args.envOverrides(), "verify");
             logger.debug("encrypted files:\n{}", cryptVerifyOutput);
-            String contentVerifyOutput = RestoreExecutor.runRestoreScriptExitOnFail(exitHandler, script, args.envOverrides(), "verify",
-                    "-s");
+            String contentVerifyOutput = RestoreExecutor.runRestoreScriptExitOnFail(
+                    exitHandler, script, args.envOverrides(), "verify", "-s");
             logger.debug("content files:\n{}", contentVerifyOutput);
             logger.info("Backup verified.");
         } catch (Exception e) {

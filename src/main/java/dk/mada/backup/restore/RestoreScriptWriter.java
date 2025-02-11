@@ -1,5 +1,7 @@
 package dk.mada.backup.restore;
 
+import dk.mada.backup.BackupElement;
+import dk.mada.backup.api.BackupTargetExistsException;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -15,9 +17,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import dk.mada.backup.BackupElement;
-import dk.mada.backup.api.BackupTargetExistsException;
-
 /**
  * Copies out the restore script, replacing backup information as it goes.
  */
@@ -26,12 +25,14 @@ public final class RestoreScriptWriter {
     private static final DataFormatVersion FORMAT_VERSION = DataFormatVersion.VERSION_2;
     /** Variable indexers for crypt lines */
     private static final Map<VariableName, String> SCRIPT_INDEXERS = Map.of(
-            VariableName.VARS_MD5, """
+            VariableName.VARS_MD5,
+                    """
                     local size=${l:0:11}
                     local xxh3=${l:12:16}
                     local md5=${l:29:32}
                     local file=${l:62}""",
-            VariableName.VARS, """
+            VariableName.VARS,
+                    """
                     local size=${l:0:11}
                     local xxh3=${l:12:16}
                     local file=${l:29}""");
@@ -52,8 +53,11 @@ public final class RestoreScriptWriter {
      * @param tars   the information about tar files
      * @param files  the information about the origin files
      */
-    public RestoreScriptWriter(Map<VariableName, String> vars, List<? extends BackupElement> crypts,
-            List<? extends BackupElement> tars, List<? extends BackupElement> files) {
+    public RestoreScriptWriter(
+            Map<VariableName, String> vars,
+            List<? extends BackupElement> crypts,
+            List<? extends BackupElement> tars,
+            List<? extends BackupElement> files) {
         this.vars = vars;
         this.crypts = crypts;
         this.tars = tars;
@@ -75,8 +79,8 @@ public final class RestoreScriptWriter {
         try (InputStream is = getClass().getResourceAsStream("/restore.sh");
                 InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
                 BufferedReader br = new BufferedReader(isr);
-                BufferedWriter bw = Files.newBufferedWriter(script, StandardOpenOption.CREATE_NEW,
-                        StandardOpenOption.WRITE)) {
+                BufferedWriter bw =
+                        Files.newBufferedWriter(script, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
             String line;
             boolean ignoringSection = false;
             while ((line = br.readLine()) != null) {
@@ -154,8 +158,6 @@ public final class RestoreScriptWriter {
     }
 
     private String elementsToText(List<? extends BackupElement> elements) {
-        return elements.stream()
-                .map(BackupElement::toBackupSummary)
-                .collect(Collectors.joining("\n"));
+        return elements.stream().map(BackupElement::toBackupSummary).collect(Collectors.joining("\n"));
     }
 }

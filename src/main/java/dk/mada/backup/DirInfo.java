@@ -42,8 +42,6 @@ public final class DirInfo implements BackupElement {
 
     @Override
     public String toBackupSummary() {
-        return files.stream()
-                .map(BackupElement::toBackupSummary)
-                .collect(Collectors.joining("\n"));
+        return files.stream().map(BackupElement::toBackupSummary).collect(Collectors.joining("\n"));
     }
 }

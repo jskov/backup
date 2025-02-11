@@ -4,8 +4,7 @@ package dk.mada.backup.cli;
  * Prints text to the user via the console.
  */
 public final class Console {
-    private Console() {
-    }
+    private Console() {}
 
     /**
      * Print a message with newline to the console.

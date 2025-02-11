@@ -2,6 +2,11 @@ package dk.mada.accept;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dk.mada.backup.api.BackupOutputType;
+import dk.mada.backup.impl.output.DirectoryDeleter;
+import dk.mada.backup.restore.RestoreExecutor.Result;
+import dk.mada.fixture.MakeBackup;
+import dk.mada.fixture.MakeRestore;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -9,17 +14,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
-import dk.mada.backup.api.BackupOutputType;
-import dk.mada.backup.impl.output.DirectoryDeleter;
-import dk.mada.backup.restore.RestoreExecutor.Result;
-import dk.mada.fixture.MakeBackup;
-import dk.mada.fixture.MakeRestore;
 
 /**
  * Makes a backup, runs multiple checks on the restore of this backup.
@@ -44,8 +42,7 @@ class BackupVerificationNamedTest {
     void backupCryptFilesCanBeVerified() {
         Result res = runRestoreCmd("verify");
 
-        assertThat(res.exitValue())
-                .isZero();
+        assertThat(res.exitValue()).isZero();
         assertThat(res.output())
                 .contains("(1/12) dir-a.crypt... ok")
                 .contains("(2/12) dir-b.crypt... ok")
@@ -69,10 +66,8 @@ class BackupVerificationNamedTest {
     void cryptContentStableOverTime() {
         Result res = runRestoreCmd("info", "-c");
 
-        assertThat(res.exitValue())
-                .isZero();
-        assertThat(res.output())
-                .contains("dir-a.crypt");
+        assertThat(res.exitValue()).isZero();
+        assertThat(res.output()).contains("dir-a.crypt");
     }
 
     /**
@@ -86,7 +81,8 @@ class BackupVerificationNamedTest {
         Result res = runRestoreCmd("unpack", "-a", restoreDir.toAbsolutePath().toString());
 
         assertThat(res.output())
-                .contains(" - (1/12) ./dir-a.tar... ok",
+                .contains(
+                        " - (1/12) ./dir-a.tar... ok",
                         " - (2/12) ./dir-b.tar... ok",
                         " - (3/12) ./dir-c.tar... ok",
                         " - (4/12) ./dir-d with space.tar... ok",
@@ -99,8 +95,7 @@ class BackupVerificationNamedTest {
                         " - (11/12) file-root2 with space.bin... ok",
                         " - (12/12) file-tricky.tar... ok",
                         "Success!");
-        assertThat(res.exitValue())
-                .isZero();
+        assertThat(res.exitValue()).isZero();
     }
 
     /**
@@ -114,7 +109,8 @@ class BackupVerificationNamedTest {
         Result res = runRestoreCmd("unpack", restoreDir.toAbsolutePath().toString());
 
         assertThat(res.output())
-                .contains(" - (1/15) dir-a/file-a1.bin... ok",
+                .contains(
+                        " - (1/15) dir-a/file-a1.bin... ok",
                         " - (2/15) dir-a/file-a2.bin... ok",
                         " - (3/15) dir-b/file-b1.bin... ok",
                         " - (4/15) dir-c/file-c-long-name-1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.bin... ok", // NOSONAR
@@ -131,8 +127,7 @@ class BackupVerificationNamedTest {
                         " - (15/15) file-tricky.tar... ok",
                         "Success!");
 
-        assertThat(res.exitValue())
-                .isZero();
+        assertThat(res.exitValue()).isZero();
     }
 
     /**
@@ -142,11 +137,9 @@ class BackupVerificationNamedTest {
     void backupFilesCanBeVerifiedByStream() {
         Result res = runRestoreCmd("verify", "-s");
 
-        assertThat(res.output())
-                .contains("All files verified ok.");
+        assertThat(res.output()).contains("All files verified ok.");
 
-        assertThat(res.exitValue())
-                .isZero();
+        assertThat(res.exitValue()).isZero();
     }
 
     /**
@@ -184,11 +177,9 @@ class BackupVerificationNamedTest {
         Files.delete(backupDestination.resolve("dir-b.crypt"));
         Result res = MakeRestore.runRestoreCmd(restoreScript, "verify", "-s");
 
-        assertThat(res.output())
-                .contains("dir-b.crypt: No such file or directory");
+        assertThat(res.output()).contains("dir-b.crypt: No such file or directory");
 
-        assertThat(res.exitValue())
-                .isNotZero();
+        assertThat(res.exitValue()).isNotZero();
     }
 
     /**
@@ -203,9 +194,11 @@ class BackupVerificationNamedTest {
     static void assertValidationFailsForFile(Path script, String breakingElementPath) throws IOException {
         Path badScriptFile = Objects.requireNonNull(script.getParent()).resolve("bad.sh");
         String goodRestoreScript = Files.readString(script, StandardCharsets.UTF_8);
-        String withBrokenChecksum = goodRestoreScript.lines()
-                .map(s -> s.replaceAll(",[0-9a-f]{16},(?=.*" + breakingElementPath + ")", ",deaddeaddeaddead,"))
-                .collect(Collectors.joining("\n")) + "\n";
+        String withBrokenChecksum = goodRestoreScript
+                        .lines()
+                        .map(s -> s.replaceAll(",[0-9a-f]{16},(?=.*" + breakingElementPath + ")", ",deaddeaddeaddead,"))
+                        .collect(Collectors.joining("\n"))
+                + "\n";
         Files.writeString(badScriptFile, withBrokenChecksum);
 
         if (withBrokenChecksum.equals(goodRestoreScript)) {
@@ -214,17 +207,14 @@ class BackupVerificationNamedTest {
 
         Result res = MakeRestore.runRestoreCmd(badScriptFile, "verify", "-s");
 
-        assertThat(res.output())
-                .contains("Did not find matching checksum for file '" + breakingElementPath + "'");
+        assertThat(res.output()).contains("Did not find matching checksum for file '" + breakingElementPath + "'");
 
-        assertThat(res.exitValue())
-                .isNotZero();
+        assertThat(res.exitValue()).isNotZero();
     }
 
     @Test
     void restoreScriptIsWrittenToRepository() {
-        assertThat(restoreScript)
-                .hasSameTextualContentAs(backupDestination.resolve("_repository/test.sh"));
+        assertThat(restoreScript).hasSameTextualContentAs(backupDestination.resolve("_repository/test.sh"));
     }
 
     private Result runRestoreCmd(String... args) {

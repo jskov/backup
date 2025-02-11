@@ -3,6 +3,8 @@ package dk.mada.unit.splitter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import dk.mada.backup.api.BackupTargetExistsException;
+import dk.mada.backup.splitter.SplitterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
@@ -12,12 +14,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-
-import dk.mada.backup.api.BackupTargetExistsException;
-import dk.mada.backup.splitter.SplitterOutputStream;
 
 /**
  * Splitter splits stream into several files.
@@ -49,8 +47,7 @@ class SplitterTest {
                 .containsExactly("basename-01.tar", "basename-02.tar", "basename-03.tar");
 
         String reassembledText = reassembleText(files);
-        assertThat(reassembledText)
-                .isEqualTo(text);
+        assertThat(reassembledText).isEqualTo(text);
     }
 
     private void writeSplitterOutput(String text, long sizeLimit) throws IOException {
@@ -60,17 +57,13 @@ class SplitterTest {
     }
 
     private String reassembleText(List<Path> files) {
-        return files.stream()
-                .map(this::readFile)
-                .collect(Collectors.joining());
+        return files.stream().map(this::readFile).collect(Collectors.joining());
     }
 
     private List<Path> getListOfGeneratedFiles() throws IOException {
         List<Path> files;
         try (Stream<Path> fileStream = Files.list(targetDir)) {
-            files = fileStream
-                    .sorted()
-                    .toList();
+            files = fileStream.sorted().toList();
         }
         return files;
     }

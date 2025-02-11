@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
-
 import picocli.CommandLine.IVersionProvider;
 
 /**
@@ -17,12 +16,11 @@ public final class Version implements IVersionProvider {
     /** The application properties. */
     private static Properties appProperties = loadProperties();
 
-    private Version() {
-    }
+    private Version() {}
 
     @Override
     public String[] getVersion() {
-        return new String[] { "Version " + getBackupVersion(), "Built " + getBuildTime() };
+        return new String[] {"Version " + getBackupVersion(), "Built " + getBuildTime()};
     }
 
     /** {@return the version of the application} */

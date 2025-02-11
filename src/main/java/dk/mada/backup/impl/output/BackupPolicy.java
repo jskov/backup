@@ -1,12 +1,11 @@
 package dk.mada.backup.impl.output;
 
-import java.nio.file.Path;
-
 import dk.mada.backup.api.BackupArguments.Limits;
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.gpg.GpgEncrypterException;
 import dk.mada.backup.restore.RestoreScriptWriter;
+import java.nio.file.Path;
 
 /**
  * Defines the backup policy.

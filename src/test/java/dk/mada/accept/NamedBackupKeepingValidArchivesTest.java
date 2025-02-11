@@ -3,19 +3,6 @@ package dk.mada.accept;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Objects;
-
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.impl.output.DirectoryDeleter;
 import dk.mada.backup.restore.RestoreScriptReader;
@@ -25,6 +12,17 @@ import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
 import dk.mada.fixture.ExitHandlerFixture.TestFailedWithException;
 import dk.mada.fixture.MakeBackup;
 import dk.mada.fixture.TestDataPrepper;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Objects;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Makes a backup, tweaks subset of data folders, makes another backup. Ensures that only the changed data folders are
@@ -111,28 +109,23 @@ class NamedBackupKeepingValidArchivesTest {
 
         RestoreScriptData oldSetData = reader.readRestoreScriptData(oldSetRestoreScriptFile);
 
-        assertThat(oldSetData.name())
-                .isEqualTo(originalSet.name());
-        assertThat(oldSetData.time())
-                .isEqualTo(originalSet.time());
-        assertThat(oldSetData.filesV2())
-                .isEqualTo(originalSet.filesV2());
+        assertThat(oldSetData.name()).isEqualTo(originalSet.name());
+        assertThat(oldSetData.time()).isEqualTo(originalSet.time());
+        assertThat(oldSetData.filesV2()).isEqualTo(originalSet.filesV2());
 
         // The root files contain current file location, so strip that out first
-        List<DataRootFile> oldRoots = oldSetData.rootFilesV2().stream()
-                .map(this::trimPath)
-                .toList();
-        List<DataRootFile> originalRoots = originalSet.rootFilesV2().stream()
-                .map(this::trimPath)
-                .toList();
+        List<DataRootFile> oldRoots =
+                oldSetData.rootFilesV2().stream().map(this::trimPath).toList();
+        List<DataRootFile> originalRoots =
+                originalSet.rootFilesV2().stream().map(this::trimPath).toList();
 
-        assertThat(oldRoots)
-                .isEqualTo(originalRoots);
+        assertThat(oldRoots).isEqualTo(originalRoots);
     }
 
     private DataRootFile trimPath(DataRootFile d) {
         DataCrypt c = d.crypt();
-        return new DataRootFile(d.name(), d.isDirectory(), new DataCrypt(c.size(), c.xxh3(), c.md5(), DUMMY_STATIC_FILE), d.archive());
+        return new DataRootFile(
+                d.name(), d.isDirectory(), new DataCrypt(c.size(), c.xxh3(), c.md5(), DUMMY_STATIC_FILE), d.archive());
     }
 
     /**
@@ -149,19 +142,16 @@ class NamedBackupKeepingValidArchivesTest {
 
         RestoreScriptData updatedSet = makeNewChangedBackup(reader);
 
-        List<DataCrypt> originalCrypts = originalSet.rootFilesV2().stream()
-                .map(DataRootFile::crypt)
-                .toList();
-        List<DataCrypt> updatedCrypts = updatedSet.rootFilesV2().stream()
-                .map(DataRootFile::crypt)
-                .toList();
+        List<DataCrypt> originalCrypts =
+                originalSet.rootFilesV2().stream().map(DataRootFile::crypt).toList();
+        List<DataCrypt> updatedCrypts =
+                updatedSet.rootFilesV2().stream().map(DataRootFile::crypt).toList();
 
         logger.info("Original: {}", originalCrypts);
         logger.info("Updated: {}", updatedCrypts);
 
-        List<DataCrypt> sharedCrypts = originalCrypts.stream()
-                .filter(updatedCrypts::contains)
-                .toList();
+        List<DataCrypt> sharedCrypts =
+                originalCrypts.stream().filter(updatedCrypts::contains).toList();
         List<String> cryptNamesOnlyInOriginalSet = originalCrypts.stream()
                 .filter(c -> !sharedCrypts.contains(c))
                 .map(c -> c.file().getFileName().toString())
@@ -179,10 +169,8 @@ class NamedBackupKeepingValidArchivesTest {
                 .containsExactlyInAnyOrder("dir-a.crypt", "extra-dir.crypt", "extra-file.crypt");
 
         // Check that deleted files are removed from the new backup set
-        assertThat(updatedSet.location().resolve("dir-b.crypt"))
-                .doesNotExist();
-        assertThat(updatedSet.location().resolve("file-tricky.tar.crypt"))
-                .doesNotExist();
+        assertThat(updatedSet.location().resolve("dir-b.crypt")).doesNotExist();
+        assertThat(updatedSet.location().resolve("file-tricky.tar.crypt")).doesNotExist();
     }
 
     private RestoreScriptData makeNewChangedBackup(RestoreScriptReader reader) throws IOException, ArchiveException {

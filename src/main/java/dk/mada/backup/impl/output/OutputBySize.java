@@ -1,15 +1,14 @@
 package dk.mada.backup.impl.output;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.concurrent.Future;
-
 import dk.mada.backup.FileInfo;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.gpg.GpgEncrypterException;
 import dk.mada.backup.splitter.SplitterOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.concurrent.Future;
 
 /**
  * Write backup stream into numbered files, split by size.
@@ -34,7 +33,8 @@ public final class OutputBySize implements BackupStreamWriter {
      * @param gpgInfo        the GPG information
      * @throws GpgEncrypterException if GPG failed
      */
-    public OutputBySize(Path targetDir, String name, long cryptSplitSize, GpgStreamInfo gpgInfo) throws GpgEncrypterException {
+    public OutputBySize(Path targetDir, String name, long cryptSplitSize, GpgStreamInfo gpgInfo)
+            throws GpgEncrypterException {
         sos = new SplitterOutputStream(targetDir, name, ".crypt", cryptSplitSize);
         eos = new GpgEncryptedOutputStream(sos, gpgInfo);
         tarBuilder = new TarContainerBuilder(eos);

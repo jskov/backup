@@ -1,5 +1,14 @@
 package dk.mada.backup.impl.output;
 
+import dk.mada.backup.FileInfo;
+import dk.mada.backup.api.BackupException;
+import dk.mada.backup.api.BackupTargetExistsException;
+import dk.mada.backup.gpg.GpgEncryptedOutputStream;
+import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
+import dk.mada.backup.impl.output.TarContainerBuilder.Entry;
+import dk.mada.backup.restore.RestoreScriptReader.DataArchive;
+import dk.mada.backup.restore.RestoreScriptReader.DataRootFile;
+import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -13,20 +22,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
-
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import dk.mada.backup.FileInfo;
-import dk.mada.backup.api.BackupException;
-import dk.mada.backup.api.BackupTargetExistsException;
-import dk.mada.backup.gpg.GpgEncryptedOutputStream;
-import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
-import dk.mada.backup.impl.output.TarContainerBuilder.Entry;
-import dk.mada.backup.restore.RestoreScriptReader.DataArchive;
-import dk.mada.backup.restore.RestoreScriptReader.DataRootFile;
-import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
 
 /**
  * Write backup into separate files. Each file is an encrypted archive of a root file from the source tree.
@@ -76,7 +74,8 @@ public final class OutputByName implements BackupStreamWriter {
      * @param targetDir          the target directory of the new backup
      * @param gpgInfo            the GPG information
      */
-    public OutputByName(long maxRootElementSize, RestoreScriptData prevBackupData, Path targetDir, GpgStreamInfo gpgInfo) {
+    public OutputByName(
+            long maxRootElementSize, RestoreScriptData prevBackupData, Path targetDir, GpgStreamInfo gpgInfo) {
         this.targetDir = targetDir;
         this.gpgInfo = gpgInfo;
         this.prevBackupData = prevBackupData;
@@ -123,8 +122,7 @@ public final class OutputByName implements BackupStreamWriter {
                 .filter(da -> rootElementName.equals(da.name()))
                 .findFirst()
                 .orElse(null);
-        if (oldRootFile != null
-                && prevBackupData.gpgKeyId().equals(gpgInfo.recipientKeyId())) {
+        if (oldRootFile != null && prevBackupData.gpgKeyId().equals(gpgInfo.recipientKeyId())) {
 
             logger.info("Existing backup has entry for root element {}", rootElementName);
             DataArchive oldArchive = oldRootFile.archive();
@@ -191,8 +189,8 @@ public final class OutputByName implements BackupStreamWriter {
 
         outputFiles.add(outputFile);
 
-        OutputStream fileOutput = Files.newOutputStream(outputFile, StandardOpenOption.CREATE_NEW,
-                StandardOpenOption.WRITE);
+        OutputStream fileOutput =
+                Files.newOutputStream(outputFile, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
         return new BufferedOutputStream(fileOutput);
     }
 

@@ -27,8 +27,7 @@ public final class HumanByteCount {
     /** Magic hex number. */
     private static final long H0XFFFCCCCCCCCCCCC_L = 0xfffccccccccccccL;
 
-    private HumanByteCount() {
-    }
+    private HumanByteCount() {}
 
     /**
      * Convert number to value with suffix making it easier to read by humans.
@@ -38,11 +37,16 @@ public final class HumanByteCount {
      */
     public static String humanReadableByteCount(long number) { // NOSONAR - external
         long b = number == Long.MIN_VALUE ? Long.MAX_VALUE : Math.abs(number);
-        return b < N1024L ? number + " B"
-                : b <= H0XFFFCCCCCCCCCCCC_L >> N40 ? String.format("%.1f KiB", number / F0X1P10) // NOSONAR - external
-                        : b <= H0XFFFCCCCCCCCCCCC_L >> N30 ? String.format("%.1f MiB", number / F0X1P20) // NOSONAR - external
-                                : b <= H0XFFFCCCCCCCCCCCC_L >> N20 ? String.format("%.1f GiB", number / F0X1P30) // NOSONAR - external
-                                        : b <= H0XFFFCCCCCCCCCCCC_L >> N10 ? String.format("%.1f TiB", number / F0X1P40) // NOSONAR
+        return b < N1024L
+                ? number + " B"
+                : b <= H0XFFFCCCCCCCCCCCC_L >> N40
+                        ? String.format("%.1f KiB", number / F0X1P10) // NOSONAR - external
+                        : b <= H0XFFFCCCCCCCCCCCC_L >> N30
+                                ? String.format("%.1f MiB", number / F0X1P20) // NOSONAR - external
+                                : b <= H0XFFFCCCCCCCCCCCC_L >> N20
+                                        ? String.format("%.1f GiB", number / F0X1P30) // NOSONAR - external
+                                        : b <= H0XFFFCCCCCCCCCCCC_L >> N10
+                                                ? String.format("%.1f TiB", number / F0X1P40) // NOSONAR
                                                 : b <= H0XFFFCCCCCCCCCCCC_L // NOSONAR - external
                                                         ? String.format("%.1f PiB", (number >> N10) / F0X1P40)
                                                         : String.format("%.1f EiB", (number >> N20) / F0X1P40);

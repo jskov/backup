@@ -1,5 +1,10 @@
 package dk.mada.backup.restore;
 
+import dk.mada.backup.api.BackupOutputType;
+import dk.mada.backup.impl.output.TarContainerBuilder;
+import dk.mada.backup.types.GpgId;
+import dk.mada.backup.types.Md5;
+import dk.mada.backup.types.Xxh3;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -7,15 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import dk.mada.backup.api.BackupOutputType;
-import dk.mada.backup.impl.output.TarContainerBuilder;
-import dk.mada.backup.types.GpgId;
-import dk.mada.backup.types.Md5;
-import dk.mada.backup.types.Xxh3;
 
 /**
  * Restore script reader.
@@ -73,9 +71,16 @@ public class RestoreScriptReader {
      * @param rootFilesV2       a list of V2 root file entries
      * @param filesV2           a list of V2 file entries
      */
-    public record RestoreScriptData(String name, Path location, String version, String time, DataFormatVersion dataFormatVersion,
-            BackupOutputType dataType, GpgId gpgKeyId,
-            List<DataRootFile> rootFilesV2, List<DataFile> filesV2) {
+    public record RestoreScriptData(
+            String name,
+            Path location,
+            String version,
+            String time,
+            DataFormatVersion dataFormatVersion,
+            BackupOutputType dataType,
+            GpgId gpgKeyId,
+            List<DataRootFile> rootFilesV2,
+            List<DataFile> filesV2) {
 
         /** {@return an empty data instance} */
         public static RestoreScriptData empty() {
@@ -83,8 +88,15 @@ public class RestoreScriptReader {
             // it is ever tried accessed/deleted.
             Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"));
             Path nonExistingSetDir = tmpDir.resolve("empty-backup-set");
-            return new RestoreScriptData("empty-set", nonExistingSetDir, UNKNOWN_BACKUP_VERSION, "", DataFormatVersion.VERSION_INVALID,
-                    BackupOutputType.UNKNOWN, UNKNOWN_GPG_ID, List.of(),
+            return new RestoreScriptData(
+                    "empty-set",
+                    nonExistingSetDir,
+                    UNKNOWN_BACKUP_VERSION,
+                    "",
+                    DataFormatVersion.VERSION_INVALID,
+                    BackupOutputType.UNKNOWN,
+                    UNKNOWN_GPG_ID,
+                    List.of(),
                     List.of());
         }
 
@@ -102,8 +114,7 @@ public class RestoreScriptReader {
      * @param crypt       information about the encrypted file
      * @param archive     information about the archive file
      */
-    public record DataRootFile(String name, boolean isDirectory, DataCrypt crypt, DataArchive archive) {
-    }
+    public record DataRootFile(String name, boolean isDirectory, DataCrypt crypt, DataArchive archive) {}
 
     /**
      * V2 information about an encrypted file.
@@ -113,8 +124,7 @@ public class RestoreScriptReader {
      * @param md5  the MD5 checksum of the file
      * @param file the encrypted file
      */
-    public record DataCrypt(long size, Xxh3 xxh3, Md5 md5, Path file) {
-    }
+    public record DataCrypt(long size, Xxh3 xxh3, Md5 md5, Path file) {}
 
     /**
      * V2 information about an archive file.
@@ -122,8 +132,7 @@ public class RestoreScriptReader {
      * @param size the size of the file
      * @param xxh3 the XXH3 checksum of the file
      */
-    public record DataArchive(long size, Xxh3 xxh3) {
-    }
+    public record DataArchive(long size, Xxh3 xxh3) {}
 
     /**
      * V2 information about a data file.
@@ -132,8 +141,7 @@ public class RestoreScriptReader {
      * @param xxh3 the XXH3 checksum of the file
      * @param name the file name
      */
-    public record DataFile(long size, Xxh3 xxh3, String name) {
-    }
+    public record DataFile(long size, Xxh3 xxh3, String name) {}
 
     /**
      * Reads data from an existing restore script.
@@ -191,10 +199,12 @@ public class RestoreScriptReader {
                 time = l.substring(TIME_ID_PREFIX.length()).trim();
             }
             if (l.startsWith(DATA_FORMAT_VERSION_PREFIX)) {
-                dataFormatVersion = DataFormatVersion.parse(l.substring(DATA_FORMAT_VERSION_PREFIX.length()).trim());
+                dataFormatVersion = DataFormatVersion.parse(
+                        l.substring(DATA_FORMAT_VERSION_PREFIX.length()).trim());
             }
             if (l.startsWith(BACKUP_OUTPUT_TYPE_PREFIX)) {
-                outputType = BackupOutputType.from(l.substring(BACKUP_OUTPUT_TYPE_PREFIX.length()).trim());
+                outputType = BackupOutputType.from(
+                        l.substring(BACKUP_OUTPUT_TYPE_PREFIX.length()).trim());
             }
             if (l.startsWith(GPG_KEY_ID_PREFIX)) {
                 gpgId = new GpgId(l.substring(GPG_KEY_ID_PREFIX.length()).trim());
@@ -232,10 +242,14 @@ public class RestoreScriptReader {
         }
         List<DataRootFile> rootFiles = decodeRootFiles(backupSetDir, dataFormatVersion, cryptLines, archiveLines);
         List<DataFile> files = decodeFiles(dataFormatVersion, fileLines);
-        return new RestoreScriptData(name, backupSetDir, version, time, dataFormatVersion, outputType, gpgId, rootFiles, files);
+        return new RestoreScriptData(
+                name, backupSetDir, version, time, dataFormatVersion, outputType, gpgId, rootFiles, files);
     }
 
-    private List<DataRootFile> decodeRootFiles(Path backupSetDir, DataFormatVersion dataFormatVersion, List<String> cryptLines,
+    private List<DataRootFile> decodeRootFiles(
+            Path backupSetDir,
+            DataFormatVersion dataFormatVersion,
+            List<String> cryptLines,
             List<String> archiveLines) {
         if (dataFormatVersion != DataFormatVersion.VERSION_2) {
             return List.of();
@@ -258,9 +272,7 @@ public class RestoreScriptReader {
             return List.of();
         }
 
-        return fileLines.stream()
-                .map(this::deserializeFileV2)
-                .toList();
+        return fileLines.stream().map(this::deserializeFileV2).toList();
     }
 
     /**

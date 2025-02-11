@@ -1,11 +1,9 @@
 package dk.mada.backup.api;
 
+import dk.mada.backup.types.GpgId;
 import java.nio.file.Path;
 import java.util.Map;
-
 import org.jspecify.annotations.Nullable;
-
-import dk.mada.backup.types.GpgId;
 
 /**
  * Arguments needed to create a backup.
@@ -39,8 +37,5 @@ public record BackupArguments(
      * @param maxRootElementSize the maximal archived size of a root element
      * @param numberedSplitSize  the split size for numbered backups
      */
-    public record Limits(
-            long maxRootElementSize,
-            long numberedSplitSize) {
-    }
+    public record Limits(long maxRootElementSize, long numberedSplitSize) {}
 }
