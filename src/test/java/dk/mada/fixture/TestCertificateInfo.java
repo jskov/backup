@@ -36,7 +36,9 @@ public final class TestCertificateInfo {
     public static final GpgStreamInfo TEST_GPG_INFO = new GpgEncryptedOutputStream.GpgStreamInfo(
             TestCertificateInfo.TEST_RECIPIEND_KEY_ID, TestCertificateInfo.TEST_KEY_ENVIRONMENT_OVERRIDES);
 
-    private TestCertificateInfo() {}
+    private TestCertificateInfo() {
+        // empty
+    }
 
     private static boolean isRunningOnGitHubActions() {
         return Files.exists(Paths.get("/etc/debian_version"));

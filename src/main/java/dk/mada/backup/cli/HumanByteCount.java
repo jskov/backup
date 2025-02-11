@@ -27,7 +27,9 @@ public final class HumanByteCount {
     /** Magic hex number. */
     private static final long H0XFFFCCCCCCCCCCCC_L = 0xfffccccccccccccL;
 
-    private HumanByteCount() {}
+    private HumanByteCount() {
+        // empty
+    }
 
     /**
      * Convert number to value with suffix making it easier to read by humans.

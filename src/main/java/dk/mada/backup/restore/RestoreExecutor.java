@@ -15,7 +15,9 @@ import java.util.Map;
  * Executes a restore script.
  */
 public final class RestoreExecutor {
-    private RestoreExecutor() {}
+    private RestoreExecutor() {
+        // empty
+    }
 
     /**
      * Runs restore script.

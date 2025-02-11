@@ -15,7 +15,9 @@ import org.jspecify.annotations.Nullable;
  * Makes a backup from canned input. Mostly used for testing the resulting restore script.
  */
 public final class MakeBackup {
-    private MakeBackup() {}
+    private MakeBackup() {
+        // empty
+    }
 
     /**
      * Create backup from test data.
