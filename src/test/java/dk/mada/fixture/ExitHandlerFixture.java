@@ -1,8 +1,7 @@
 package dk.mada.fixture;
 
-import org.jspecify.annotations.Nullable;
-
 import dk.mada.backup.impl.ExitHandler;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Handles system exit by throwing an exception that can be caught by tests.
@@ -11,8 +10,7 @@ import dk.mada.backup.impl.ExitHandler;
  * exception instead.
  */
 public final class ExitHandlerFixture {
-    private ExitHandlerFixture() {
-    }
+    private ExitHandlerFixture() {}
 
     /** {@return a fixture for handling system exit in a testing context} */
     public static ExitHandler exitForTesting() {
@@ -25,14 +23,16 @@ public final class ExitHandlerFixture {
                 }
                 if (exitCode != 0) {
                     throw new TestFailedWithException(
-                            "Backup/restore failed, would system exit: " + exitCode + " with message: " + message, cause);
+                            "Backup/restore failed, would system exit: " + exitCode + " with message: " + message,
+                            cause);
                 }
             }
 
             @Override
             public void systemExitMessage(int exitCode, String message) {
                 if (exitCode != 0) {
-                    throw new TestFailedWithMessage("Backup/restore failed, would system exit: " + exitCode + " with message: " + message,
+                    throw new TestFailedWithMessage(
+                            "Backup/restore failed, would system exit: " + exitCode + " with message: " + message,
                             message);
                 }
             }
@@ -57,6 +57,7 @@ public final class ExitHandlerFixture {
     public static class TestFailedWithMessage extends RuntimeException {
         @java.io.Serial
         static final long serialVersionUID = 42L;
+
         private final String exitMessage;
 
         public TestFailedWithMessage(String message, String exitMessage) {

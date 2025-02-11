@@ -1,5 +1,13 @@
 package dk.mada.backup;
 
+import dk.mada.backup.cli.HumanByteCount;
+import dk.mada.backup.impl.output.BackupPolicy;
+import dk.mada.backup.impl.output.BackupStreamWriter;
+import dk.mada.backup.impl.output.MemorySegmentOutputStream;
+import dk.mada.backup.impl.output.TarContainerBuilder;
+import dk.mada.backup.impl.output.TarContainerBuilder.Entry;
+import dk.mada.backup.restore.RestoreScriptWriter;
+import dk.mada.backup.restore.VariableName;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -13,18 +21,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import dk.mada.backup.cli.HumanByteCount;
-import dk.mada.backup.impl.output.BackupPolicy;
-import dk.mada.backup.impl.output.BackupStreamWriter;
-import dk.mada.backup.impl.output.MemorySegmentOutputStream;
-import dk.mada.backup.impl.output.TarContainerBuilder;
-import dk.mada.backup.impl.output.TarContainerBuilder.Entry;
-import dk.mada.backup.restore.RestoreScriptWriter;
-import dk.mada.backup.restore.VariableName;
 
 /**
  * Creates backup using pluggable policies.
@@ -71,8 +69,7 @@ public class BackupCreator {
         try (Stream<Path> files = Files.list(rootDir);
                 BackupStreamWriter bsw = policy.writer()) {
 
-            archiveElements = files
-                    .sorted(pathSorter(rootDir))
+            archiveElements = files.sorted(pathSorter(rootDir))
                     .map(p -> processRootElement(rootDir, bsw, p))
                     .toList();
 
@@ -94,9 +91,10 @@ public class BackupCreator {
             throw new IllegalStateException("Failed to lazy get output files", e);
         }
 
-        String backupTime = LocalDateTime.now().format(new DateTimeFormatterBuilder()
-                .appendPattern("YYYY.MM.dd-HHmm")
-                .toFormatter());
+        String backupTime = LocalDateTime.now()
+                .format(new DateTimeFormatterBuilder()
+                        .appendPattern("YYYY.MM.dd-HHmm")
+                        .toFormatter());
 
         Map<VariableName, String> vars = Map.of(
                 VariableName.VERSION, Version.getBackupVersion(),
@@ -105,7 +103,8 @@ public class BackupCreator {
                 VariableName.BACKUP_INPUT_SIZE, HumanByteCount.humanReadableByteCount(totalInputSize),
                 VariableName.BACKUP_KEY_ID, policy.gpgInfo().recipientKeyId().id(),
                 VariableName.BACKUP_OUTPUT_TYPE, policy.outputType().name());
-        RestoreScriptWriter restoreWriter = new RestoreScriptWriter(vars, cryptElements, archiveElements, rootFileElements);
+        RestoreScriptWriter restoreWriter =
+                new RestoreScriptWriter(vars, cryptElements, archiveElements, rootFileElements);
 
         return policy.completeBackup(restoreWriter);
     }
@@ -163,7 +162,8 @@ public class BackupCreator {
         DirInfo dirInfo = newCreateArchiveFromDir(rootDir, dir);
         rootFileElements.add(dirInfo);
 
-        Entry entry = backupsetTarBuilder.addStream(dirPackBuffer, dir.getFileName().toString());
+        Entry entry =
+                backupsetTarBuilder.addStream(dirPackBuffer, dir.getFileName().toString());
         return FileInfo.of(entry.archiveName(), entry.size(), entry.xxh3().value());
     }
 
@@ -173,8 +173,7 @@ public class BackupCreator {
             logger.debug("Creating nested archive for {}", dir);
 
             try (Stream<Path> files = Files.walk(dir)) {
-                List<FileInfo> containedFiles = files
-                        .sorted(pathSorter(rootDir))
+                List<FileInfo> containedFiles = files.sorted(pathSorter(rootDir))
                         .filter(Files::isRegularFile)
                         .map(f -> copyToTar(rootDir, f, tarBuilder))
                         .toList();

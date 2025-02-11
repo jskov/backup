@@ -2,6 +2,8 @@ package dk.mada.unit.encryption;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dk.mada.backup.gpg.GpgEncryptedOutputStream;
+import dk.mada.fixture.TestCertificateInfo;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -11,14 +13,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import dk.mada.backup.gpg.GpgEncryptedOutputStream;
-import dk.mada.fixture.TestCertificateInfo;
 
 class EncryptionOutputStreamTest {
     private static final Logger logger = LoggerFactory.getLogger(EncryptionOutputStreamTest.class);
@@ -42,7 +40,8 @@ class EncryptionOutputStreamTest {
 
         try (OutputStream os = Files.newOutputStream(cryptedFile);
                 BufferedOutputStream bos = new BufferedOutputStream(os);
-                GpgEncryptedOutputStream sutOutputStream = new GpgEncryptedOutputStream(bos, TestCertificateInfo.TEST_GPG_INFO)) {
+                GpgEncryptedOutputStream sutOutputStream =
+                        new GpgEncryptedOutputStream(bos, TestCertificateInfo.TEST_GPG_INFO)) {
             Files.copy(originFile, sutOutputStream);
         } catch (Exception e) {
             logger.warn("Failed", e);
@@ -52,11 +51,9 @@ class EncryptionOutputStreamTest {
         Process p = decryptFile(cryptedFile, decryptedFile);
         printProcessOutput(p);
 
-        assertThat(decryptedFile)
-                .hasSameTextualContentAs(originFile);
+        assertThat(decryptedFile).hasSameTextualContentAs(originFile);
 
-        assertThat(p.exitValue())
-                .isZero();
+        assertThat(p.exitValue()).isZero();
     }
 
     private void printProcessOutput(Process p) throws IOException {
@@ -67,12 +64,13 @@ class EncryptionOutputStreamTest {
         Files.deleteIfExists(decryptedFile);
         List<String> unpackCmd = List.of(
                 USR_BIN_GPG,
-                "--homedir", TestCertificateInfo.ABS_TEST_GNUPG_HOME,
-                "-o", decryptedFile.toString(),
-                "-d", cryptedFile.toString());
-        Process p = new ProcessBuilder(unpackCmd)
-                .redirectErrorStream(true)
-                .start();
+                "--homedir",
+                TestCertificateInfo.ABS_TEST_GNUPG_HOME,
+                "-o",
+                decryptedFile.toString(),
+                "-d",
+                cryptedFile.toString());
+        Process p = new ProcessBuilder(unpackCmd).redirectErrorStream(true).start();
         p.waitFor(MAX_GPG_WAIT_TIME_SECONDS, TimeUnit.SECONDS);
         return p;
     }

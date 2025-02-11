@@ -1,5 +1,9 @@
 package dk.mada.backup.impl.output;
 
+import com.dynatrace.hash4j.hashing.HashStream64;
+import com.dynatrace.hash4j.hashing.Hashing;
+import dk.mada.backup.cli.HumanByteCount;
+import dk.mada.backup.types.Xxh3;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,17 +14,10 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.dynatrace.hash4j.hashing.HashStream64;
-import com.dynatrace.hash4j.hashing.Hashing;
-
-import dk.mada.backup.cli.HumanByteCount;
-import dk.mada.backup.types.Xxh3;
 
 /**
  * Tar container builder.
@@ -70,8 +67,7 @@ public final class TarContainerBuilder implements AutoCloseable {
          * @return true if the name was a folder on the file system
          */
         public static boolean isWrappedFolderName(String archiveName) {
-            return archiveName.startsWith(ARCHIVE_DIRECTORY_PREFIX)
-                    && archiveName.endsWith(ARCHIVE_DIRECTORY_SUFFIX);
+            return archiveName.startsWith(ARCHIVE_DIRECTORY_PREFIX) && archiveName.endsWith(ARCHIVE_DIRECTORY_SUFFIX);
         }
 
         /**
@@ -82,8 +78,8 @@ public final class TarContainerBuilder implements AutoCloseable {
          */
         public static String unwrapFolderName(String archiveName) {
             if (isWrappedFolderName(archiveName)) {
-                return archiveName.substring(ARCHIVE_DIRECTORY_PREFIX.length(),
-                        archiveName.length() - ARCHIVE_DIRECTORY_SUFFIX.length());
+                return archiveName.substring(
+                        ARCHIVE_DIRECTORY_PREFIX.length(), archiveName.length() - ARCHIVE_DIRECTORY_SUFFIX.length());
             } else {
                 return archiveName;
             }
@@ -143,7 +139,8 @@ public final class TarContainerBuilder implements AutoCloseable {
     public Entry addFile(Path file, String inArchiveName) {
         byte[] buffer = new byte[FILE_READ_BUFFER_SIZE];
 
-        try (InputStream is = Files.newInputStream(file); BufferedInputStream bis = new BufferedInputStream(is)) {
+        try (InputStream is = Files.newInputStream(file);
+                BufferedInputStream bis = new BufferedInputStream(is)) {
             long size = Files.size(file);
 
             String humanSize = HumanByteCount.humanReadableByteCount(size);

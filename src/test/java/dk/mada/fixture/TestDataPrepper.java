@@ -1,5 +1,6 @@
 package dk.mada.fixture;
 
+import dk.mada.backup.impl.output.DirectoryDeleter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -7,11 +8,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.util.stream.Stream;
-
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.examples.Expander;
-
-import dk.mada.backup.impl.output.DirectoryDeleter;
 
 /**
  * Prepares test data.
@@ -25,8 +23,7 @@ public final class TestDataPrepper {
     /** The destination directory for test backups. */
     public static final Path BACKUP_DEST_DIR = Paths.get("build/backup-dest");
 
-    private TestDataPrepper() {
-    }
+    private TestDataPrepper() {}
 
     /**
      * Prepares a directory with known contents.

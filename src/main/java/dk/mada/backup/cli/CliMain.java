@@ -1,5 +1,13 @@
 package dk.mada.backup.cli;
 
+import dk.mada.backup.Version;
+import dk.mada.backup.api.BackupArguments;
+import dk.mada.backup.api.BackupArguments.Limits;
+import dk.mada.backup.api.BackupOutputType;
+import dk.mada.backup.impl.BackupApplication;
+import dk.mada.backup.impl.ExitHandler;
+import dk.mada.backup.types.GpgId;
+import dk.mada.logging.LoggerConfig;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -10,24 +18,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-
 import org.jspecify.annotations.Nullable;
-
-import dk.mada.backup.Version;
-import dk.mada.backup.api.BackupArguments;
-import dk.mada.backup.api.BackupArguments.Limits;
-import dk.mada.backup.api.BackupOutputType;
-import dk.mada.backup.impl.BackupApplication;
-import dk.mada.backup.impl.ExitHandler;
-import dk.mada.backup.types.GpgId;
-import dk.mada.logging.LoggerConfig;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Help.Visibility;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.Spec;
-import picocli.CommandLine.Help.Visibility;
 
 /**
  * Main class for command line invocation.
@@ -39,7 +37,8 @@ import picocli.CommandLine.Help.Visibility;
         header = "",
         mixinStandardHelpOptions = true,
         versionProvider = Version.class,
-        description = "Makes a backup of a file tree. Results in a restore script plus a number of encrypted data files.")
+        description =
+                "Makes a backup of a file tree. Results in a restore script plus a number of encrypted data files.")
 public final class CliMain implements Runnable {
     /** Name of option for numbered file split size. */
     public static final String OPT_NUMBERED_SPLIT_SIZE = "--numbered-split-size";
@@ -64,7 +63,7 @@ public final class CliMain implements Runnable {
     @Nullable private GpgId gpgRecipientId;
     /** Backup name option. */
     @Option(
-            names = { "-n", "--name" },
+            names = {"-n", "--name"},
             description = "backup name (default to source folder name)",
             paramLabel = "NAME")
     @Nullable private String backupName;
@@ -91,7 +90,10 @@ public final class CliMain implements Runnable {
             paramLabel = "ROOT-DIR-SIZE")
     private long maxRootDirSize;
     /** Flag to print version. */
-    @Option(names = { "-V", "--version" }, versionHelp = true, description = "print version information and exit")
+    @Option(
+            names = {"-V", "--version"},
+            versionHelp = true,
+            description = "print version information and exit")
     @SuppressWarnings("UnusedVariable")
     private boolean printVersion;
     /** Repository location. */
@@ -175,12 +177,15 @@ public final class CliMain implements Runnable {
 
         return new BackupArguments(
                 Objects.requireNonNull(gpgRecipientId, "GPG recipient id null"),
-                envOverrides, backupName,
-                realSrcDir, relativeTargetDir,
+                envOverrides,
+                backupName,
+                realSrcDir,
+                relativeTargetDir,
                 repositoryDir,
                 repositoryScriptPath,
                 byName ? BackupOutputType.NAMED : BackupOutputType.NUMBERED,
-                skipVerify, limits);
+                skipVerify,
+                limits);
     }
 
     private Path makeRealRelativeToCwd(Path dir) {
@@ -197,8 +202,7 @@ public final class CliMain implements Runnable {
      * @param name       the backup name
      * @param targetPath the extra target path
      */
-    record NameAjustment(String name, Path targetPath) {
-    }
+    record NameAjustment(String name, Path targetPath) {}
 
     private NameAjustment ensureBackupName(Path relativeSrcDir, String srcDirName) {
         Path noTargetChange = Paths.get("");
@@ -209,8 +213,7 @@ public final class CliMain implements Runnable {
         }
 
         // Trim initial ./
-        if (relativeSrcDir.getNameCount() > 1
-                && relativeSrcDir.startsWith(Paths.get("."))) {
+        if (relativeSrcDir.getNameCount() > 1 && relativeSrcDir.startsWith(Paths.get("."))) {
             relativeSrcDir = relativeSrcDir.subpath(1, relativeSrcDir.getNameCount());
         }
 
@@ -235,7 +238,7 @@ public final class CliMain implements Runnable {
     }
 
     private boolean containsRelativeElements(Path p) {
-        for (Iterator<Path> ix = p.iterator(); ix.hasNext();) {
+        for (Iterator<Path> ix = p.iterator(); ix.hasNext(); ) {
             String el = ix.next().toString();
             if (".".equals(el) || "..".equals(el) || "~".equals(el)) {
                 return true;

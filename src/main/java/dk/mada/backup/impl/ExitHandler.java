@@ -1,8 +1,7 @@
 package dk.mada.backup.impl;
 
-import org.jspecify.annotations.Nullable;
-
 import dk.mada.backup.cli.Console;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Handles system exit.

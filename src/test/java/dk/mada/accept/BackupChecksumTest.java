@@ -2,18 +2,16 @@ package dk.mada.accept;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.nio.file.Path;
-
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.restore.RestoreExecutor;
 import dk.mada.backup.restore.RestoreExecutor.Result;
 import dk.mada.fixture.MakeBackup;
 import dk.mada.fixture.TestCertificateInfo;
+import java.io.IOException;
+import java.nio.file.Path;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Makes a backup, verifies expected checksums of the files.
@@ -43,8 +41,7 @@ class BackupChecksumTest {
         Path restoreScript = MakeBackup.makeBackup(outputType, true);
         Result res = runRestoreCmd(restoreScript, "info", "-a");
 
-        assertThat(res.exitValue())
-                .isZero();
+        assertThat(res.exitValue()).isZero();
         assertThat(res.output())
                 .contains(
                         "dir-a.tar 9869af844d76a2db        2560",

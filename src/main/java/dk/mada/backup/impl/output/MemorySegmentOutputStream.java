@@ -2,16 +2,14 @@ package dk.mada.backup.impl.output;
 
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 
+import com.dynatrace.hash4j.hashing.HashStream64;
+import com.dynatrace.hash4j.hashing.Hashing;
+import dk.mada.backup.types.Xxh3;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-
-import com.dynatrace.hash4j.hashing.HashStream64;
-import com.dynatrace.hash4j.hashing.Hashing;
-
-import dk.mada.backup.types.Xxh3;
 
 /**
  * In-memory buffer which can be streamed to, backed by a MemorySegement.

@@ -4,8 +4,7 @@ package dk.mada.backup;
  * Escapes strings for shell.
  */
 public final class ShellEscaper {
-    private ShellEscaper() {
-    }
+    private ShellEscaper() {}
 
     /**
      * Escape string to be safe for use in string.

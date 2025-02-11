@@ -3,7 +3,6 @@ package dk.mada.backup.cli;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import picocli.CommandLine.ITypeConverter;
 
 /**
@@ -33,19 +32,19 @@ public final class HumanSizeInputConverter implements ITypeConverter<Long> {
         String mod = m.group(2);
         if (mod != null) {
             switch (mod.toUpperCase(Locale.ROOT)) {
-            case "K":
-                multiplier = ONE_K;
-                break;
-            case "M":
-                multiplier = ONE_K * ONE_K;
-                break;
-            case "G":
-                multiplier = ONE_K * ONE_K * ONE_K;
-                break;
-            case "":
-                break;
-            default:
-                throw new IllegalStateException("Unexpected modifier: '" + mod + "'");
+                case "K":
+                    multiplier = ONE_K;
+                    break;
+                case "M":
+                    multiplier = ONE_K * ONE_K;
+                    break;
+                case "G":
+                    multiplier = ONE_K * ONE_K * ONE_K;
+                    break;
+                case "":
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected modifier: '" + mod + "'");
             }
         }
         return base * multiplier;

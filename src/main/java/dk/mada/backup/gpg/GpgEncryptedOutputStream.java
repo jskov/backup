@@ -1,5 +1,8 @@
 package dk.mada.backup.gpg;
 
+import dk.mada.backup.api.BackupException;
+import dk.mada.backup.api.BackupTargetExistsException;
+import dk.mada.backup.types.GpgId;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.FilterOutputStream;
@@ -12,14 +15,9 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import dk.mada.backup.api.BackupException;
-import dk.mada.backup.api.BackupTargetExistsException;
-import dk.mada.backup.types.GpgId;
 
 /**
  * OutputStream filter that GPG-encrypts the outgoing stream.
@@ -63,8 +61,7 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
      * @param recipientKeyId  the key id
      * @param gpgEnvOverrides environment overrides
      */
-    public record GpgStreamInfo(GpgId recipientKeyId, Map<String, String> gpgEnvOverrides) {
-    }
+    public record GpgStreamInfo(GpgId recipientKeyId, Map<String, String> gpgEnvOverrides) {}
 
     /**
      * Creates new instance.
@@ -74,8 +71,7 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
      *
      * @throws GpgEncrypterException if the GPG process fails
      */
-    public GpgEncryptedOutputStream(OutputStream out, GpgStreamInfo gpgInfo)
-            throws GpgEncrypterException {
+    public GpgEncryptedOutputStream(OutputStream out, GpgStreamInfo gpgInfo) throws GpgEncrypterException {
         super(out);
         this.gpgInfo = gpgInfo;
 
@@ -130,10 +126,8 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
         }
 
         logger.debug("Waiting for GPG background process to complete");
-        awaitLatch(gpgStdoutDone, GPG_BACKGROUND_MAX_WAIT_SECONDS,
-                "GPG background process");
-        awaitLatch(gpgStderrDone, GPG_STDERR_MAX_WAIT_SECONDS,
-                "GPG stderr output");
+        awaitLatch(gpgStdoutDone, GPG_BACKGROUND_MAX_WAIT_SECONDS, "GPG background process");
+        awaitLatch(gpgStderrDone, GPG_STDERR_MAX_WAIT_SECONDS, "GPG stderr output");
 
         @Nullable String stderrMessage = stderrMessageRef.get();
         if (stderrMessage != null && !stderrMessage.isEmpty()) {
@@ -149,7 +143,8 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
     private void awaitLatch(CountDownLatch latch, long timeout, String operationDescription) throws IOException {
         try {
             if (!latch.await(timeout, TimeUnit.SECONDS)) {
-                throw new IllegalStateException(operationDescription + " failed to complete in " + timeout + " seconds!");
+                throw new IllegalStateException(
+                        operationDescription + " failed to complete in " + timeout + " seconds!");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -179,16 +174,19 @@ public final class GpgEncryptedOutputStream extends FilterOutputStream {
         try {
             List<String> cmd = List.of(
                     "/usr/bin/gpg",
-                    "-q", "--no-permission-warning",
-                    "--compress-algo", "none",
+                    "-q",
+                    "--no-permission-warning",
+                    "--compress-algo",
+                    "none",
                     "--with-colons",
-                    "--cipher-algo", "AES256",
-                    "--batch", "--no-tty",
-                    "--recipient", gpgInfo.recipientKeyId().id(),
+                    "--cipher-algo",
+                    "AES256",
+                    "--batch",
+                    "--no-tty",
+                    "--recipient",
+                    gpgInfo.recipientKeyId().id(),
                     "--encrypt");
-            ProcessBuilder pb = new ProcessBuilder()
-                    .command(cmd)
-                    .redirectErrorStream(false);
+            ProcessBuilder pb = new ProcessBuilder().command(cmd).redirectErrorStream(false);
 
             pb.environment().putAll(gpgInfo.gpgEnvOverrides());
 

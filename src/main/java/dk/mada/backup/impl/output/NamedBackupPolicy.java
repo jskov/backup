@@ -1,17 +1,5 @@
 package dk.mada.backup.impl.output;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
-
-import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import dk.mada.backup.api.BackupArguments.Limits;
 import dk.mada.backup.api.BackupException;
 import dk.mada.backup.api.BackupOutputType;
@@ -20,6 +8,16 @@ import dk.mada.backup.gpg.GpgEncrypterException;
 import dk.mada.backup.restore.RestoreScriptReader;
 import dk.mada.backup.restore.RestoreScriptReader.RestoreScriptData;
 import dk.mada.backup.restore.RestoreScriptWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Policy for a output per (named) root-element.
@@ -151,7 +149,8 @@ public final class NamedBackupPolicy implements BackupPolicy {
 
         RestoreScriptData data = new RestoreScriptReader().readRestoreScriptData(restoreScript);
         if (data.dataType() != BackupOutputType.NAMED) {
-            throw new IllegalStateException("Will not create a named backup in folder with existing " + data.dataType() + " backup set");
+            throw new IllegalStateException(
+                    "Will not create a named backup in folder with existing " + data.dataType() + " backup set");
         }
 
         if (!name.equals(data.name())) {
@@ -205,8 +204,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
             Files.createDirectories(oldSetDir);
 
             try (Stream<Path> files = Files.list(targetDir)) {
-                files
-                        .filter(Files::isRegularFile)
+                files.filter(Files::isRegularFile)
                         .forEach(origin -> createHardLink(oldSetDir.resolve(origin.getFileName()), origin));
             }
             Files.createFile(validMarker);
@@ -223,9 +221,7 @@ public final class NamedBackupPolicy implements BackupPolicy {
 
         // First delete all regular files in the target dir
         try (Stream<Path> files = Files.list(targetDir)) {
-            files
-                    .filter(Files::isRegularFile)
-                    .forEach(this::deleteFile);
+            files.filter(Files::isRegularFile).forEach(this::deleteFile);
         } catch (IOException e) {
             throw new BackupException("Failed to delete files in target directory " + targetDir, e);
         }
@@ -247,7 +243,8 @@ public final class NamedBackupPolicy implements BackupPolicy {
         try {
             Files.move(newFile, targetFile);
         } catch (IOException e) {
-            throw new BackupException("Failed to move new-set file " + newFile + " to backup destination " + targetFile, e);
+            throw new BackupException(
+                    "Failed to move new-set file " + newFile + " to backup destination " + targetFile, e);
         }
     }
 

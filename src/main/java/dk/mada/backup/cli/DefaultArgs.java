@@ -1,7 +1,6 @@
 package dk.mada.backup.cli;
 
 import org.jspecify.annotations.Nullable;
-
 import picocli.CommandLine.IDefaultValueProvider;
 import picocli.CommandLine.Model.ArgSpec;
 import picocli.CommandLine.Model.OptionSpec;

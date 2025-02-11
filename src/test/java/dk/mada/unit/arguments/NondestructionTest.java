@@ -4,12 +4,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import dk.mada.backup.api.BackupApi;
+import dk.mada.backup.api.BackupArguments.Limits;
+import dk.mada.backup.api.BackupOutputType;
+import dk.mada.backup.api.BackupTargetExistsException;
+import dk.mada.fixture.TestCertificateInfo;
+import dk.mada.fixture.TestDataPrepper;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
-
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,13 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import dk.mada.backup.api.BackupApi;
-import dk.mada.backup.api.BackupArguments.Limits;
-import dk.mada.backup.api.BackupOutputType;
-import dk.mada.backup.api.BackupTargetExistsException;
-import dk.mada.fixture.TestCertificateInfo;
-import dk.mada.fixture.TestDataPrepper;
 
 /**
  * The backup program must not overwrite any files - it should fail instead.
@@ -54,11 +52,9 @@ class NondestructionTest {
     void shouldRunWithEmptyTargetDir() {
         Path restoreScript = targetDir.resolve("test.sh");
 
-        assertThatCode(() -> runBackup("test"))
-                .doesNotThrowAnyException();
+        assertThatCode(() -> runBackup("test")).doesNotThrowAnyException();
 
-        assertThat(restoreScript)
-                .exists();
+        assertThat(restoreScript).exists();
     }
 
     @Test
@@ -66,8 +62,7 @@ class NondestructionTest {
         Path restoreScript = targetDir.resolve("test.sh");
         Files.createFile(restoreScript);
 
-        assertThatThrownBy(() -> runBackup("test"))
-                .isInstanceOf(BackupTargetExistsException.class);
+        assertThatThrownBy(() -> runBackup("test")).isInstanceOf(BackupTargetExistsException.class);
     }
 
     @Test
@@ -75,8 +70,7 @@ class NondestructionTest {
         Path tarFile = targetDir.resolve("test-01.crypt");
         Files.createFile(tarFile);
 
-        assertThatThrownBy(() -> runBackup("test"))
-                .isInstanceOf(BackupTargetExistsException.class);
+        assertThatThrownBy(() -> runBackup("test")).isInstanceOf(BackupTargetExistsException.class);
     }
 
     private void runBackup(String name) throws IOException {

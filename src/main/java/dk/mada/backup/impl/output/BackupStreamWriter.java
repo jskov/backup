@@ -1,10 +1,9 @@
 package dk.mada.backup.impl.output;
 
+import dk.mada.backup.FileInfo;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Future;
-
-import dk.mada.backup.FileInfo;
 
 /**
  * Backup stream writer.

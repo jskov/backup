@@ -1,8 +1,7 @@
 package dk.mada.fixture;
 
-import java.util.List;
-
 import dk.mada.backup.types.Xxh3;
+import java.util.List;
 
 /**
  * Code to parse lines of info output from script.
@@ -18,8 +17,7 @@ public class InfoParser {
      * @param checksum the checksum of the file
      * @param size     the size of the file
      **/
-    public record Info(String filename, Xxh3 checksum, long size) {
-    }
+    public record Info(String filename, Xxh3 checksum, long size) {}
 
     /**
      * Parses 'info' command output into structured data.
@@ -28,9 +26,7 @@ public class InfoParser {
      * @return a list of info for the backup entries
      */
     public List<Info> parse(String txt) {
-        return txt.lines()
-                .map(this::parseLine)
-                .toList();
+        return txt.lines().map(this::parseLine).toList();
     }
 
     private Info parseLine(String l) {

@@ -2,6 +2,10 @@ package dk.mada.unit.restorescript;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dk.mada.backup.BackupElement;
+import dk.mada.backup.ShellEscaper;
+import dk.mada.backup.restore.RestoreScriptWriter;
+import dk.mada.backup.restore.VariableName;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,15 +13,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-
-import dk.mada.backup.BackupElement;
-import dk.mada.backup.ShellEscaper;
-import dk.mada.backup.restore.RestoreScriptWriter;
-import dk.mada.backup.restore.VariableName;
 
 class RestoreScriptGenerationTest {
     /** Temporary output directory. */
@@ -53,7 +51,8 @@ class RestoreScriptGenerationTest {
 
         String fullText = String.join("\n", lines);
         assertThat(fullText)
-                .contains("made with backup version 1.2.7",
+                .contains(
+                        "made with backup version 1.2.7",
                         "@name: some-name",
                         "@version: 1.2.7",
                         "@data_format_version: 2", // this one matching the writer static
@@ -72,7 +71,8 @@ class RestoreScriptGenerationTest {
 
         List<String> lines = Files.readAllLines(script);
         assertThat(lines)
-                .contains("Annie Lennox/Medusa/01. Annie Lennox - No More \\\"I Love You's\\\".opus",
+                .contains(
+                        "Annie Lennox/Medusa/01. Annie Lennox - No More \\\"I Love You's\\\".opus",
                         "På slaget 12/Hjem til Århus/12 Li\\`e Midt I Mellen.ogg");
     }
 
@@ -87,16 +87,12 @@ class RestoreScriptGenerationTest {
         Path script = dir.resolve(backupTargetPath);
         sut.write(script);
 
-        assertThat(script)
-                .exists();
-        assertThat(repositoryDir.resolve(backupTargetPath))
-                .exists();
+        assertThat(script).exists();
+        assertThat(repositoryDir.resolve(backupTargetPath)).exists();
     }
 
     List<BackupElement> toBackupElements(String... strings) {
-        return Arrays.stream(strings)
-                .map(TestBackupElement::new)
-                .collect(Collectors.toList());
+        return Arrays.stream(strings).map(TestBackupElement::new).collect(Collectors.toList());
     }
 
     record TestBackupElement(String path) implements BackupElement {

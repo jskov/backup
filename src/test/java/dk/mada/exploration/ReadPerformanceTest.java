@@ -1,5 +1,7 @@
 package dk.mada.exploration;
 
+import com.dynatrace.hash4j.hashing.HashStream64;
+import com.dynatrace.hash4j.hashing.Hashing;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,12 +19,8 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-
-import com.dynatrace.hash4j.hashing.HashStream64;
-import com.dynatrace.hash4j.hashing.Hashing;
 
 /**
  * New design idea: o keep all data flat (separating into smaller subfolders causes moving data over time) o skip
@@ -117,9 +115,9 @@ class ReadPerformanceTest {
         Path dir = Paths.get("/opt/music/0-A/ABBA/");
 
         Map<String, FileChecksummer> impls = Map.of(
-        // mapping is clearly fastest
-//                        "stream", this::hexChecksum,
-//                        "channel", this::hexChecksumByChannel,
+                // mapping is clearly fastest
+                //                        "stream", this::hexChecksum,
+                //                        "channel", this::hexChecksumByChannel,
                 "xxh3Streaming", this::xxxChecksumByStream,
                 "xxh3Mapping", this::xxxChecksumByMapping,
                 "mapping", this::hexChecksumByMapping);
@@ -142,8 +140,7 @@ class ReadPerformanceTest {
 
     private List<FileInfo> scanDir(Path dir, FileChecksummer checksummer) {
         try (Stream<Path> files = Files.walk(dir)) {
-            return files
-                    .filter(Files::isRegularFile)
+            return files.filter(Files::isRegularFile)
                     .sorted()
                     .map(p -> checksummer.process(dir, p))
                     .toList();
@@ -155,7 +152,8 @@ class ReadPerformanceTest {
     @SuppressWarnings("unused")
     private FileInfo hexChecksum(Path rootDir, Path file) {
         digest.reset();
-        try (InputStream is = Files.newInputStream(file); BufferedInputStream bis = new BufferedInputStream(is)) {
+        try (InputStream is = Files.newInputStream(file);
+                BufferedInputStream bis = new BufferedInputStream(is)) {
             int read;
             while ((read = bis.read(buffer)) > 0) {
                 long s = System.currentTimeMillis();
@@ -215,7 +213,8 @@ class ReadPerformanceTest {
     }
 
     private FileInfo xxxChecksumByStream(Path rootDir, Path file) {
-        try (InputStream is = Files.newInputStream(file); BufferedInputStream bis = new BufferedInputStream(is)) {
+        try (InputStream is = Files.newInputStream(file);
+                BufferedInputStream bis = new BufferedInputStream(is)) {
             int read;
             HashStream64 hashStream = Hashing.xxh3_64().hashStream();
             while ((read = bis.read(buffer)) > 0) {
@@ -252,8 +251,7 @@ class ReadPerformanceTest {
         }
     }
 
-    record FileInfo(Path file, String checksum) {
-    }
+    record FileInfo(Path file, String checksum) {}
 
     @FunctionalInterface
     interface FileChecksummer {

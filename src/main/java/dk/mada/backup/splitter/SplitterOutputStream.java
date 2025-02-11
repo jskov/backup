@@ -1,5 +1,7 @@
 package dk.mada.backup.splitter;
 
+import dk.mada.backup.FileInfo;
+import dk.mada.backup.api.BackupTargetExistsException;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -11,13 +13,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
-
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import dk.mada.backup.FileInfo;
-import dk.mada.backup.api.BackupTargetExistsException;
 
 /**
  * An output stream that splits the stream over several files of a given size.
@@ -70,8 +68,7 @@ public final class SplitterOutputStream extends OutputStream {
 
     @Override
     public void write(int b) throws IOException {
-        if (currentOutputStream == null
-                || writtenToCurrentFile >= openNextFileAtOffset) {
+        if (currentOutputStream == null || writtenToCurrentFile >= openNextFileAtOffset) {
             currentOutputStream = openNextFile();
         }
         writtenToCurrentFile++;
@@ -110,8 +107,8 @@ public final class SplitterOutputStream extends OutputStream {
 
         logger.debug("OPENING {}", outputFile);
 
-        OutputStream fileOutput = Files.newOutputStream(outputFile, StandardOpenOption.CREATE_NEW,
-                StandardOpenOption.WRITE);
+        OutputStream fileOutput =
+                Files.newOutputStream(outputFile, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
         writtenToCurrentFile = 0;
         return new BufferedOutputStream(fileOutput);
     }

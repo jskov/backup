@@ -1,13 +1,12 @@
 package dk.mada.backup.api;
 
-import java.nio.file.Path;
-
 import dk.mada.backup.BackupCreator;
 import dk.mada.backup.api.BackupArguments.Limits;
 import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
 import dk.mada.backup.impl.output.BackupPolicy;
 import dk.mada.backup.impl.output.NamedBackupPolicy;
 import dk.mada.backup.impl.output.NumberedBackupPolicy;
+import java.nio.file.Path;
 
 /**
  * API for the backup operation.
@@ -44,11 +43,12 @@ public class BackupApi {
      * @throws BackupException or any of its subclasses, on failure
      */
     public Path makeBackup(String backupName, Path sourceDir, Path targetDir) {
-        BackupPolicy policy = switch (outputType) {
-        case UNKNOWN -> throw new IllegalStateException("Need a valid type");
-        case NUMBERED -> new NumberedBackupPolicy(backupName, gpgInfo, limits, sourceDir, targetDir);
-        case NAMED -> new NamedBackupPolicy(backupName, gpgInfo, limits, sourceDir, targetDir);
-        };
+        BackupPolicy policy =
+                switch (outputType) {
+                    case UNKNOWN -> throw new IllegalStateException("Need a valid type");
+                    case NUMBERED -> new NumberedBackupPolicy(backupName, gpgInfo, limits, sourceDir, targetDir);
+                    case NAMED -> new NamedBackupPolicy(backupName, gpgInfo, limits, sourceDir, targetDir);
+                };
 
         return new BackupCreator(policy).create();
     }

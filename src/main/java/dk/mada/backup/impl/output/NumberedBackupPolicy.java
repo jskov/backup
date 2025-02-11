@@ -1,14 +1,13 @@
 package dk.mada.backup.impl.output;
 
+import dk.mada.backup.api.BackupArguments.Limits;
+import dk.mada.backup.api.BackupOutputType;
+import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
+import dk.mada.backup.gpg.GpgEncrypterException;
+import dk.mada.backup.restore.RestoreScriptWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import dk.mada.backup.api.BackupOutputType;
-import dk.mada.backup.api.BackupArguments.Limits;
-import dk.mada.backup.gpg.GpgEncryptedOutputStream.GpgStreamInfo;
-import dk.mada.backup.restore.RestoreScriptWriter;
-import dk.mada.backup.gpg.GpgEncrypterException;
 
 /**
  * Policy for a split (and numbered) output.
