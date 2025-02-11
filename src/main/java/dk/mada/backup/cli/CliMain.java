@@ -13,11 +13,11 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.stream.StreamSupport;
 import org.jspecify.annotations.Nullable;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -238,13 +238,9 @@ public final class CliMain implements Runnable {
     }
 
     private boolean containsRelativeElements(Path p) {
-        for (Iterator<Path> ix = p.iterator(); ix.hasNext(); ) {
-            String el = ix.next().toString();
-            if (".".equals(el) || "..".equals(el) || "~".equals(el)) {
-                return true;
-            }
-        }
-        return false;
+        return StreamSupport.stream(p.spliterator(), false)
+                .map(Path::toString)
+                .anyMatch(el -> ".".equals(el) || "..".equals(el) || "~".equals(el));
     }
 
     private Path toRealPath(Path p) {

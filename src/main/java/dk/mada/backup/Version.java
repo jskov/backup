@@ -16,7 +16,9 @@ public final class Version implements IVersionProvider {
     /** The application properties. */
     private static Properties appProperties = loadProperties();
 
-    private Version() {}
+    private Version() {
+        // empty
+    }
 
     @Override
     public String[] getVersion() {

@@ -10,7 +10,9 @@ import org.jspecify.annotations.Nullable;
  * exception instead.
  */
 public final class ExitHandlerFixture {
-    private ExitHandlerFixture() {}
+    private ExitHandlerFixture() {
+        // empty
+    }
 
     /** {@return a fixture for handling system exit in a testing context} */
     public static ExitHandler exitForTesting() {

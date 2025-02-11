@@ -23,7 +23,9 @@ public final class TestDataPrepper {
     /** The destination directory for test backups. */
     public static final Path BACKUP_DEST_DIR = Paths.get("build/backup-dest");
 
-    private TestDataPrepper() {}
+    private TestDataPrepper() {
+        // empty
+    }
 
     /**
      * Prepares a directory with known contents.

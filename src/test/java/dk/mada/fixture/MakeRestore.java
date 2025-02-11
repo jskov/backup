@@ -8,7 +8,9 @@ import java.nio.file.Path;
  * Runs a backup's restore script.
  */
 public final class MakeRestore {
-    private MakeRestore() {}
+    private MakeRestore() {
+        // empty
+    }
 
     /**
      * Run the restore script.
