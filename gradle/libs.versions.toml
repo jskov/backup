@@ -3,7 +3,7 @@ compress            = { module = "org.apache.commons:commons-compress", version 
 hash4j              = { module = "com.dynatrace.hash4j:hash4j", version = "0.20.0" }
 jspecify            = { module = "org.jspecify:jspecify", version = "1.0.0" }
 picocli             = { module = "info.picocli:picocli", version = "4.7.6" }
-slf4j               = { module = "org.slf4j:slf4j-jdk14", version = "2.0.16" }
+slf4j               = { module = "org.slf4j:slf4j-jdk14", version = "2.0.17" }
 
 assertJ             = { module = "org.assertj:assertj-core", version = "3.27.3" }
 unit                = { module = "org.junit.jupiter:junit-jupiter", version = "5.12.1" }
