@@ -347,7 +347,7 @@ if [ "$1" == "verify" ]; then
         shift
 
         if [[ ! -x /bin/jotta-cli ]]; then
-            echo >/dev/stderr "Script requires tool: $t"
+            echo >/dev/stderr "Script requires tool: /bin/jotta-cli"
             exit 1
         fi
 
