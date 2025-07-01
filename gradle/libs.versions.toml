@@ -6,8 +6,8 @@ picocli             = { module = "info.picocli:picocli", version = "4.7.7" }
 slf4j               = { module = "org.slf4j:slf4j-jdk14", version = "2.0.17" }
 
 assertJ             = { module = "org.assertj:assertj-core", version = "3.27.3" }
-unit                = { module = "org.junit.jupiter:junit-jupiter", version = "5.13.1" }
-unitPlatform        = { module = "org.junit.platform:junit-platform-runner", version = "1.13.1" }
+unit                = { module = "org.junit.jupiter:junit-jupiter", version = "5.13.2" }
+unitPlatform        = { module = "org.junit.platform:junit-platform-runner", version = "1.13.2" }
 
 [bundles]
 testUnit            = [ "assertJ", "jspecify", "unit", "unitPlatform" ]
