@@ -54,7 +54,8 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Run tests
-        run: ./gradlew --configuration-cache check javadoc sonar shadow -s -Pversion=${BUILD_LABEL//\//_}
+        # sonar disabled waiting for something to come off https://community.sonarsource.com/t/error-when-running-sonar-task-with-gradle-9-0-0-rc-1/143857/1
+        run: ./gradlew --configuration-cache check javadoc shadow -s -Pversion=${BUILD_LABEL//\//_}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
