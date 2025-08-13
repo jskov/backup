@@ -31,21 +31,13 @@ public final class HumanSizeInputConverter implements ITypeConverter<Long> {
         long base = Long.parseLong(m.group(1));
         String mod = m.group(2);
         if (mod != null) {
-            switch (mod.toUpperCase(Locale.ROOT)) {
-                case "K":
-                    multiplier = ONE_K;
-                    break;
-                case "M":
-                    multiplier = ONE_K * ONE_K;
-                    break;
-                case "G":
-                    multiplier = ONE_K * ONE_K * ONE_K;
-                    break;
-                case "":
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected modifier: '" + mod + "'");
-            }
+            multiplier = switch (mod.toUpperCase(Locale.ROOT)) {
+                case "K" -> ONE_K;
+                case "M" -> ONE_K * ONE_K;
+                case "G" -> ONE_K * ONE_K * ONE_K;
+                case "" -> 1;
+                default -> throw new IllegalStateException("Unexpected modifier: '" + mod + "'");
+            };
         }
         return base * multiplier;
     }

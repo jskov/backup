@@ -1,6 +1,7 @@
 package dk.mada.fixture;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -20,8 +21,8 @@ public final class DisplayNameCamelCase extends DisplayNameGenerator.Standard {
     }
 
     @Override
-    public String generateDisplayNameForNestedClass(Class<?> nestedClass) {
-        return this.replaceCapitals(super.generateDisplayNameForNestedClass(nestedClass));
+    public String generateDisplayNameForNestedClass(List<Class<?>> enclosingInstanceTypes, Class<?> nestedClass) {
+        return this.replaceCapitals(super.generateDisplayNameForNestedClass(enclosingInstanceTypes, nestedClass));
     }
 
     @Override
