@@ -1,5 +1,5 @@
 [libraries]
-compress            = { module = "org.apache.commons:commons-compress", version = "1.27.1" }
+compress            = { module = "org.apache.commons:commons-compress", version = "1.28.0" }
 hash4j              = { module = "com.dynatrace.hash4j:hash4j", version = "0.24.0" }
 jspecify            = { module = "org.jspecify:jspecify", version = "1.0.0" }
 picocli             = { module = "info.picocli:picocli", version = "4.7.7" }
