@@ -1,10 +1,24 @@
-package dk.mada;
+//#!/bin/env -S  bash -c 'j="$(mktemp -t backup-XXX)".java; export BACKUP_DATA="${j}.data"; m=$(grep -E -n "^//EOI" "$0" | sed 's/:.*//') ; tail -n $m "$0" | tail -n +2 > "$j"; tail -n +$m "$0" > "$BACKUP_DATA"; java --source 25 "$j" "$@"'
+//-
+//- Lines starting with //- will be trimmed from the output.
+//-
+//- The shebang allows splitting the script file into a .java-named script for execution (top of the script)
+//- and .java.data-named file containing the data (the bottom lines of the script).
+//-
+//- Note that it needs to be shorted than 255 chars!
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Restore {
-    private void parse() {
+public final class Restore {
+    public void run(Path data, List<String> args) {
+        
+    }
+    
+    
+    private void parse(Path data) {
         List<Crypt> crypts = CRYPTS.stream()
                 .map(l -> new Crypt(Long.valueOf(l.substring(0, 11).trim()), l.substring(12,28), l.substring(29, 61), l.substring(6)))
                 .toList();
@@ -29,14 +43,19 @@ public class Restore {
             .collect(Collectors.joining("\n ")));
 }
     
-    
-    
-    
-    
     public static final void main(String[] args) {
-        new Restore().parse();
+        String data = System.getenv("BACKUP_DATA");
+        if (data == null) {
+            err("The variable BACKUP_DATA must point to a data file!");
+        }
+        new Restore().run(Paths.get(data), List.of(args));
     }
 
+    private static void err(String msg) {
+        System.err.println(msg);
+        System.exit(1);
+    }
+    
     record Crypt(long size, String xxh, String md5, String name) {}
     record Archive(long size, String xxh, String name) {}
     record File(long size, String xxh, String name) {}
@@ -70,3 +89,5 @@ public class Restore {
 "     812232,7a2ab3217b3baa58,Abrahams, Tom/Spaceman - Tom Abrahams.epub"
 );
 }
+
+//EOI - java parser stops after this line (due to byte 0x1a, end-of-input) 
