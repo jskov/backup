@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 public class JavaRestoreScriptTest {
 
     @Test
-    void canRun() {
+    void canRun() throws Exception {
         Path testData = Paths.get("./src/test/resources/data/java-restore/data.txt");
         new Restore().run(testData, List.of());
     }
