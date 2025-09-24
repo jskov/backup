@@ -38,6 +38,7 @@ public final class Restore {
         
         switch(args.removeFirst()) {
         case "info" -> cmdInfo(args);
+        case "verify" -> cmdVerify(args);
         }
         
         Path dir = Paths.get("/var/home/jskov/git/_java_restore_ebooks");
@@ -46,13 +47,50 @@ public final class Restore {
             .forEach(c -> System.out.println(md5Sum(dir.resolve(c.name()))));
     }
     
+    
+    void cmdVerify(List<String> args) {
+        System.out.println(": " + args);
+        
+        if (args.isEmpty()) {
+            exit("VERIFY");
+        }
+        
+        exit("TODO");
+        
+    }
+    
     private void cmdInfo(List<String> args) {
-        exit("Backup " + BACKUP_NAME + "\n"
-                + "made with backup version " + VERSION + "\n"
-                + "created on " + BACKUP_DATE_TIME + "\n"
-                + "original size @@BACKUP_INPUT_SIZE@@" + "\n"
-                + "encrypted with key id " + BACKUP_KEY_ID + "\n"
-                + data.crypts().size() + " crypted archive(s) contains " + data.files().size() + " files in " + data.archives().size() + " nested archives\n");
+        if (args.isEmpty()) {
+            exit("Backup " + BACKUP_NAME + "\n"
+                    + "made with backup version " + VERSION + "\n"
+                    + "created on " + BACKUP_DATE_TIME + "\n"
+                    + "original size @@BACKUP_INPUT_SIZE@@" + "\n"
+                    + "encrypted with key id " + BACKUP_KEY_ID + "\n"
+                    + data.crypts().size() + " crypted archive(s) contains " + data.files().size() + " files in " + data.archives().size() + " nested archives\n");
+        }
+        
+        switch (args.removeFirst()) {
+        case "parsed" -> cmdInfoParsed();
+        }
+        
+        usage();
+        
+    }
+    
+    void cmdInfoParsed() {
+        System.out.println("Crypts (" + data.crypts().size() + ")");
+        System.out.println(" " + data.crypts().stream()
+                .map(Crypt::toString)
+                .collect(Collectors.joining("\n ")));
+        System.out.println("Archives (" + data.archives().size() + ")");
+        System.out.println(" " + data.archives().stream()
+                .map(Archive::toString)
+                .collect(Collectors.joining("\n ")));
+        System.out.println("Files (" + data.files().size() + ")");
+        System.out.println(" " + data.files().stream()
+                .map(File::toString)
+                .collect(Collectors.joining("\n ")));
+        exit();
     }
     
     private void usage() {
@@ -63,9 +101,7 @@ Usage:
 With cmd being one of:
 
   info               information about backup
-  info -c            information about crypted backup files
-  info -a            information about archive files
-  info -f            information about the original files
+  info parsed        data as parsed
 
   unpack dir         unpacks all files to dir
   unpack -a dir      unpacks (only) archives to dir
@@ -115,17 +151,6 @@ With cmd being one of:
             files.add(new File(Long.valueOf(l.substring(0, 11).trim()), l.substring(12,28), l.substring(29)));
         }            
 
-        System.out.println(" " + crypts.stream()
-                    .map(Crypt::toString)
-                    .collect(Collectors.joining("\n ")));
-
-        System.out.println(" " + archives.stream()
-        .map(Archive::toString)
-        .collect(Collectors.joining("\n ")));
-        System.out.println(" " + files.stream()
-            .map(File::toString)
-            .collect(Collectors.joining("\n ")));
-        
         return new Data(crypts, archives, files);
     }
         
