@@ -7,6 +7,8 @@
 //-
 //- Note that it needs to be shorted than 255 chars!
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,12 +17,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public final class Restore {
-    public void run(Path data, List<String> args) throws Exception {
+    public void run(Path dataFile, List<String> args) throws Exception {
+        Data data = parseData(dataFile);
+
+        Path dir = Paths.get("/var/home/jskov/git/_java_restore_ebooks");
+        
+        data.crypts().stream()
+            .forEach(c -> System.out.println(md5Sum(dir.resolve(c.name()))));
+    }
+
+    private Data parseData(Path datafile) throws IOException {
         List<Crypt> crypts = new ArrayList<>();
         List<Archive> archives = new ArrayList<>();
         List<File> files = new ArrayList<>();
 
-        List<String> lines = Files.readAllLines(data);
+        List<String> lines = Files.readAllLines(datafile);
         int iCrypts = lines.indexOf("##crypts##");
         int iArchives = lines.indexOf("##archives##");
         int iFiles = lines.indexOf("##files##");
@@ -47,6 +58,29 @@ public final class Restore {
         System.out.println(" " + files.stream()
             .map(File::toString)
             .collect(Collectors.joining("\n ")));
+        
+        return new Data(crypts, archives, files);
+    }
+        
+    private String xxhSum(Path f) {
+        String out = runExternalCmd(List.of("xxhsum", "-H3", f.toAbsolutePath().toString()));
+        return out.substring(out.indexOf(" = ") + 3);
+    }
+
+    private String md5Sum(Path f) {
+        String out = runExternalCmd(List.of("md5sum", f.toAbsolutePath().toString()));
+        return out.substring(0, 31);
+    }
+
+    private String runExternalCmd(List<String> cmd) {
+        try {
+            Process p = new ProcessBuilder(cmd)
+                .redirectErrorStream(true)
+                .start();
+            return p.inputReader().lines().collect(Collectors.joining(System.lineSeparator()));
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed running cmd: " + cmd, e);
+        }
     }
     
     public static final void main(String[] args) {
@@ -69,6 +103,7 @@ public final class Restore {
     record Crypt(long size, String xxh, String md5, String name) {}
     record Archive(long size, String xxh, String name) {}
     record File(long size, String xxh, String name) {}
+    record Data(List<Crypt> crypts, List<Archive> archives, List<File> files) {}
 }
 
 //EOI - java parser stops after this line (due to byte 0x1a, end-of-input) 
