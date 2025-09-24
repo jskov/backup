@@ -17,21 +17,88 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public final class Restore {
-    public void run(Path dataFile, List<String> args) throws Exception {
-        Data data = parseData(dataFile);
+    String BACKUP_NAME = "@@BACKUP_NAME@@";
+    String VERSION = "@@VERSION@@";
+    String DATA_FORMAT_VERSION = "@@DATA_FORMAT_VERSION@@";
+    String BACKUP_KEY_ID = "@@BACKUP_KEY_ID@@";
+    String BACKUP_DATE_TIME = "@@BACKUP_DATE_TIME@@";
+    String BACKUP_OUTPUT_TYPE = "@@BACKUP_OUTPUT_TYPE@@";
 
+    Data data;
+    
+    Restore(Path datafile) {
+        data = parseData(datafile);
+    }
+    
+    public void run(List<String> args) throws Exception {
+        System.out.println(": " + args);
+        if (args.size() == 0) {
+            usage();
+        }
+        
+        switch(args.removeFirst()) {
+        case "info" -> cmdInfo(args);
+        }
+        
         Path dir = Paths.get("/var/home/jskov/git/_java_restore_ebooks");
         
         data.crypts().stream()
             .forEach(c -> System.out.println(md5Sum(dir.resolve(c.name()))));
     }
+    
+    private void cmdInfo(List<String> args) {
+        exit("Backup " + BACKUP_NAME + "\n"
+                + "made with backup version " + VERSION + "\n"
+                + "created on " + BACKUP_DATE_TIME + "\n"
+                + "original size @@BACKUP_INPUT_SIZE@@" + "\n"
+                + "encrypted with key id " + BACKUP_KEY_ID + "\n"
+                + data.crypts().size() + " crypted archive(s) contains " + data.files().size() + " files in " + data.archives().size() + " nested archives\n");
+    }
+    
+    private void usage() {
+        exit("""
+Usage:
+ restore [cmd]
 
-    private Data parseData(Path datafile) throws IOException {
+With cmd being one of:
+
+  info               information about backup
+  info -c            information about crypted backup files
+  info -a            information about archive files
+  info -f            information about the original files
+
+  unpack dir         unpacks all files to dir
+  unpack -a dir      unpacks (only) archives to dir
+
+  verify             verifies crypted backup files (locally)
+  verify -c dir      verifies crypted backup files in dir
+  verify -a dir      verifies decrypted archive files in dir
+  verify -f dir      verifies decrypted and unpacked files in dir
+  verify -s          decrypts and verifies files via streaming - prompts password
+  verify -j path     verifies MD5 checksum of backup files at Jotta path""");
+    }
+    
+    
+    private void exit(String msg) {
+        System.out.println(msg);
+        System.exit(0);
+    }
+
+    private void exit() {
+        System.exit(0);
+    }
+
+    private Data parseData(Path datafile) {
+        List<String> lines;
+        try {
+            lines = Files.readAllLines(datafile);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed reading data " + datafile, e);
+        }
+
         List<Crypt> crypts = new ArrayList<>();
         List<Archive> archives = new ArrayList<>();
         List<File> files = new ArrayList<>();
-
-        List<String> lines = Files.readAllLines(datafile);
         int iCrypts = lines.indexOf("##crypts##");
         int iArchives = lines.indexOf("##archives##");
         int iFiles = lines.indexOf("##files##");
@@ -89,7 +156,7 @@ public final class Restore {
             err("The variable BACKUP_DATA must point to a data file!");
         }
         try {
-            new Restore().run(Paths.get(data), List.of(args));
+            new Restore(Paths.get(data)).run(new ArrayList<>(List.of(args)));
         } catch (Exception e) {
             err("Failed processing " + data + ": " + e.getMessage());
         }
