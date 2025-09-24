@@ -12,6 +12,6 @@ public class JavaRestoreScriptTest {
     @Test
     void canRun() throws Exception {
         Path testData = Paths.get("./src/test/resources/data/java-restore/data.txt");
-        new Restore(testData).run(new ArrayList<>(List.of("info", "parsed")));
+        new Restore(testData).run(new ArrayList<>(List.of("verify", "-c", "/home/jskov/git/_java_restore_ebooks")));
     }
 }

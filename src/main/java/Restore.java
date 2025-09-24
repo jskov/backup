@@ -9,11 +9,13 @@
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.management.PlatformLoggingMXBean;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public final class Restore {
@@ -48,17 +50,35 @@ public final class Restore {
     }
     
     
-    void cmdVerify(List<String> args) {
+    void cmdVerify(List<String> args) throws IOException {
         System.out.println(": " + args);
         
         if (args.isEmpty()) {
-            exit("VERIFY");
+            cmdVerifyCrypts(data.dataDir());
+        }
+        
+        switch(args.removeFirst()) {
+        case "-c" -> cmdVerifyCrypts(Paths.get(args.removeFirst()).toRealPath());
         }
         
         exit("TODO");
-        
     }
     
+    private void cmdVerifyCrypts(Path dir) {
+        System.out.println("verify " + dir);
+        AtomicBoolean failed = new AtomicBoolean(false);
+        String output = data.crypts().stream()
+            .map(c -> {
+                String sum = xxhSum(dir.resolve(c.name()));
+                boolean status = c.xxh().equals(sum);
+                failed.compareAndSet(false, !status);
+                return " - " + c.name() + "... " + (status ? "ok" : ("BAD [expected " + c.xxh() + " was " + sum + "]"));
+            })
+            .sorted()
+            .collect(Collectors.joining("\n"));
+        exit(failed.get(), output);
+    }
+
     private void cmdInfo(List<String> args) {
         if (args.isEmpty()) {
             exit("Backup " + BACKUP_NAME + "\n"
@@ -115,14 +135,6 @@ With cmd being one of:
     }
     
     
-    private void exit(String msg) {
-        System.out.println(msg);
-        System.exit(0);
-    }
-
-    private void exit() {
-        System.exit(0);
-    }
 
     private Data parseData(Path datafile) {
         List<String> lines;
@@ -151,7 +163,7 @@ With cmd being one of:
             files.add(new File(Long.valueOf(l.substring(0, 11).trim()), l.substring(12,28), l.substring(29)));
         }            
 
-        return new Data(crypts, archives, files);
+        return new Data(datafile.getParent(), crypts, archives, files);
     }
         
     private String xxhSum(Path f) {
@@ -187,6 +199,19 @@ With cmd being one of:
         }
     }
 
+    private void exit(String msg) {
+        exit(false, msg);
+    }
+
+    private void exit(boolean failed, String msg) {
+        System.out.println(msg);
+        System.exit(failed ? 1 : 0);
+    }
+
+    private void exit() {
+        System.exit(0);
+    }
+
     private static void err(String msg) {
         System.err.println(msg);
         System.exit(1);
@@ -195,7 +220,7 @@ With cmd being one of:
     record Crypt(long size, String xxh, String md5, String name) {}
     record Archive(long size, String xxh, String name) {}
     record File(long size, String xxh, String name) {}
-    record Data(List<Crypt> crypts, List<Archive> archives, List<File> files) {}
+    record Data(Path dataDir, List<Crypt> crypts, List<Archive> archives, List<File> files) {}
 }
 
 //EOI - java parser stops after this line (due to byte 0x1a, end-of-input) 
