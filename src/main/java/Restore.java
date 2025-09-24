@@ -26,7 +26,7 @@ public final class Restore {
         int iFiles = lines.indexOf("##files##");
         for (int i = iCrypts + 1; i < iArchives; i++) {
             String l = lines.get(i);
-            crypts.add(new Crypt(Long.valueOf(l.substring(0, 11).trim()), l.substring(12,28), l.substring(29, 61), l.substring(6)));
+            crypts.add(new Crypt(Long.valueOf(l.substring(0, 11).trim()), l.substring(12,28), l.substring(29, 61), l.substring(62)));
         }            
         for (int i = iArchives + 1; i < iFiles; i++) {
             String l = lines.get(i);
