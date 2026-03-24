@@ -63,8 +63,8 @@ jobs:
 
       - name: Test Report
         # This will fail to run if caused by (dependabot) PR
-        uses: dorny/test-reporter@3d76b34a4535afbd0600d347b09a6ee5deb3ed7f
-        # 2.6.0
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2
+        # 3.0.0
         if: failure()    # run this step even if previous step failed
         with:
           name: Junit Tests            # Name of the check run which will be created
