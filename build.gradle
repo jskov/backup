@@ -113,7 +113,7 @@ tasks.named('test').configure {
         excludeTags "accept"
     }  
 
-    testLogging.showStandardStreams = false
+    testLogging.showStandardStreams = true
 }
 
 tasks.register('acceptTest', Test) {
