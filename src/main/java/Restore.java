@@ -205,7 +205,7 @@ With cmd being one of:
             if (")".equals(line)) {
                 break;
             }
-            String l = line.substring(1);
+            String l = line.substring(1, line.length() - 1);
             System.out.println("'" + l + "'");
             crypts.add(new Crypt(Long.valueOf(l.substring(0, 11).trim()), l.substring(12,28), l.substring(29, 61), l.substring(62)));
         }            
@@ -217,7 +217,7 @@ With cmd being one of:
             if (")".equals(line)) {
                 break;
             }
-            String l = line.substring(1);
+            String l = line.substring(1, line.length() - 1);
             archives.add(new Archive(Long.valueOf(l.substring(0, 11).trim()), l.substring(12,28), l.substring(29)));
         }            
         for (int i = iFiles + 1; i < lines.size(); i++) {
@@ -228,13 +228,13 @@ With cmd being one of:
             if (")".equals(line)) {
                 break;
             }
-            String l = line.substring(1);
+            String l = line.substring(1, line.length() - 1);
             files.add(new File(Long.valueOf(l.substring(0, 11).trim()), l.substring(12,28), l.substring(29)));
         }            
 
         return new Data(datafile.getParent(), crypts, archives, files);
     }
-        
+
     private String xxhSum(Path f) {
         String out = runExternalCmd(List.of("xxhsum", "-H3", f.toAbsolutePath().toString()));
         return out.substring(out.indexOf(" = ") + 3);
