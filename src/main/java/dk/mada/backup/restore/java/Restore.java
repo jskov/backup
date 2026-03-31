@@ -1,3 +1,4 @@
+package dk.mada.backup.restore.java;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +24,10 @@ import dk.mada.backup.BackupCreator;
 import dk.mada.backup.types.Md5;
 import dk.mada.backup.types.Xxh3;
 import dk.mada.logging.LoggerConfig;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
 
+@Command(name = "restore", mixinStandardHelpOptions = true, version = "@@VERSION@@", description = "Restore (or verify) mada backup set.")
 public final class Restore {
     private static final Logger logger = LoggerFactory.getLogger(BackupCreator.class);
     /** File reading buffer size. */
@@ -38,7 +42,11 @@ public final class Restore {
 
     Data data;
     
-    Restore(Path datafile) {
+    Restore() {
+        data = null;
+    }
+    
+    public Restore(Path datafile) {
         data = parseData(datafile);
         
         logger.trace("Parsed {}", data);
@@ -269,7 +277,15 @@ With cmd being one of:
         }
     }
     
-    public static final void main(String[] args) {
+    
+    // this example implements Callable, so parsing, error handling and handling user
+    // requests for usage help or version help can be done with one line of code.
+    public static void main(String... args) {
+        int exitCode = new CommandLine(new Restore()).execute(args);
+        System.exit(exitCode);
+    }
+    
+    public static final void mainz(String[] args) {
         LoggerConfig.loadConfig();
         Instant start = Instant.now();
 //        String data = System.getenv("BACKUP_DATA");
