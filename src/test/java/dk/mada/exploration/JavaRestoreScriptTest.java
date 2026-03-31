@@ -1,10 +1,10 @@
 package dk.mada.exploration;
 
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -19,6 +19,13 @@ public class JavaRestoreScriptTest {
 
     @Test
     void cmdVerifyWorks() throws Exception {
-        new Restore(testData).run(new ArrayList<>(List.of("verify", "-c", "/home/jskov/git/_ebooks_backup_2026")));
+        int res = Restore.mainReturn(new String[] { "-b", "/home/jskov/git/_ebooks_backup_2026/ebooks.sh", "verify" });
+        assertThat(res).isEqualTo(0);
+    }
+
+    @Test
+    void cmdVerifyFailExit() throws Exception {
+        int res = Restore.mainReturn(new String[] { "-b", "/home/jskov/git/_ebooks_backup_2026/ebooks_broken.sh", "verify" });
+        assertThat(res).isEqualTo(-1);
     }
 }

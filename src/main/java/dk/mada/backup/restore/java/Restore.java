@@ -1,4 +1,5 @@
 package dk.mada.backup.restore.java;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,9 +12,12 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,9 +30,11 @@ import dk.mada.backup.types.Xxh3;
 import dk.mada.logging.LoggerConfig;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.ScopeType;
 
-@Command(name = "restore", mixinStandardHelpOptions = true, version = "@@VERSION@@", description = "Restore (or verify) mada backup set.")
-public final class Restore {
+@Command(name = "restore", mixinStandardHelpOptions = true, version = "@@VERSION@@", description = "Restore (or verify) mada backup set.", scope = ScopeType.INHERIT)
+public final class Restore implements Callable<Integer> {
     private static final Logger logger = LoggerFactory.getLogger(BackupCreator.class);
     /** File reading buffer size. */
     private static final int FILE_READ_BUFFER_SIZE = 8192;
@@ -40,153 +46,156 @@ public final class Restore {
     String BACKUP_DATE_TIME = "@@BACKUP_DATE_TIME@@";
     String BACKUP_OUTPUT_TYPE = "@@BACKUP_OUTPUT_TYPE@@";
 
+    @Nullable
     Data data;
-    
-    Restore() {
-        data = null;
+
+    @Option(names = { "-b", "--backup-set" }, required = true, description = "Define the location of the backup set")
+    private Path backupSet;
+
+    @Option(names = { "-d",
+            "--target-directory" }, description = "Define the target directory for restore/verification")
+    private Path directory;
+
+    @Override
+    public Integer call() throws Exception { // your business logic goes here...
+        logger.info("See {}", backupSet);
+        return 0;
     }
-    
-    public Restore(Path datafile) {
-        data = parseData(datafile);
-        
+
+    Data readBackupSet() {
+        if (data == null) {
+            data = parseData(backupSet);
+        }
         logger.trace("Parsed {}", data);
-        
+        return data;
     }
-    
+
     public void run(List<String> args) throws Exception {
         info(": " + args);
         if (args.size() == 0) {
             usage();
         }
-        
-        switch(args.removeFirst()) {
+
+        switch (args.removeFirst()) {
         case "info" -> cmdInfo(args);
-        case "verify" -> cmdVerify(args);
+//        case "verify" -> cmdVerify(args);
         }
-        
+
 //        Path dir = Paths.get("/var/home/jskov/git/_java_restore_ebooks");
 //        
 //        data.crypts().stream()
 //            .forEach(c -> info(md5Sum(dir.resolve(c.name()))));
     }
-    
-    
-    void cmdVerify(List<String> args) throws IOException {
-        info(": " + args);
+
+    @Command(name = "verify", description = "Verification of backup set")
+    int verifySet() {
+
+        Path target = directory != null ? directory : Objects.requireNonNull(backupSet.getParent());
         
-        if (args.isEmpty()) {
-            cmdVerifyCrypts(data.dataDir());
-        }
-        switch(args.removeFirst()) {
-        case "-c" -> cmdVerifyCrypts(Paths.get(args.removeFirst()).toRealPath());
-        case "-j" -> cmdVerifyJotta(args.removeFirst());
-        default -> usage();
-        }
+        logger.info("See {} : {}", backupSet, directory);
+        // TODO Auto-generated method stub
+
+        Data backup = readBackupSet();
+
+        AtomicBoolean failed = new AtomicBoolean(false);
+        String output = backup.crypts().stream().map(c -> {
+            Xxh3 sum = xxhSum(target.resolve(c.name()));
+            boolean status = c.xxh().equals(sum);
+            failed.compareAndSet(false, !status);
+            return " - " + c.name() + "... " + (status ? "ok" : ("BAD [expected " + c.xxh() + " was " + sum + "]"));
+        }).sorted().collect(Collectors.joining("\n"));
+        System.out.println(output);
+        return failed.get() ? -1 : 0;
     }
-    
+
+//        
+//        switch(args.removeFirst()) {
+//        case "-c" -> cmdVerifyCrypts(Paths.get(args.removeFirst()).toRealPath());
+//        case "-j" -> cmdVerifyJotta(args.removeFirst());
+//        default -> usage();
+//        }
+//    }
+
     void cmdVerifyJotta(String path) {
         info("Checking backup files at Jotta cloud path " + path);
-        
+
         String out = runExternalCmd(List.of("jotta-cli", "ls", "-l", "-a", path));
-        
+
         int nameIx = out.indexOf("Name");
         int nameEndIx = out.indexOf("Size");
         int md5sumIx = out.indexOf("Checksum");
-        
-        String ok=" \u2713";
-        String bad=" \u274c";
 
-        Map<String, String> jottaData = out.lines()
-        	.skip(2) // Skip header
-        	.collect(Collectors.toMap(l -> l.substring(nameIx, nameEndIx).trim(), l -> l.substring(md5sumIx, md5sumIx+32)));
-        
+        String ok = " \u2713";
+        String bad = " \u274c";
+
+        Map<String, String> jottaData = out.lines().skip(2) // Skip header
+                .collect(Collectors.toMap(l -> l.substring(nameIx, nameEndIx).trim(),
+                        l -> l.substring(md5sumIx, md5sumIx + 32)));
+
         int foundBadChecksum = 0;
         for (Crypt c : data.crypts()) {
-        	String name = c.name();
-			String jottaMd5sum = jottaData.get(name);
-        	if (jottaMd5sum == null) {
-        		foundBadChecksum++;
-        		info(name + " [missing]" + bad);
-        		// FIXME below
-        	} else if (jottaMd5sum.equals(c.md5())) {
-        		info(name + ok);
-        	} else {
-        		foundBadChecksum++;
-        		info(name + bad);
-        	}
+            String name = c.name();
+            String jottaMd5sum = jottaData.get(name);
+            if (jottaMd5sum == null) {
+                foundBadChecksum++;
+                info(name + " [missing]" + bad);
+                // FIXME below
+            } else if (jottaMd5sum.equals(c.md5())) {
+                info(name + ok);
+            } else {
+                foundBadChecksum++;
+                info(name + bad);
+            }
         }
-        
+
         boolean failed = foundBadChecksum != 0;
         exit(failed, failed ? ("Jotta backup has " + foundBadChecksum + " bad files") : "Jotta backup matches!");
     }
 
-    void cmdVerifyCrypts(Path dir) {
-        info("verify " + dir);
-        AtomicBoolean failed = new AtomicBoolean(false);
-        String output = data.crypts().stream()
-            .map(c -> {
-                Xxh3 sum = xxhSum(dir.resolve(c.name()));
-                boolean status = c.xxh().equals(sum);
-                failed.compareAndSet(false, !status);
-                return " - " + c.name() + "... " + (status ? "ok" : ("BAD [expected " + c.xxh() + " was " + sum + "]"));
-            })
-            .sorted()
-            .collect(Collectors.joining("\n"));
-        exit(failed.get(), output);
-    }
-
     private void cmdInfo(List<String> args) {
         if (args.isEmpty()) {
-            exit("Backup " + BACKUP_NAME + "\n"
-                    + "made with backup version " + VERSION + "\n"
-                    + "created on " + BACKUP_DATE_TIME + "\n"
-                    + "original size @@BACKUP_INPUT_SIZE@@" + "\n"
-                    + "encrypted with key id " + BACKUP_KEY_ID + "\n"
-                    + data.crypts().size() + " crypted archive(s) contains " + data.files().size() + " files in " + data.archives().size() + " nested archives\n");
+            exit("Backup " + BACKUP_NAME + "\n" + "made with backup version " + VERSION + "\n" + "created on "
+                    + BACKUP_DATE_TIME + "\n" + "original size @@BACKUP_INPUT_SIZE@@" + "\n" + "encrypted with key id "
+                    + BACKUP_KEY_ID + "\n" + data.crypts().size() + " crypted archive(s) contains "
+                    + data.files().size() + " files in " + data.archives().size() + " nested archives\n");
         }
-        
+
         switch (args.removeFirst()) {
         case "parsed" -> cmdInfoParsed();
         default -> usage();
         }
     }
-    
+
     void cmdInfoParsed() {
         info("Crypts (" + data.crypts().size() + ")");
-        info(" " + data.crypts().stream()
-                .map(Crypt::toString)
-                .collect(Collectors.joining("\n ")));
+        info(" " + data.crypts().stream().map(Crypt::toString).collect(Collectors.joining("\n ")));
         info("Archives (" + data.archives().size() + ")");
-        info(" " + data.archives().stream()
-                .map(Archive::toString)
-                .collect(Collectors.joining("\n ")));
+        info(" " + data.archives().stream().map(Archive::toString).collect(Collectors.joining("\n ")));
         info("Files (" + data.files().size() + ")");
-        info(" " + data.files().stream()
-                .map(File::toString)
-                .collect(Collectors.joining("\n ")));
+        info(" " + data.files().stream().map(File::toString).collect(Collectors.joining("\n ")));
     }
-    
+
     private void usage() {
         exit("""
-Usage:
- restore [cmd]
+                Usage:
+                 restore [cmd]
 
-With cmd being one of:
+                With cmd being one of:
 
-  info               information about backup
-  info parsed        data as parsed
+                  info               information about backup
+                  info parsed        data as parsed
 
-  unpack dir         unpacks all files to dir
-  unpack -a dir      unpacks (only) archives to dir
+                  unpack dir         unpacks all files to dir
+                  unpack -a dir      unpacks (only) archives to dir
 
-  verify             verifies crypted backup files (locally)
-  verify -c dir      verifies crypted backup files in dir
-  verify -a dir      verifies decrypted archive files in dir
-  verify -f dir      verifies decrypted and unpacked files in dir
-  verify -s          decrypts and verifies files via streaming - prompts password
-  verify -j path     verifies MD5 checksum of backup files at Jotta path""");
+                  verify             verifies crypted backup files (locally)
+                  verify -c dir      verifies crypted backup files in dir
+                  verify -a dir      verifies decrypted archive files in dir
+                  verify -f dir      verifies decrypted and unpacked files in dir
+                  verify -s          decrypts and verifies files via streaming - prompts password
+                  verify -j path     verifies MD5 checksum of backup files at Jotta path""");
     }
-    
+
     /**
      * Parses data from shell restore script.
      *
@@ -207,7 +216,7 @@ With cmd being one of:
         int iCrypts = lines.indexOf("crypts=(");
         int iArchives = lines.indexOf("archives=(");
         int iFiles = lines.indexOf("files=(");
-        for (int i = iCrypts + 1; ; i++) {
+        for (int i = iCrypts + 1;; i++) {
             String line = lines.get(i);
             if (line.isEmpty()) {
                 continue;
@@ -216,8 +225,9 @@ With cmd being one of:
                 break;
             }
             String l = line.substring(1, line.length() - 1);
-            crypts.add(new Crypt(Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12,28)), Md5.ofHex(l.substring(29, 61)), l.substring(62)));
-        }            
+            crypts.add(new Crypt(Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)),
+                    Md5.ofHex(l.substring(29, 61)), l.substring(62)));
+        }
         for (int i = iArchives + 1; i < iFiles; i++) {
             String line = lines.get(i);
             if (line.isEmpty()) {
@@ -227,8 +237,9 @@ With cmd being one of:
                 break;
             }
             String l = line.substring(1, line.length() - 1);
-            archives.add(new Archive(Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12,28)), l.substring(29)));
-        }            
+            archives.add(new Archive(Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)),
+                    l.substring(29)));
+        }
         for (int i = iFiles + 1; i < lines.size(); i++) {
             String line = lines.get(i);
             if (line.isEmpty()) {
@@ -238,8 +249,9 @@ With cmd being one of:
                 break;
             }
             String l = line.substring(1, line.length() - 1);
-            files.add(new File(Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12,28)), l.substring(29)));
-        }            
+            files.add(new File(Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)),
+                    l.substring(29)));
+        }
 
         return new Data(datafile.getParent(), crypts, archives, files);
     }
@@ -247,8 +259,7 @@ With cmd being one of:
     private Xxh3 xxhSum(Path file) {
         byte[] buffer = new byte[FILE_READ_BUFFER_SIZE];
 
-        try (InputStream is = Files.newInputStream(file);
-                BufferedInputStream bis = new BufferedInputStream(is)) {
+        try (InputStream is = Files.newInputStream(file); BufferedInputStream bis = new BufferedInputStream(is)) {
             long size = Files.size(file);
             HashStream64 hashStream = Hashing.xxh3_64().hashStream();
             int read;
@@ -268,23 +279,23 @@ With cmd being one of:
 
     private String runExternalCmd(List<String> cmd) {
         try {
-            Process p = new ProcessBuilder(cmd)
-                .redirectErrorStream(true)
-                .start();
+            Process p = new ProcessBuilder(cmd).redirectErrorStream(true).start();
             return p.inputReader().lines().collect(Collectors.joining(System.lineSeparator()));
         } catch (IOException e) {
             throw new UncheckedIOException("Failed running cmd: " + cmd, e);
         }
     }
-    
-    
-    // this example implements Callable, so parsing, error handling and handling user
-    // requests for usage help or version help can be done with one line of code.
+
     public static void main(String... args) {
-        int exitCode = new CommandLine(new Restore()).execute(args);
-        System.exit(exitCode);
+        System.exit(mainReturn(args));
     }
     
+    public static int mainReturn(String... args) {
+        LoggerConfig.loadConfig();
+        return new CommandLine(new Restore()).execute(args);
+    }
+    
+
     public static final void mainz(String[] args) {
         LoggerConfig.loadConfig();
         Instant start = Instant.now();
@@ -292,7 +303,7 @@ With cmd being one of:
 //        String data = "/var/home/jskov/git/_ebooks_backup_2026/ebooks.sh";
         String data = "/var/home/jskov/git/_music_backup_2026/music.sh";
         try {
-            new Restore(Paths.get(data)).run(new ArrayList<>(List.of(args)));
+//            new Restore(Paths.get(data)).run(new ArrayList<>(List.of(args)));
             logger.info("Completed in {}", Duration.between(start, Instant.now()));
         } catch (Exception e) {
             logger.error("Failed processing {}", data, e);
@@ -309,19 +320,24 @@ With cmd being one of:
         System.exit(failed ? 1 : 0);
     }
 
-    private void exit() {
-        System.exit(0);
-    }
-
     private static void info(String msg) {
         System.out.println(msg);
     }
 
-    record JottaFile(String name, Md5 md5sum) {}
-    record Crypt(long size, Xxh3 xxh, Md5 md5, String name) {}
-    record Archive(long size, Xxh3 xxh, String name) {}
-    record File(long size, Xxh3 xxh, String name) {}
-    record Data(Path dataDir, List<Crypt> crypts, List<Archive> archives, List<File> files) {}
+    record JottaFile(String name, Md5 md5sum) {
+    }
+
+    record Crypt(long size, Xxh3 xxh, Md5 md5, String name) {
+    }
+
+    record Archive(long size, Xxh3 xxh, String name) {
+    }
+
+    record File(long size, Xxh3 xxh, String name) {
+    }
+
+    record Data(Path dataDir, List<Crypt> crypts, List<Archive> archives, List<File> files) {
+    }
 }
 
 //EOI - java parser stops after this line (due to byte 0x1a, end-of-input) 

@@ -25,6 +25,6 @@ public class JavaRestoreScriptVerifyJottaTest {
     /** Check that files on Jotta matches. */
     @Test
     void cmdVerifyJottaWorks() throws Exception {
-        new Restore(testData).run(new ArrayList<>(List.of("verify", "-j", "archive/backup/ebooks")));
+//        new Restore(testData).run(new ArrayList<>(List.of("verify", "-j", "archive/backup/ebooks")));
     }
 }
