@@ -38,6 +38,9 @@ public final class Restore {
     
     Restore(Path datafile) {
         data = parseData(datafile);
+        
+        logger.info("Parsed {}", data);
+        
     }
     
     public void run(List<String> args) throws Exception {
@@ -174,8 +177,12 @@ With cmd being one of:
   verify -j path     verifies MD5 checksum of backup files at Jotta path""");
     }
     
-    
-
+    /**
+     * Parses data from shell restore script.
+     *
+     * @param datafile the restore script
+     * @return the parsed data
+     */
     private Data parseData(Path datafile) {
         List<String> lines;
         try {
@@ -187,19 +194,41 @@ With cmd being one of:
         List<Crypt> crypts = new ArrayList<>();
         List<Archive> archives = new ArrayList<>();
         List<File> files = new ArrayList<>();
-        int iCrypts = lines.indexOf("##crypts##");
-        int iArchives = lines.indexOf("##archives##");
-        int iFiles = lines.indexOf("##files##");
-        for (int i = iCrypts + 1; i < iArchives; i++) {
-            String l = lines.get(i);
+        int iCrypts = lines.indexOf("crypts=(");
+        int iArchives = lines.indexOf("archives=(");
+        int iFiles = lines.indexOf("files=(");
+        for (int i = iCrypts + 1; ; i++) {
+            String line = lines.get(i);
+            if (line.isEmpty()) {
+                continue;
+            }
+            if (")".equals(line)) {
+                break;
+            }
+            String l = line.substring(1);
+            System.out.println("'" + l + "'");
             crypts.add(new Crypt(Long.valueOf(l.substring(0, 11).trim()), l.substring(12,28), l.substring(29, 61), l.substring(62)));
         }            
         for (int i = iArchives + 1; i < iFiles; i++) {
-            String l = lines.get(i);
+            String line = lines.get(i);
+            if (line.isEmpty()) {
+                continue;
+            }
+            if (")".equals(line)) {
+                break;
+            }
+            String l = line.substring(1);
             archives.add(new Archive(Long.valueOf(l.substring(0, 11).trim()), l.substring(12,28), l.substring(29)));
         }            
         for (int i = iFiles + 1; i < lines.size(); i++) {
-            String l = lines.get(i);
+            String line = lines.get(i);
+            if (line.isEmpty()) {
+                continue;
+            }
+            if (")".equals(line)) {
+                break;
+            }
+            String l = line.substring(1);
             files.add(new File(Long.valueOf(l.substring(0, 11).trim()), l.substring(12,28), l.substring(29)));
         }            
 
@@ -230,7 +259,7 @@ With cmd being one of:
     public static final void main(String[] args) {
         LoggerConfig.loadConfig();
 //        String data = System.getenv("BACKUP_DATA");
-        String data = "~/git/_ebooks_backup_2026/ebooks.sh";
+        String data = "/var/home/jskov/git/_ebooks_backup_2026/ebooks.sh";
         try {
             new Restore(Paths.get(data)).run(new ArrayList<>(List.of(args)));
         } catch (Exception e) {
