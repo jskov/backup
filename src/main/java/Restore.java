@@ -18,7 +18,15 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import dk.mada.backup.BackupCreator;
+import dk.mada.logging.LoggerConfig;
+
 public final class Restore {
+    private static final Logger logger = LoggerFactory.getLogger(BackupCreator.class);
+
     String BACKUP_NAME = "@@BACKUP_NAME@@";
     String VERSION = "@@VERSION@@";
     String DATA_FORMAT_VERSION = "@@DATA_FORMAT_VERSION@@";
@@ -220,14 +228,14 @@ With cmd being one of:
     }
     
     public static final void main(String[] args) {
-        String data = System.getenv("BACKUP_DATA");
-        if (data == null) {
-            err("The variable BACKUP_DATA must point to a data file!");
-        }
+        LoggerConfig.loadConfig();
+//        String data = System.getenv("BACKUP_DATA");
+        String data = "~/git/_ebooks_backup_2026/ebooks.sh";
         try {
             new Restore(Paths.get(data)).run(new ArrayList<>(List.of(args)));
         } catch (Exception e) {
-            err("Failed processing " + data + ": " + e.getMessage());
+            logger.error("Failed processing {}", data, e);
+            System.exit(1);
         }
     }
 
@@ -248,11 +256,6 @@ With cmd being one of:
         System.out.println(msg);
     }
 
-    private static void err(String msg) {
-        System.err.println(msg);
-        System.exit(1);
-    }
-    
     record JottaFile(String name, String md5sum) {}
     record Crypt(long size, String xxh, String md5, String name) {}
     record Archive(long size, String xxh, String name) {}
