@@ -47,59 +47,68 @@ public final class Restore implements Callable<Integer> {
     String BACKUP_DATE_TIME = "@@BACKUP_DATE_TIME@@";
     String BACKUP_OUTPUT_TYPE = "@@BACKUP_OUTPUT_TYPE@@";
 
+    @Deprecated
     @Nullable Data data;
 
     @Option(
             names = {"-b", "--backup-set"},
             required = true,
             description = "Define the location of the backup set")
-    private Path backupSet;
+    private Path argBackupSet;
 
     @Option(
             names = {"-d", "--target-directory"},
             description = "Define the target directory for restore/verification")
-    private Path directory;
+    private Path argDirectory;
 
     @Override
     public Integer call() throws Exception { // your business logic goes here...
-        logger.info("See {}", backupSet);
+        logger.info("See {}", argBackupSet);
         return 0;
     }
 
-    Data readBackupSet() {
+    Data parseBackupSet() {
         if (data == null) {
-            data = parseData(backupSet);
+            data = parseData(argBackupSet);
         }
         logger.trace("Parsed {}", data);
         return data;
     }
 
-    public void run(List<String> args) throws Exception {
-        info(": " + args);
-        if (args.size() == 0) {
-            usage();
+    Path targetDir() {
+        if (argDirectory != null) {
+            return argDirectory;
         }
-
-        switch (args.removeFirst()) {
-            case "info" -> cmdInfo(args);
-                //        case "verify" -> cmdVerify(args);
-        }
-
-        //        Path dir = Paths.get("/var/home/jskov/git/_java_restore_ebooks");
-        //
-        //        data.crypts().stream()
-        //            .forEach(c -> info(md5Sum(dir.resolve(c.name()))));
+        return Objects.requireNonNull(argBackupSet.getParent());
     }
 
+    
+    @Command(name = "info", description = "Print information about backup set")
+    void infoSet(@Option(names = "--full") boolean full) {
+        Data backup = parseBackupSet();
+
+        println("Backup " + BACKUP_NAME + "\n" + "made with backup version " + VERSION + "\n" + "created on "
+                + BACKUP_DATE_TIME + "\n" + "original size @@BACKUP_INPUT_SIZE@@" + "\n" + "encrypted with key id "
+                + BACKUP_KEY_ID + "\n");
+        
+        if (!full) {
+            println(backup.crypts().size() + " crypted archive(s) contains "
+                + backup.files().size() + " files in " + backup.archives().size() + " nested archives\n");
+        } else {
+            println("Crypts (" + backup.crypts().size() + ")");
+            println(" " + backup.crypts().stream().map(Crypt::pretty).collect(Collectors.joining("\n ")));
+            println("Archives (" + backup.archives().size() + ")");
+            println(" " + backup.archives().stream().map(Archive::pretty).collect(Collectors.joining("\n ")));
+            println("Files (" + backup.files().size() + ")");
+            println(" " + backup.files().stream().map(File::pretty).collect(Collectors.joining("\n ")));
+        }
+    }
+    
     @Command(name = "verify", description = "Verification of backup set")
     int verifySet() {
-
-        Path target = directory != null ? directory : Objects.requireNonNull(backupSet.getParent());
-
-        logger.info("See {} : {}", backupSet, directory);
-        // TODO Auto-generated method stub
-
-        Data backup = readBackupSet();
+        Path target = targetDir();
+        Data backup = parseBackupSet();
+        logger.info("Verify encryped files of backup set {} at {}", argBackupSet, target);
 
         AtomicBoolean failed = new AtomicBoolean(false);
         String output = backup.crypts().stream()
@@ -159,29 +168,6 @@ public final class Restore implements Callable<Integer> {
 
         boolean failed = foundBadChecksum != 0;
         exit(failed, failed ? ("Jotta backup has " + foundBadChecksum + " bad files") : "Jotta backup matches!");
-    }
-
-    private void cmdInfo(List<String> args) {
-        if (args.isEmpty()) {
-            exit("Backup " + BACKUP_NAME + "\n" + "made with backup version " + VERSION + "\n" + "created on "
-                    + BACKUP_DATE_TIME + "\n" + "original size @@BACKUP_INPUT_SIZE@@" + "\n" + "encrypted with key id "
-                    + BACKUP_KEY_ID + "\n" + data.crypts().size() + " crypted archive(s) contains "
-                    + data.files().size() + " files in " + data.archives().size() + " nested archives\n");
-        }
-
-        switch (args.removeFirst()) {
-            case "parsed" -> cmdInfoParsed();
-            default -> usage();
-        }
-    }
-
-    void cmdInfoParsed() {
-        info("Crypts (" + data.crypts().size() + ")");
-        info(" " + data.crypts().stream().map(Crypt::toString).collect(Collectors.joining("\n ")));
-        info("Archives (" + data.archives().size() + ")");
-        info(" " + data.archives().stream().map(Archive::toString).collect(Collectors.joining("\n ")));
-        info("Files (" + data.files().size() + ")");
-        info(" " + data.files().stream().map(File::toString).collect(Collectors.joining("\n ")));
     }
 
     private void usage() {
@@ -266,7 +252,7 @@ public final class Restore implements Callable<Integer> {
                     Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)), l.substring(29)));
         }
 
-        return new Data(datafile.getParent(), crypts, archives, files);
+        return new Data(Objects.requireNonNull(datafile.getParent()), datafile, crypts, archives, files);
     }
 
     private Xxh3 xxhSum(Path file) {
@@ -337,15 +323,32 @@ public final class Restore implements Callable<Integer> {
         System.out.println(msg);
     }
 
+    private static void println(String msg) {
+        System.out.println(msg);
+    }
+
+    
     record JottaFile(String name, Md5 md5sum) {}
 
-    record Crypt(long size, Xxh3 xxh, Md5 md5, String name) {}
+    record Crypt(long size, Xxh3 xxh, Md5 md5, String name) {
+        String pretty() {
+            return xxh.hex() + " " + md5.hex() + String.format(" %10d %s", size, name);
+        }
+    }
 
-    record Archive(long size, Xxh3 xxh, String name) {}
+    record Archive(long size, Xxh3 xxh, String name) {
+        String pretty() {
+            return xxh.hex() + String.format(" %10d %s", size, name);
+        }
+    }
 
-    record File(long size, Xxh3 xxh, String name) {}
+    record File(long size, Xxh3 xxh, String name) {
+        String pretty() {
+            return xxh.hex() + String.format(" %10d %s", size, name);
+        }
+    }
 
-    record Data(Path dataDir, List<Crypt> crypts, List<Archive> archives, List<File> files) {}
+    record Data(Path backupSetDir, Path backupData, List<Crypt> crypts, List<Archive> archives, List<File> files) {}
 }
 
 // EOI - java parser stops after this line (due to byte 0x1a, end-of-input)

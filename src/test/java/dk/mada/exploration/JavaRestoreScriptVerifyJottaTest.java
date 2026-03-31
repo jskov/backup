@@ -1,15 +1,9 @@
 package dk.mada.exploration;
 
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-
-import dk.mada.backup.restore.java.Restore;
 
 /**
  * Runs validation on Jotta cloud.
@@ -19,12 +13,12 @@ import dk.mada.backup.restore.java.Restore;
  */
 @EnabledIfEnvironmentVariable(named = "USER", matches = "jskov")
 public class JavaRestoreScriptVerifyJottaTest {
-	/** Test data. */
+    /** Test data. */
     Path testData = Paths.get("/home/jskov/git/_ebooks_backup_2026/ebooks.sh");
 
     /** Check that files on Jotta matches. */
     @Test
     void cmdVerifyJottaWorks() throws Exception {
-//        new Restore(testData).run(new ArrayList<>(List.of("verify", "-j", "archive/backup/ebooks")));
+        //        new Restore(testData).run(new ArrayList<>(List.of("verify", "-j", "archive/backup/ebooks")));
     }
 }
