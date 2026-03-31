@@ -16,7 +16,7 @@ public class JavaRestoreScriptTest {
 
     @Test
     void cmdTesting() throws Exception {
-        int res = Restore.mainReturn(new String[] {"-b", "/home/jskov/git/_ebooks_backup_2026/ebooks.sh", "info", "--full"});
+        int res = Restore.mainReturn(new String[] {"-b", "/home/jskov/git/_ebooks_backup_2026/ebooks.sh", "info"});
         assertThat(res).isEqualTo(0);
     }
 

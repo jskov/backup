@@ -110,6 +110,7 @@ public final class Restore implements Callable<Integer> {
         Data backup = parseBackupSet();
         logger.info("Verify encryped files of backup set {} at {}", argBackupSet, target);
 
+        Instant start = Instant.now();
         AtomicBoolean failed = new AtomicBoolean(false);
         String output = backup.crypts().stream()
                 .map(c -> {
@@ -122,6 +123,7 @@ public final class Restore implements Callable<Integer> {
                 .sorted()
                 .collect(Collectors.joining("\n"));
         System.out.println(output);
+        logger.info("Completed in {}", Duration.between(start, Instant.now()));
         return failed.get() ? -1 : 0;
     }
 
@@ -293,21 +295,6 @@ public final class Restore implements Callable<Integer> {
     public static int mainReturn(String... args) {
         LoggerConfig.loadConfig();
         return new CommandLine(new Restore()).execute(args);
-    }
-
-    public static final void mainz(String[] args) {
-        LoggerConfig.loadConfig();
-        Instant start = Instant.now();
-        //        String data = System.getenv("BACKUP_DATA");
-        //        String data = "/var/home/jskov/git/_ebooks_backup_2026/ebooks.sh";
-        String data = "/var/home/jskov/git/_music_backup_2026/music.sh";
-        try {
-            //            new Restore(Paths.get(data)).run(new ArrayList<>(List.of(args)));
-            logger.info("Completed in {}", Duration.between(start, Instant.now()));
-        } catch (Exception e) {
-            logger.error("Failed processing {}", data, e);
-            System.exit(1);
-        }
     }
 
     private void exit(String msg) {
