@@ -1,12 +1,3 @@
-//#!/bin/env -S  bash -c 'j="$(mktemp -t backup-XXX)".java; export BACKUP_DATA="${j}.data"; m=$(grep -E -n "^//EOI" "$0" | sed 's/:.*//') ; tail -n $m "$0" | tail -n +2 > "$j"; tail -n +$m "$0" > "$BACKUP_DATA"; java --source 25 "$j" "$@"'
-//-
-//- Lines starting with //- will be trimmed from the output.
-//-
-//- The shebang allows splitting the script file into a .java-named script for execution (top of the script)
-//- and .java.data-named file containing the data (the bottom lines of the script).
-//-
-//- Note that it needs to be shorted than 255 chars!
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +5,8 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -63,10 +56,10 @@ public final class Restore {
         case "verify" -> cmdVerify(args);
         }
         
-        Path dir = Paths.get("/var/home/jskov/git/_java_restore_ebooks");
-        
-        data.crypts().stream()
-            .forEach(c -> info(md5Sum(dir.resolve(c.name()))));
+//        Path dir = Paths.get("/var/home/jskov/git/_java_restore_ebooks");
+//        
+//        data.crypts().stream()
+//            .forEach(c -> info(md5Sum(dir.resolve(c.name()))));
     }
     
     
@@ -106,6 +99,7 @@ public final class Restore {
         	if (jottaMd5sum == null) {
         		foundBadChecksum++;
         		info(name + " [missing]" + bad);
+        		// FIXME below
         	} else if (jottaMd5sum.equals(c.md5())) {
         		info(name + ok);
         	} else {
@@ -162,7 +156,6 @@ public final class Restore {
         info(" " + data.files().stream()
                 .map(File::toString)
                 .collect(Collectors.joining("\n ")));
-        exit();
     }
     
     private void usage() {
@@ -278,10 +271,13 @@ With cmd being one of:
     
     public static final void main(String[] args) {
         LoggerConfig.loadConfig();
+        Instant start = Instant.now();
 //        String data = System.getenv("BACKUP_DATA");
-        String data = "/var/home/jskov/git/_ebooks_backup_2026/ebooks.sh";
+//        String data = "/var/home/jskov/git/_ebooks_backup_2026/ebooks.sh";
+        String data = "/var/home/jskov/git/_music_backup_2026/music.sh";
         try {
             new Restore(Paths.get(data)).run(new ArrayList<>(List.of(args)));
+            logger.info("Completed in {}", Duration.between(start, Instant.now()));
         } catch (Exception e) {
             logger.error("Failed processing {}", data, e);
             System.exit(1);
