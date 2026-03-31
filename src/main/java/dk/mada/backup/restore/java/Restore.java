@@ -1,12 +1,17 @@
 package dk.mada.backup.restore.java;
 
+import com.dynatrace.hash4j.hashing.HashStream64;
+import com.dynatrace.hash4j.hashing.Hashing;
+import dk.mada.backup.BackupCreator;
+import dk.mada.backup.types.Md5;
+import dk.mada.backup.types.Xxh3;
+import dk.mada.logging.LoggerConfig;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -16,24 +21,20 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.dynatrace.hash4j.hashing.HashStream64;
-import com.dynatrace.hash4j.hashing.Hashing;
-
-import dk.mada.backup.BackupCreator;
-import dk.mada.backup.types.Md5;
-import dk.mada.backup.types.Xxh3;
-import dk.mada.logging.LoggerConfig;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ScopeType;
 
-@Command(name = "restore", mixinStandardHelpOptions = true, version = "@@VERSION@@", description = "Restore (or verify) mada backup set.", scope = ScopeType.INHERIT)
+@Command(
+        name = "restore",
+        mixinStandardHelpOptions = true,
+        version = "@@VERSION@@",
+        description = "Restore (or verify) mada backup set.",
+        scope = ScopeType.INHERIT)
 public final class Restore implements Callable<Integer> {
     private static final Logger logger = LoggerFactory.getLogger(BackupCreator.class);
     /** File reading buffer size. */
@@ -46,14 +47,17 @@ public final class Restore implements Callable<Integer> {
     String BACKUP_DATE_TIME = "@@BACKUP_DATE_TIME@@";
     String BACKUP_OUTPUT_TYPE = "@@BACKUP_OUTPUT_TYPE@@";
 
-    @Nullable
-    Data data;
+    @Nullable Data data;
 
-    @Option(names = { "-b", "--backup-set" }, required = true, description = "Define the location of the backup set")
+    @Option(
+            names = {"-b", "--backup-set"},
+            required = true,
+            description = "Define the location of the backup set")
     private Path backupSet;
 
-    @Option(names = { "-d",
-            "--target-directory" }, description = "Define the target directory for restore/verification")
+    @Option(
+            names = {"-d", "--target-directory"},
+            description = "Define the target directory for restore/verification")
     private Path directory;
 
     @Override
@@ -77,44 +81,48 @@ public final class Restore implements Callable<Integer> {
         }
 
         switch (args.removeFirst()) {
-        case "info" -> cmdInfo(args);
-//        case "verify" -> cmdVerify(args);
+            case "info" -> cmdInfo(args);
+                //        case "verify" -> cmdVerify(args);
         }
 
-//        Path dir = Paths.get("/var/home/jskov/git/_java_restore_ebooks");
-//        
-//        data.crypts().stream()
-//            .forEach(c -> info(md5Sum(dir.resolve(c.name()))));
+        //        Path dir = Paths.get("/var/home/jskov/git/_java_restore_ebooks");
+        //
+        //        data.crypts().stream()
+        //            .forEach(c -> info(md5Sum(dir.resolve(c.name()))));
     }
 
     @Command(name = "verify", description = "Verification of backup set")
     int verifySet() {
 
         Path target = directory != null ? directory : Objects.requireNonNull(backupSet.getParent());
-        
+
         logger.info("See {} : {}", backupSet, directory);
         // TODO Auto-generated method stub
 
         Data backup = readBackupSet();
 
         AtomicBoolean failed = new AtomicBoolean(false);
-        String output = backup.crypts().stream().map(c -> {
-            Xxh3 sum = xxhSum(target.resolve(c.name()));
-            boolean status = c.xxh().equals(sum);
-            failed.compareAndSet(false, !status);
-            return " - " + c.name() + "... " + (status ? "ok" : ("BAD [expected " + c.xxh() + " was " + sum + "]"));
-        }).sorted().collect(Collectors.joining("\n"));
+        String output = backup.crypts().stream()
+                .map(c -> {
+                    Xxh3 sum = xxhSum(target.resolve(c.name()));
+                    boolean status = c.xxh().equals(sum);
+                    failed.compareAndSet(false, !status);
+                    return " - " + c.name() + "... "
+                            + (status ? "ok" : ("BAD [expected " + c.xxh() + " was " + sum + "]"));
+                })
+                .sorted()
+                .collect(Collectors.joining("\n"));
         System.out.println(output);
         return failed.get() ? -1 : 0;
     }
 
-//        
-//        switch(args.removeFirst()) {
-//        case "-c" -> cmdVerifyCrypts(Paths.get(args.removeFirst()).toRealPath());
-//        case "-j" -> cmdVerifyJotta(args.removeFirst());
-//        default -> usage();
-//        }
-//    }
+    //
+    //        switch(args.removeFirst()) {
+    //        case "-c" -> cmdVerifyCrypts(Paths.get(args.removeFirst()).toRealPath());
+    //        case "-j" -> cmdVerifyJotta(args.removeFirst());
+    //        default -> usage();
+    //        }
+    //    }
 
     void cmdVerifyJotta(String path) {
         info("Checking backup files at Jotta cloud path " + path);
@@ -128,9 +136,10 @@ public final class Restore implements Callable<Integer> {
         String ok = " \u2713";
         String bad = " \u274c";
 
-        Map<String, String> jottaData = out.lines().skip(2) // Skip header
-                .collect(Collectors.toMap(l -> l.substring(nameIx, nameEndIx).trim(),
-                        l -> l.substring(md5sumIx, md5sumIx + 32)));
+        Map<String, String> jottaData = out.lines()
+                .skip(2) // Skip header
+                .collect(Collectors.toMap(
+                        l -> l.substring(nameIx, nameEndIx).trim(), l -> l.substring(md5sumIx, md5sumIx + 32)));
 
         int foundBadChecksum = 0;
         for (Crypt c : data.crypts()) {
@@ -161,8 +170,8 @@ public final class Restore implements Callable<Integer> {
         }
 
         switch (args.removeFirst()) {
-        case "parsed" -> cmdInfoParsed();
-        default -> usage();
+            case "parsed" -> cmdInfoParsed();
+            default -> usage();
         }
     }
 
@@ -176,7 +185,8 @@ public final class Restore implements Callable<Integer> {
     }
 
     private void usage() {
-        exit("""
+        exit(
+                """
                 Usage:
                  restore [cmd]
 
@@ -216,7 +226,7 @@ public final class Restore implements Callable<Integer> {
         int iCrypts = lines.indexOf("crypts=(");
         int iArchives = lines.indexOf("archives=(");
         int iFiles = lines.indexOf("files=(");
-        for (int i = iCrypts + 1;; i++) {
+        for (int i = iCrypts + 1; ; i++) {
             String line = lines.get(i);
             if (line.isEmpty()) {
                 continue;
@@ -225,8 +235,11 @@ public final class Restore implements Callable<Integer> {
                 break;
             }
             String l = line.substring(1, line.length() - 1);
-            crypts.add(new Crypt(Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)),
-                    Md5.ofHex(l.substring(29, 61)), l.substring(62)));
+            crypts.add(new Crypt(
+                    Long.valueOf(l.substring(0, 11).trim()),
+                    Xxh3.ofHex(l.substring(12, 28)),
+                    Md5.ofHex(l.substring(29, 61)),
+                    l.substring(62)));
         }
         for (int i = iArchives + 1; i < iFiles; i++) {
             String line = lines.get(i);
@@ -237,8 +250,8 @@ public final class Restore implements Callable<Integer> {
                 break;
             }
             String l = line.substring(1, line.length() - 1);
-            archives.add(new Archive(Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)),
-                    l.substring(29)));
+            archives.add(new Archive(
+                    Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)), l.substring(29)));
         }
         for (int i = iFiles + 1; i < lines.size(); i++) {
             String line = lines.get(i);
@@ -249,8 +262,8 @@ public final class Restore implements Callable<Integer> {
                 break;
             }
             String l = line.substring(1, line.length() - 1);
-            files.add(new File(Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)),
-                    l.substring(29)));
+            files.add(new File(
+                    Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)), l.substring(29)));
         }
 
         return new Data(datafile.getParent(), crypts, archives, files);
@@ -259,7 +272,8 @@ public final class Restore implements Callable<Integer> {
     private Xxh3 xxhSum(Path file) {
         byte[] buffer = new byte[FILE_READ_BUFFER_SIZE];
 
-        try (InputStream is = Files.newInputStream(file); BufferedInputStream bis = new BufferedInputStream(is)) {
+        try (InputStream is = Files.newInputStream(file);
+                BufferedInputStream bis = new BufferedInputStream(is)) {
             long size = Files.size(file);
             HashStream64 hashStream = Hashing.xxh3_64().hashStream();
             int read;
@@ -289,21 +303,20 @@ public final class Restore implements Callable<Integer> {
     public static void main(String... args) {
         System.exit(mainReturn(args));
     }
-    
+
     public static int mainReturn(String... args) {
         LoggerConfig.loadConfig();
         return new CommandLine(new Restore()).execute(args);
     }
-    
 
     public static final void mainz(String[] args) {
         LoggerConfig.loadConfig();
         Instant start = Instant.now();
-//        String data = System.getenv("BACKUP_DATA");
-//        String data = "/var/home/jskov/git/_ebooks_backup_2026/ebooks.sh";
+        //        String data = System.getenv("BACKUP_DATA");
+        //        String data = "/var/home/jskov/git/_ebooks_backup_2026/ebooks.sh";
         String data = "/var/home/jskov/git/_music_backup_2026/music.sh";
         try {
-//            new Restore(Paths.get(data)).run(new ArrayList<>(List.of(args)));
+            //            new Restore(Paths.get(data)).run(new ArrayList<>(List.of(args)));
             logger.info("Completed in {}", Duration.between(start, Instant.now()));
         } catch (Exception e) {
             logger.error("Failed processing {}", data, e);
@@ -324,20 +337,15 @@ public final class Restore implements Callable<Integer> {
         System.out.println(msg);
     }
 
-    record JottaFile(String name, Md5 md5sum) {
-    }
+    record JottaFile(String name, Md5 md5sum) {}
 
-    record Crypt(long size, Xxh3 xxh, Md5 md5, String name) {
-    }
+    record Crypt(long size, Xxh3 xxh, Md5 md5, String name) {}
 
-    record Archive(long size, Xxh3 xxh, String name) {
-    }
+    record Archive(long size, Xxh3 xxh, String name) {}
 
-    record File(long size, Xxh3 xxh, String name) {
-    }
+    record File(long size, Xxh3 xxh, String name) {}
 
-    record Data(Path dataDir, List<Crypt> crypts, List<Archive> archives, List<File> files) {
-    }
+    record Data(Path dataDir, List<Crypt> crypts, List<Archive> archives, List<File> files) {}
 }
 
-//EOI - java parser stops after this line (due to byte 0x1a, end-of-input) 
+// EOI - java parser stops after this line (due to byte 0x1a, end-of-input)
