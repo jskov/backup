@@ -38,7 +38,10 @@ import picocli.CommandLine.ScopeType;
 public final class Restore implements Callable<Integer> {
     private static final Logger logger = LoggerFactory.getLogger(BackupCreator.class);
     /** File reading buffer size. */
-    private static final int FILE_READ_BUFFER_SIZE = 8192;
+//    private static final int FILE_READ_BUFFER_SIZE = 8192; / 1m4s
+//  private static final int FILE_READ_BUFFER_SIZE = 2*8192; // 58s
+    private static final int FILE_READ_BUFFER_SIZE = 4*8192; // 55s
+//    private static final int FILE_READ_BUFFER_SIZE = 16*8192; // 55s
 
     String BACKUP_NAME = "@@BACKUP_NAME@@";
     String VERSION = "@@VERSION@@";
