@@ -42,7 +42,8 @@ public final class Restore implements Callable<Integer> {
 //  private static final int FILE_READ_BUFFER_SIZE = 2*8192; // 58s
     private static final int FILE_READ_BUFFER_SIZE = 4*8192; // 55s
 //    private static final int FILE_READ_BUFFER_SIZE = 16*8192; // 55s
-
+    // parallelStreams: 27
+    
     String BACKUP_NAME = "@@BACKUP_NAME@@";
     String VERSION = "@@VERSION@@";
     String DATA_FORMAT_VERSION = "@@DATA_FORMAT_VERSION@@";
@@ -106,7 +107,7 @@ public final class Restore implements Callable<Integer> {
             println(" " + backup.files().stream().map(File::pretty).collect(Collectors.joining("\n ")));
         }
     }
-    
+ 
     @Command(name = "verify", description = "Verification of backup set")
     int verifySet() {
         Path target = targetDir();
@@ -115,7 +116,7 @@ public final class Restore implements Callable<Integer> {
 
         Instant start = Instant.now();
         AtomicBoolean failed = new AtomicBoolean(false);
-        String output = backup.crypts().stream()
+        String output = backup.crypts().parallelStream()
                 .map(c -> {
                     Xxh3 sum = xxhSum(target.resolve(c.name()));
                     boolean status = c.xxh().equals(sum);
@@ -265,7 +266,6 @@ public final class Restore implements Callable<Integer> {
 
         try (InputStream is = Files.newInputStream(file);
                 BufferedInputStream bis = new BufferedInputStream(is)) {
-            long size = Files.size(file);
             HashStream64 hashStream = Hashing.xxh3_64().hashStream();
             int read;
             while ((read = bis.read(buffer)) > 0) {

@@ -23,8 +23,8 @@ public class JavaRestoreScriptTest {
     
     @Test
     void cmdVerifyWorks() throws Exception {
-//        int res = Restore.mainReturn(new String[] {"-b", "/home/jskov/git/_ebooks_backup_2026/ebooks.sh", "verify"});
-        int res = Restore.mainReturn(new String[] {"-b", "/home/jskov/git/_music_backup_2026/music.sh", "verify"});
+        int res = Restore.mainReturn(new String[] {"-b", "/home/jskov/git/_ebooks_backup_2026/ebooks.sh", "verify"});
+//        int res = Restore.mainReturn(new String[] {"-b", "/home/jskov/git/_music_backup_2026/music.sh", "verify"});
         assertThat(res).isEqualTo(0);
     }
 
