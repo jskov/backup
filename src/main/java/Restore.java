@@ -7,7 +7,9 @@
 //-
 //- Note that it needs to be shorted than 255 chars!
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,11 +23,18 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.dynatrace.hash4j.hashing.HashStream64;
+import com.dynatrace.hash4j.hashing.Hashing;
+
 import dk.mada.backup.BackupCreator;
+import dk.mada.backup.types.Md5;
+import dk.mada.backup.types.Xxh3;
 import dk.mada.logging.LoggerConfig;
 
 public final class Restore {
     private static final Logger logger = LoggerFactory.getLogger(BackupCreator.class);
+    /** File reading buffer size. */
+    private static final int FILE_READ_BUFFER_SIZE = 8192;
 
     String BACKUP_NAME = "@@BACKUP_NAME@@";
     String VERSION = "@@VERSION@@";
@@ -39,7 +48,7 @@ public final class Restore {
     Restore(Path datafile) {
         data = parseData(datafile);
         
-        logger.info("Parsed {}", data);
+        logger.trace("Parsed {}", data);
         
     }
     
@@ -114,7 +123,7 @@ public final class Restore {
         AtomicBoolean failed = new AtomicBoolean(false);
         String output = data.crypts().stream()
             .map(c -> {
-                String sum = xxhSum(dir.resolve(c.name()));
+                Xxh3 sum = xxhSum(dir.resolve(c.name()));
                 boolean status = c.xxh().equals(sum);
                 failed.compareAndSet(false, !status);
                 return " - " + c.name() + "... " + (status ? "ok" : ("BAD [expected " + c.xxh() + " was " + sum + "]"));
@@ -206,8 +215,7 @@ With cmd being one of:
                 break;
             }
             String l = line.substring(1, line.length() - 1);
-            System.out.println("'" + l + "'");
-            crypts.add(new Crypt(Long.valueOf(l.substring(0, 11).trim()), l.substring(12,28), l.substring(29, 61), l.substring(62)));
+            crypts.add(new Crypt(Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12,28)), Md5.ofHex(l.substring(29, 61)), l.substring(62)));
         }            
         for (int i = iArchives + 1; i < iFiles; i++) {
             String line = lines.get(i);
@@ -218,7 +226,7 @@ With cmd being one of:
                 break;
             }
             String l = line.substring(1, line.length() - 1);
-            archives.add(new Archive(Long.valueOf(l.substring(0, 11).trim()), l.substring(12,28), l.substring(29)));
+            archives.add(new Archive(Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12,28)), l.substring(29)));
         }            
         for (int i = iFiles + 1; i < lines.size(); i++) {
             String line = lines.get(i);
@@ -229,15 +237,27 @@ With cmd being one of:
                 break;
             }
             String l = line.substring(1, line.length() - 1);
-            files.add(new File(Long.valueOf(l.substring(0, 11).trim()), l.substring(12,28), l.substring(29)));
+            files.add(new File(Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12,28)), l.substring(29)));
         }            
 
         return new Data(datafile.getParent(), crypts, archives, files);
     }
 
-    private String xxhSum(Path f) {
-        String out = runExternalCmd(List.of("xxhsum", "-H3", f.toAbsolutePath().toString()));
-        return out.substring(out.indexOf(" = ") + 3);
+    private Xxh3 xxhSum(Path file) {
+        byte[] buffer = new byte[FILE_READ_BUFFER_SIZE];
+
+        try (InputStream is = Files.newInputStream(file);
+                BufferedInputStream bis = new BufferedInputStream(is)) {
+            long size = Files.size(file);
+            HashStream64 hashStream = Hashing.xxh3_64().hashStream();
+            int read;
+            while ((read = bis.read(buffer)) > 0) {
+                hashStream.putBytes(buffer, 0, read);
+            }
+            return Xxh3.of(hashStream.getAsLong());
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to compute xxh3 for " + file, e);
+        }
     }
 
     private String md5Sum(Path f) {
@@ -285,10 +305,10 @@ With cmd being one of:
         System.out.println(msg);
     }
 
-    record JottaFile(String name, String md5sum) {}
-    record Crypt(long size, String xxh, String md5, String name) {}
-    record Archive(long size, String xxh, String name) {}
-    record File(long size, String xxh, String name) {}
+    record JottaFile(String name, Md5 md5sum) {}
+    record Crypt(long size, Xxh3 xxh, Md5 md5, String name) {}
+    record Archive(long size, Xxh3 xxh, String name) {}
+    record File(long size, Xxh3 xxh, String name) {}
     record Data(Path dataDir, List<Crypt> crypts, List<Archive> archives, List<File> files) {}
 }
 
