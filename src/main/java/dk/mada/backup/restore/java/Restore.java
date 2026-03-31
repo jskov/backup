@@ -6,6 +6,7 @@ import dk.mada.backup.BackupCreator;
 import dk.mada.backup.types.Md5;
 import dk.mada.backup.types.Xxh3;
 import dk.mada.logging.LoggerConfig;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ScopeType;
 
@@ -34,7 +36,8 @@ import picocli.CommandLine.ScopeType;
         mixinStandardHelpOptions = true,
         version = "@@VERSION@@",
         description = "Restore (or verify) mada backup set.",
-        scope = ScopeType.INHERIT)
+        scope = ScopeType.INHERIT,
+        subcommands = dk.mada.backup.restore.java.Restore.Verify.class)
 public final class Restore implements Callable<Integer> {
     private static final Logger logger = LoggerFactory.getLogger(BackupCreator.class);
     /** File reading buffer size. */
@@ -54,42 +57,25 @@ public final class Restore implements Callable<Integer> {
     @Deprecated
     @Nullable Data data;
 
-    @Option(
-            names = {"-b", "--backup-set"},
-            required = true,
-            description = "Define the location of the backup set")
-    private Path argBackupSet;
-
-    @Option(
-            names = {"-d", "--target-directory"},
-            description = "Define the target directory for restore/verification")
-    private Path argDirectory;
+//    @Mixin BaseArgs baseArgs;
+    
+//    @Option(
+//            names = {"-b", "--backup-set"},
+//            required = true,
+//            description = "Define the location of the backup set")
+//    private Path argBackupSet;
 
     @Override
     public Integer call() throws Exception { // your business logic goes here...
-        logger.info("See {}", argBackupSet);
         return 0;
     }
 
-    Data parseBackupSet() {
-        if (data == null) {
-            data = parseData(argBackupSet);
-        }
-        logger.trace("Parsed {}", data);
-        return data;
-    }
-
-    Path targetDir() {
-        if (argDirectory != null) {
-            return argDirectory;
-        }
-        return Objects.requireNonNull(argBackupSet.getParent());
-    }
 
     
+    
     @Command(name = "info", description = "Print information about backup set")
-    void infoSet(@Option(names = "--full") boolean full) {
-        Data backup = parseBackupSet();
+    void infoSet(@Mixin BaseArgs baseArgs, @Option(names = "--full") boolean full) {
+        Data backup = baseArgs.parseData();
 
         println("Backup " + BACKUP_NAME + "\n" + "made with backup version " + VERSION + "\n" + "created on "
                 + BACKUP_DATE_TIME + "\n" + "original size @@BACKUP_INPUT_SIZE@@" + "\n" + "encrypted with key id "
@@ -107,37 +93,125 @@ public final class Restore implements Callable<Integer> {
             println(" " + backup.files().stream().map(File::pretty).collect(Collectors.joining("\n ")));
         }
     }
- 
-    @Command(name = "verify", description = "Verification of backup set")
-    int verifySet() {
-        Path target = targetDir();
-        Data backup = parseBackupSet();
-        logger.info("Verify encryped files of backup set {} at {}", argBackupSet, target);
 
-        Instant start = Instant.now();
-        AtomicBoolean failed = new AtomicBoolean(false);
-        String output = backup.crypts().parallelStream()
-                .map(c -> {
-                    Xxh3 sum = xxhSum(target.resolve(c.name()));
-                    boolean status = c.xxh().equals(sum);
-                    failed.compareAndSet(false, !status);
-                    return " - " + c.name() + "... "
-                            + (status ? "ok" : ("BAD [expected " + c.xxh() + " was " + sum + "]"));
-                })
-                .sorted()
-                .collect(Collectors.joining("\n"));
-        System.out.println(output);
-        logger.info("Completed in {}", Duration.between(start, Instant.now()));
-        return failed.get() ? -1 : 0;
+    
+    public static class BaseArgs {
+        @Option(
+                names = {"-b", "--backup-set"},
+                required = true,
+                description = "Define the location of the backup set")
+        private Path argBackupSet;
+
+        @Option(
+                names = {"-d", "--target-directory"},
+                description = "Define the target directory for restore/verification")
+        private Path argDirectory;
+
+        Path targetDir() {
+            if (argDirectory != null) {
+                return argDirectory;
+            }
+            
+            return Objects.requireNonNull(argBackupSet.getParent());
+        }
+        
+        /**
+         * Parses data from shell restore script.
+         *
+         * @param datafile the restore script
+         * @return the parsed data
+         */
+        private Data parseData() {
+            List<String> lines;
+            try {
+                lines = Files.readAllLines(argBackupSet);
+            } catch (IOException e) {
+                throw new UncheckedIOException("Failed reading data " + argBackupSet, e);
+            }
+
+            List<Crypt> crypts = new ArrayList<>();
+            List<Archive> archives = new ArrayList<>();
+            List<File> files = new ArrayList<>();
+            int iCrypts = lines.indexOf("crypts=(");
+            int iArchives = lines.indexOf("archives=(");
+            int iFiles = lines.indexOf("files=(");
+            for (int i = iCrypts + 1; ; i++) {
+                String line = lines.get(i);
+                if (line.isEmpty()) {
+                    continue;
+                }
+                if (")".equals(line)) {
+                    break;
+                }
+                String l = line.substring(1, line.length() - 1);
+                crypts.add(new Crypt(
+                        Long.valueOf(l.substring(0, 11).trim()),
+                        Xxh3.ofHex(l.substring(12, 28)),
+                        Md5.ofHex(l.substring(29, 61)),
+                        l.substring(62)));
+            }
+            for (int i = iArchives + 1; i < iFiles; i++) {
+                String line = lines.get(i);
+                if (line.isEmpty()) {
+                    continue;
+                }
+                if (")".equals(line)) {
+                    break;
+                }
+                String l = line.substring(1, line.length() - 1);
+                archives.add(new Archive(
+                        Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)), l.substring(29)));
+            }
+            for (int i = iFiles + 1; i < lines.size(); i++) {
+                String line = lines.get(i);
+                if (line.isEmpty()) {
+                    continue;
+                }
+                if (")".equals(line)) {
+                    break;
+                }
+                String l = line.substring(1, line.length() - 1);
+                files.add(new File(
+                        Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)), l.substring(29)));
+            }
+
+            return new Data(Objects.requireNonNull(argBackupSet.getParent()), argBackupSet, crypts, archives, files);
+        }
     }
-
-    //
-    //        switch(args.removeFirst()) {
-    //        case "-c" -> cmdVerifyCrypts(Paths.get(args.removeFirst()).toRealPath());
-    //        case "-j" -> cmdVerifyJotta(args.removeFirst());
-    //        default -> usage();
-    //        }
-    //    }
+    
+    @Command(name = "verify")
+    public static class Verify implements Runnable {
+        @Mixin BaseArgs a;
+        
+        public Verify() {}
+        
+        @Override
+        public void run() {
+            System.out.println("SEE mixin " + a);
+        }
+    }        
+        @Command(name = "archives", description = "Verification of backup set archives")
+        int verifySet(@Mixin BaseArgs baseArgs) {
+            Path target = baseArgs.targetDir();
+            Data backup = baseArgs.parseData();
+            logger.info("Verify encryped files of backup set {} at {}", backup.backupData, target);
+    
+            Instant start = Instant.now();
+            AtomicBoolean failed = new AtomicBoolean(false);
+            String output = backup.crypts().parallelStream()
+                    .map(c -> {
+                        Xxh3 sum = xxhSum(target.resolve(c.name()));
+                        boolean status = c.xxh().equals(sum);
+                        failed.compareAndSet(false, !status);
+                        return " - " + c.name() + "... "
+                                + (status ? "ok" : ("BAD [expected " + c.xxh() + " was " + sum + "]"));
+                    })
+                    .sorted()
+                    .collect(Collectors.joining("\n"));
+            System.out.println(output);
+            logger.info("Completed in {}", Duration.between(start, Instant.now()));
+            return failed.get() ? -1 : 0;
+        }
 
     void cmdVerifyJotta(String path) {
         info("Checking backup files at Jotta cloud path " + path);
@@ -198,68 +272,6 @@ public final class Restore implements Callable<Integer> {
                   verify -j path     verifies MD5 checksum of backup files at Jotta path""");
     }
 
-    /**
-     * Parses data from shell restore script.
-     *
-     * @param datafile the restore script
-     * @return the parsed data
-     */
-    private Data parseData(Path datafile) {
-        List<String> lines;
-        try {
-            lines = Files.readAllLines(datafile);
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed reading data " + datafile, e);
-        }
-
-        List<Crypt> crypts = new ArrayList<>();
-        List<Archive> archives = new ArrayList<>();
-        List<File> files = new ArrayList<>();
-        int iCrypts = lines.indexOf("crypts=(");
-        int iArchives = lines.indexOf("archives=(");
-        int iFiles = lines.indexOf("files=(");
-        for (int i = iCrypts + 1; ; i++) {
-            String line = lines.get(i);
-            if (line.isEmpty()) {
-                continue;
-            }
-            if (")".equals(line)) {
-                break;
-            }
-            String l = line.substring(1, line.length() - 1);
-            crypts.add(new Crypt(
-                    Long.valueOf(l.substring(0, 11).trim()),
-                    Xxh3.ofHex(l.substring(12, 28)),
-                    Md5.ofHex(l.substring(29, 61)),
-                    l.substring(62)));
-        }
-        for (int i = iArchives + 1; i < iFiles; i++) {
-            String line = lines.get(i);
-            if (line.isEmpty()) {
-                continue;
-            }
-            if (")".equals(line)) {
-                break;
-            }
-            String l = line.substring(1, line.length() - 1);
-            archives.add(new Archive(
-                    Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)), l.substring(29)));
-        }
-        for (int i = iFiles + 1; i < lines.size(); i++) {
-            String line = lines.get(i);
-            if (line.isEmpty()) {
-                continue;
-            }
-            if (")".equals(line)) {
-                break;
-            }
-            String l = line.substring(1, line.length() - 1);
-            files.add(new File(
-                    Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)), l.substring(29)));
-        }
-
-        return new Data(Objects.requireNonNull(datafile.getParent()), datafile, crypts, archives, files);
-    }
 
     private Xxh3 xxhSum(Path file) {
         byte[] buffer = new byte[FILE_READ_BUFFER_SIZE];
@@ -340,5 +352,7 @@ public final class Restore implements Callable<Integer> {
 
     record Data(Path backupSetDir, Path backupData, List<Crypt> crypts, List<Archive> archives, List<File> files) {}
 }
+
+
 
 // EOI - java parser stops after this line (due to byte 0x1a, end-of-input)
