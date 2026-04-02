@@ -47,12 +47,12 @@ public final class Restore implements Callable<Integer> {
 //    private static final int FILE_READ_BUFFER_SIZE = 16*8192; // 55s
     // parallelStreams: 27
     
-    String BACKUP_NAME = "@@BACKUP_NAME@@";
-    String VERSION = "@@VERSION@@";
-    String DATA_FORMAT_VERSION = "@@DATA_FORMAT_VERSION@@";
-    String BACKUP_KEY_ID = "@@BACKUP_KEY_ID@@";
-    String BACKUP_DATE_TIME = "@@BACKUP_DATE_TIME@@";
-    String BACKUP_OUTPUT_TYPE = "@@BACKUP_OUTPUT_TYPE@@";
+    private static final String BACKUP_NAME = "# @name:";
+    private static final String VERSION = "@@VERSION@@";
+    private static final String DATA_FORMAT_VERSION = "@@DATA_FORMAT_VERSION@@";
+    private static final String BACKUP_KEY_ID = "@@BACKUP_KEY_ID@@";
+    private static final String BACKUP_DATE_TIME = "@@BACKUP_DATE_TIME@@";
+    private static final String BACKUP_OUTPUT_TYPE = "@@BACKUP_OUTPUT_TYPE@@";
 
     @Deprecated
     @Nullable Data data;
@@ -75,27 +75,35 @@ public final class Restore implements Callable<Integer> {
     
     @Command(name = "info", description = "Print information about backup set")
     void infoSet(@Mixin BaseArgs baseArgs, @Option(names = "--full") boolean full) {
-        Data backup = baseArgs.parseData();
+        Data backup = baseArgs.readAndParseData();
+        BackupSetData backupSetData = backup.data();
 
         println("Backup " + BACKUP_NAME + "\n" + "made with backup version " + VERSION + "\n" + "created on "
                 + BACKUP_DATE_TIME + "\n" + "original size @@BACKUP_INPUT_SIZE@@" + "\n" + "encrypted with key id "
                 + BACKUP_KEY_ID + "\n");
         
         if (!full) {
-            println(backup.crypts().size() + " crypted archive(s) contains "
-                + backup.files().size() + " files in " + backup.archives().size() + " nested archives\n");
+            println(backupSetData.crypts().size() + " crypted archive(s) contains "
+                + backupSetData.files().size() + " files in " + backupSetData.archives().size() + " nested archives\n");
         } else {
-            println("Crypts (" + backup.crypts().size() + ")");
-            println(" " + backup.crypts().stream().map(Crypt::pretty).collect(Collectors.joining("\n ")));
-            println("Archives (" + backup.archives().size() + ")");
-            println(" " + backup.archives().stream().map(Archive::pretty).collect(Collectors.joining("\n ")));
-            println("Files (" + backup.files().size() + ")");
-            println(" " + backup.files().stream().map(File::pretty).collect(Collectors.joining("\n ")));
+            println("Crypts (" + backupSetData.crypts().size() + ")");
+            println(" " + backupSetData.crypts().stream().map(Crypt::pretty).collect(Collectors.joining("\n ")));
+            println("Archives (" + backupSetData.archives().size() + ")");
+            println(" " + backupSetData.archives().stream().map(Archive::pretty).collect(Collectors.joining("\n ")));
+            println("Files (" + backupSetData.files().size() + ")");
+            println(" " + backupSetData.files().stream().map(File::pretty).collect(Collectors.joining("\n ")));
         }
     }
 
+
+    public record BackupInfo(String name, String version) {
+    }
+    
     
     public static class BaseArgs {
+        private static final String BACKUP_NAME = "# @name:";
+        private static final String BACKUP_VERSION = "# @version:";
+
         @Option(
                 names = {"-b", "--backup-set"},
                 required = true,
@@ -121,21 +129,45 @@ public final class Restore implements Callable<Integer> {
          * @param datafile the restore script
          * @return the parsed data
          */
-        private Data parseData() {
+        private Data readAndParseData() {
             List<String> lines;
             try {
                 lines = Files.readAllLines(argBackupSet);
+                return new Data(Objects.requireNonNull(argBackupSet.getParent()), argBackupSet, parseData(lines));
             } catch (IOException e) {
                 throw new UncheckedIOException("Failed reading data " + argBackupSet, e);
             }
+        }
 
+        public static BackupSetData parseData(List<String> lines) {
             List<Crypt> crypts = new ArrayList<>();
             List<Archive> archives = new ArrayList<>();
             List<File> files = new ArrayList<>();
             int iCrypts = lines.indexOf("crypts=(");
             int iArchives = lines.indexOf("archives=(");
             int iFiles = lines.indexOf("files=(");
-            for (int i = iCrypts + 1; ; i++) {
+            
+            String name = null;
+            String version = null;
+            int dataFormat = 0;
+            String gpgKeyId = null;
+            String time = null;
+            String outputType = null;
+                    
+            for (int i = 0; i < iCrypts; i++) {
+                String l = lines.get(i);
+                System.out.println(l);
+                if (l.startsWith(BACKUP_NAME)) {
+                    name = l.substring(BACKUP_NAME.length()).trim();
+                }
+                if (l.startsWith(BACKUP_VERSION)) {
+                    version = l.substring(BACKUP_VERSION.length()).trim();
+                }
+                
+            }
+            BackupInfo backupInfo = new BackupInfo(Objects.requireNonNull(name, "Did not find backup name"), Objects.requireNonNull(version, "Did not find backup version"));
+            
+            for (int i = iCrypts + 1; iCrypts > 0; i++) {
                 String line = lines.get(i);
                 if (line.isEmpty()) {
                     continue;
@@ -150,7 +182,7 @@ public final class Restore implements Callable<Integer> {
                         Md5.ofHex(l.substring(29, 61)),
                         l.substring(62)));
             }
-            for (int i = iArchives + 1; i < iFiles; i++) {
+            for (int i = iArchives + 1; iArchives > 0 && i < iFiles; i++) {
                 String line = lines.get(i);
                 if (line.isEmpty()) {
                     continue;
@@ -162,7 +194,7 @@ public final class Restore implements Callable<Integer> {
                 archives.add(new Archive(
                         Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)), l.substring(29)));
             }
-            for (int i = iFiles + 1; i < lines.size(); i++) {
+            for (int i = iFiles + 1; iFiles > 0 && i < lines.size(); i++) {
                 String line = lines.get(i);
                 if (line.isEmpty()) {
                     continue;
@@ -175,7 +207,7 @@ public final class Restore implements Callable<Integer> {
                         Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)), l.substring(29)));
             }
 
-            return new Data(Objects.requireNonNull(argBackupSet.getParent()), argBackupSet, crypts, archives, files);
+            return new BackupSetData(backupInfo, crypts, archives, files);
         }
     }
     
@@ -193,12 +225,12 @@ public final class Restore implements Callable<Integer> {
         @Command(name = "archives", description = "Verification of backup set archives")
         int verifySet(@Mixin BaseArgs baseArgs) {
             Path target = baseArgs.targetDir();
-            Data backup = baseArgs.parseData();
-            logger.info("Verify encryped files of backup set {} at {}", backup.backupData, target);
+            Data backup = baseArgs.readAndParseData();
+            logger.info("Verify encryped files of backup set {} at {}", backup.backupSetFile, target);
     
             Instant start = Instant.now();
             AtomicBoolean failed = new AtomicBoolean(false);
-            String output = backup.crypts().parallelStream()
+            String output = backup.data.crypts().parallelStream()
                     .map(c -> {
                         Xxh3 sum = xxhSum(target.resolve(c.name()));
                         boolean status = c.xxh().equals(sum);
@@ -231,7 +263,7 @@ public final class Restore implements Callable<Integer> {
                         l -> l.substring(nameIx, nameEndIx).trim(), l -> l.substring(md5sumIx, md5sumIx + 32)));
 
         int foundBadChecksum = 0;
-        for (Crypt c : data.crypts()) {
+        for (Crypt c : data.data.crypts()) {
             String name = c.name();
             String jottaMd5sum = jottaData.get(name);
             if (jottaMd5sum == null) {
@@ -350,7 +382,9 @@ public final class Restore implements Callable<Integer> {
         }
     }
 
-    record Data(Path backupSetDir, Path backupData, List<Crypt> crypts, List<Archive> archives, List<File> files) {}
+    record Data(Path backupSetDir, Path backupSetFile, BackupSetData data) {}
+
+    public record BackupSetData(BackupInfo backupInfo, List<Crypt> crypts, List<Archive> archives, List<File> files) {}
 }
 
 
