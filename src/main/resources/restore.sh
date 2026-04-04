@@ -52,7 +52,7 @@ expect_file() {
     local xxh3_output=$(/bin/xxhsum -H3 "$file")
     # This output changed between versions, needing separate decoding for Fedora and Ubuntu
     if [[ -f /etc/redhat-release ]]; then
-        # Newer versions of xxh3 prefix with XXH3_hex16 
+        # Newer versions of xxh3 prefix with XXH3_hex16
         # XXH3_2d06800538d394c2  /tmp/a
         local actual_xxh3=${xxh3_output:5:16}
     else
