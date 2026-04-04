@@ -306,8 +306,12 @@ set -e
 
 filename="\$1"
 
-a=\$(/bin/xxhsum -H3 - | echo "\$(/bin/cut -c 6-21),\$filename")
- 
+if [[ -f /etc/redhat-release ]]; then
+  a=\$(/bin/xxhsum -H3 - | echo "\$(/bin/cut -c 6-21),\$filename")
+else
+  a=\$(/bin/xxhsum -H3 - | echo "\$(/bin/cut -d' ' -f4),\$filename")
+fi
+
 if ! (/bin/grep -F -q "\$a" /tmp/valid-input.txt) ; then
   echo >/dev/stderr "Did not find matching checksum for file '\$filename'"
   exit 1
