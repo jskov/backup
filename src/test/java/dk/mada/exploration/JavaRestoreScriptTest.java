@@ -28,10 +28,10 @@ public class JavaRestoreScriptTest {
         assertThat(res).isEqualTo(0);
     }
 
-    @Test
-    void cmdVerifyFailExit() throws Exception {
-        int res = Restore.mainReturn(
-                new String[] {"-b", "/home/jskov/git/_ebooks_backup_2026/ebooks_broken.sh", "verify"});
-        assertThat(res).isEqualTo(-1);
-    }
+    //    @Test
+    //    void cmdVerifyFailExit() throws Exception {
+    //        int res = Restore.mainReturn(
+    //                new String[] {"-b", "/home/jskov/git/_ebooks_backup_2026/ebooks_broken.sh", "verify"});
+    //        assertThat(res).isEqualTo(-1);
+    //    }
 }

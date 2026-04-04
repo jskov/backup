@@ -3,15 +3,10 @@ package dk.mada.backup.restore.java;
 import com.dynatrace.hash4j.hashing.HashStream64;
 import com.dynatrace.hash4j.hashing.Hashing;
 import dk.mada.backup.BackupCreator;
-import dk.mada.backup.api.BackupOutputType;
-import dk.mada.backup.restore.DataFormatVersion;
-import dk.mada.backup.restore.RestoreScriptWriter;
 import dk.mada.backup.restore.java.BackupSet.Archive;
-import dk.mada.backup.restore.java.BackupSet.BackupMetadata;
 import dk.mada.backup.restore.java.BackupSet.Crypt;
 import dk.mada.backup.restore.java.BackupSet.DataFile;
 import dk.mada.backup.restore.java.BackupSet.LocalBackupSet;
-import dk.mada.backup.types.Md5;
 import dk.mada.backup.types.Xxh3;
 import dk.mada.logging.LoggerConfig;
 import java.io.BufferedInputStream;
@@ -22,8 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -57,10 +50,8 @@ public final class Restore implements Callable<Integer> {
 
     private static final String BACKUP_NAME = "# @name:";
     private static final String VERSION = "@@VERSION@@";
-    private static final String DATA_FORMAT_VERSION = "@@DATA_FORMAT_VERSION@@";
     private static final String BACKUP_KEY_ID = "@@BACKUP_KEY_ID@@";
     private static final String BACKUP_DATE_TIME = "@@BACKUP_DATE_TIME@@";
-    private static final String BACKUP_OUTPUT_TYPE = "@@BACKUP_OUTPUT_TYPE@@";
 
     @Deprecated
     @Nullable LocalBackupSet data;
@@ -81,7 +72,7 @@ public final class Restore implements Callable<Integer> {
     @Command(name = "info", description = "Print information about backup set")
     void infoSet(@Mixin BaseArgs baseArgs, @Option(names = "--full") boolean full) {
         LocalBackupSet backup = baseArgs.readAndParseData();
-        BackupSet backupSetData = backup.data();
+        BackupSet backupSetData = backup.backupSetData();
 
         println("Backup " + BACKUP_NAME + "\n" + "made with backup version " + VERSION + "\n" + "created on "
                 + BACKUP_DATE_TIME + "\n" + "original size @@BACKUP_INPUT_SIZE@@" + "\n" + "encrypted with key id "
@@ -102,13 +93,6 @@ public final class Restore implements Callable<Integer> {
     }
 
     public static class BaseArgs {
-        private static final String BACKUP_NAME = "# @name:";
-        private static final String BACKUP_VERSION = "# @version:";
-        private static final String DATA_FORMAT_VERSION = "# @data_format_version:";
-        private static final String GPG_KEY_ID = "# @gpg_key_id:";
-        private static final String TIME = "# @time:";
-        private static final String OUTPUT_TYPE = "# @output_type:";
-
         @Option(
                 names = {"-b", "--backup-set"},
                 required = true,
@@ -118,7 +102,7 @@ public final class Restore implements Callable<Integer> {
         @Option(
                 names = {"-d", "--target-directory"},
                 description = "Define the target directory for restore/verification")
-        private Path argDirectory;
+        @Nullable private Path argDirectory;
 
         Path targetDir() {
             if (argDirectory != null) {
@@ -128,115 +112,8 @@ public final class Restore implements Callable<Integer> {
             return Objects.requireNonNull(argBackupSet.getParent());
         }
 
-        /**
-         * Parses data from shell restore script.
-         *
-         * @param datafile the restore script
-         * @return the parsed data
-         */
-        private LocalBackupSet readAndParseData() {
-            List<String> lines;
-            try {
-                lines = Files.readAllLines(argBackupSet);
-                return new LocalBackupSet(
-                        Objects.requireNonNull(argBackupSet.getParent()), argBackupSet, parseData(lines));
-            } catch (IOException e) {
-                throw new UncheckedIOException("Failed reading data " + argBackupSet, e);
-            }
-        }
-
-        public static BackupSet parseData(List<String> lines) {
-            List<Crypt> crypts = new ArrayList<>();
-            List<Archive> archives = new ArrayList<>();
-            List<DataFile> files = new ArrayList<>();
-            int iCrypts = lines.indexOf("crypts=(");
-            int iArchives = lines.indexOf("archives=(");
-            int iFiles = lines.indexOf("files=(");
-
-            String name = null;
-            String version = null;
-            DataFormatVersion dataFormat = null;
-            String gpgKeyId = null;
-            LocalDateTime time = null;
-            BackupOutputType outputType = null;
-
-            for (int i = 0; i < iCrypts; i++) {
-                String l = lines.get(i);
-                System.out.println(l);
-                if (l.startsWith(BACKUP_NAME)) {
-                    name = l.substring(BACKUP_NAME.length()).trim();
-                }
-                if (l.startsWith(BACKUP_VERSION)) {
-                    version = l.substring(BACKUP_VERSION.length()).trim();
-                }
-                if (l.startsWith(DATA_FORMAT_VERSION)) {
-                    dataFormat = DataFormatVersion.parse(
-                            l.substring(DATA_FORMAT_VERSION.length()).trim());
-                }
-                if (l.startsWith(GPG_KEY_ID)) {
-                    gpgKeyId = l.substring(GPG_KEY_ID.length()).trim();
-                }
-                if (l.startsWith(GPG_KEY_ID)) {
-                    gpgKeyId = l.substring(GPG_KEY_ID.length()).trim();
-                }
-                if (l.startsWith(TIME)) {
-                    String timeStr = l.substring(TIME.length()).trim();
-                    time = RestoreScriptWriter.RESTORE_SCRIPT_TIME_FORMAT.parse(timeStr, LocalDateTime::from);
-                }
-                if (l.startsWith(OUTPUT_TYPE)) {
-                    outputType = BackupOutputType.from(
-                            l.substring(OUTPUT_TYPE.length()).trim());
-                }
-            }
-            BackupMetadata backupInfo = new BackupMetadata(
-                    Objects.requireNonNull(name, "Did not find backup name"),
-                    Objects.requireNonNull(version, "Did not find backup version"),
-                    dataFormat,
-                    Objects.requireNonNull(gpgKeyId, "Did not find gpg key"),
-                    Objects.requireNonNull(time, "Did not find time"),
-                    Objects.requireNonNull(outputType, "Did not find output type"));
-
-            for (int i = iCrypts + 1; iCrypts > 0; i++) {
-                String line = lines.get(i);
-                if (line.isEmpty()) {
-                    continue;
-                }
-                if (")".equals(line)) {
-                    break;
-                }
-                String l = line.substring(1, line.length() - 1);
-                crypts.add(new Crypt(
-                        Long.valueOf(l.substring(0, 11).trim()),
-                        Xxh3.ofHex(l.substring(12, 28)),
-                        Md5.ofHex(l.substring(29, 61)),
-                        l.substring(62)));
-            }
-            for (int i = iArchives + 1; iArchives > 0 && i < iFiles; i++) {
-                String line = lines.get(i);
-                if (line.isEmpty()) {
-                    continue;
-                }
-                if (")".equals(line)) {
-                    break;
-                }
-                String l = line.substring(1, line.length() - 1);
-                archives.add(new Archive(
-                        Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)), l.substring(29)));
-            }
-            for (int i = iFiles + 1; iFiles > 0 && i < lines.size(); i++) {
-                String line = lines.get(i);
-                if (line.isEmpty()) {
-                    continue;
-                }
-                if (")".equals(line)) {
-                    break;
-                }
-                String l = line.substring(1, line.length() - 1);
-                files.add(new DataFile(
-                        Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)), l.substring(29)));
-            }
-
-            return new BackupSet(backupInfo, crypts, archives, files);
+        public LocalBackupSet readAndParseData() {
+            return LocalBackupSet.newFromRestoreScript(argBackupSet);
         }
     }
 
@@ -257,11 +134,11 @@ public final class Restore implements Callable<Integer> {
     int verifySet(@Mixin BaseArgs baseArgs) {
         Path target = baseArgs.targetDir();
         LocalBackupSet backup = baseArgs.readAndParseData();
-        logger.info("Verify encryped files of backup set {} at {}", backup.backupSetFile(), target);
+        logger.info("Verify encryped files of backup set {} at {}", backup.restoreScript(), target);
 
         Instant start = Instant.now();
         AtomicBoolean failed = new AtomicBoolean(false);
-        String output = backup.data().crypts().parallelStream()
+        String output = backup.backupSetData().crypts().parallelStream()
                 .map(c -> {
                     Xxh3 sum = xxhSum(target.resolve(c.name()));
                     boolean status = c.xxh().equals(sum);
@@ -276,7 +153,8 @@ public final class Restore implements Callable<Integer> {
         return failed.get() ? -1 : 0;
     }
 
-    void cmdVerifyJotta(String path) {
+    @SuppressWarnings("unused")
+    void cmdVerifyJotta(BackupSet backupSet, String path) {
         info("Checking backup files at Jotta cloud path " + path);
 
         String out = runExternalCmd(List.of("jotta-cli", "ls", "-l", "-a", path));
@@ -294,14 +172,14 @@ public final class Restore implements Callable<Integer> {
                         l -> l.substring(nameIx, nameEndIx).trim(), l -> l.substring(md5sumIx, md5sumIx + 32)));
 
         int foundBadChecksum = 0;
-        for (Crypt c : data.data().crypts()) {
+        for (Crypt c : backupSet.crypts()) {
             String name = c.name();
             String jottaMd5sum = jottaData.get(name);
             if (jottaMd5sum == null) {
                 foundBadChecksum++;
                 info(name + " [missing]" + bad);
                 // FIXME below
-            } else if (jottaMd5sum.equals(c.md5())) {
+            } else if (jottaMd5sum.equals(c.md5().hex())) {
                 info(name + ok);
             } else {
                 foundBadChecksum++;
@@ -313,6 +191,7 @@ public final class Restore implements Callable<Integer> {
         exit(failed, failed ? ("Jotta backup has " + foundBadChecksum + " bad files") : "Jotta backup matches!");
     }
 
+    @SuppressWarnings("unused")
     private void usage() {
         exit("""
                 Usage:
@@ -350,6 +229,7 @@ public final class Restore implements Callable<Integer> {
         }
     }
 
+    @SuppressWarnings("unused")
     private String md5Sum(Path f) {
         String out = runExternalCmd(List.of("md5sum", f.toAbsolutePath().toString()));
         return out.substring(0, 31);
