@@ -13,7 +13,6 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -91,10 +90,7 @@ public class BackupCreator {
             throw new IllegalStateException("Failed to lazy get output files", e);
         }
 
-        String backupTime = LocalDateTime.now()
-                .format(new DateTimeFormatterBuilder()
-                        .appendPattern("YYYY.MM.dd-HHmm")
-                        .toFormatter());
+        String backupTime = LocalDateTime.now().format(RestoreScriptWriter.RESTORE_SCRIPT_TIME_FORMAT);
 
         Map<VariableName, String> vars = Map.of(
                 VariableName.VERSION, Version.getBackupVersion(),
