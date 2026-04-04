@@ -3,7 +3,7 @@ package dk.mada.unit.restore;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dk.mada.backup.restore.DataFormatVersion;
-import dk.mada.backup.restore.java.Restore.BackupSet;
+import dk.mada.backup.restore.java.BackupSet;
 import dk.mada.backup.restore.java.Restore.BaseArgs;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;

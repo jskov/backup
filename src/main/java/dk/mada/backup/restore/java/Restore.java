@@ -6,6 +6,11 @@ import dk.mada.backup.BackupCreator;
 import dk.mada.backup.api.BackupOutputType;
 import dk.mada.backup.restore.DataFormatVersion;
 import dk.mada.backup.restore.RestoreScriptWriter;
+import dk.mada.backup.restore.java.BackupSet.Archive;
+import dk.mada.backup.restore.java.BackupSet.BackupMetadata;
+import dk.mada.backup.restore.java.BackupSet.Crypt;
+import dk.mada.backup.restore.java.BackupSet.DataFile;
+import dk.mada.backup.restore.java.BackupSet.LocalBackupSet;
 import dk.mada.backup.types.Md5;
 import dk.mada.backup.types.Xxh3;
 import dk.mada.logging.LoggerConfig;
@@ -92,17 +97,9 @@ public final class Restore implements Callable<Integer> {
             println("Archives (" + backupSetData.archives().size() + ")");
             println(" " + backupSetData.archives().stream().map(Archive::pretty).collect(Collectors.joining("\n ")));
             println("Files (" + backupSetData.files().size() + ")");
-            println(" " + backupSetData.files().stream().map(File::pretty).collect(Collectors.joining("\n ")));
+            println(" " + backupSetData.files().stream().map(DataFile::pretty).collect(Collectors.joining("\n ")));
         }
     }
-
-    public record BackupMetadata(
-            String name,
-            String version,
-            DataFormatVersion dataFormatVersion,
-            String gpgKeyId,
-            LocalDateTime time,
-            BackupOutputType type) {}
 
     public static class BaseArgs {
         private static final String BACKUP_NAME = "# @name:";
@@ -151,7 +148,7 @@ public final class Restore implements Callable<Integer> {
         public static BackupSet parseData(List<String> lines) {
             List<Crypt> crypts = new ArrayList<>();
             List<Archive> archives = new ArrayList<>();
-            List<File> files = new ArrayList<>();
+            List<DataFile> files = new ArrayList<>();
             int iCrypts = lines.indexOf("crypts=(");
             int iArchives = lines.indexOf("archives=(");
             int iFiles = lines.indexOf("files=(");
@@ -235,7 +232,7 @@ public final class Restore implements Callable<Integer> {
                     break;
                 }
                 String l = line.substring(1, line.length() - 1);
-                files.add(new File(
+                files.add(new DataFile(
                         Long.valueOf(l.substring(0, 11).trim()), Xxh3.ofHex(l.substring(12, 28)), l.substring(29)));
             }
 
@@ -260,11 +257,11 @@ public final class Restore implements Callable<Integer> {
     int verifySet(@Mixin BaseArgs baseArgs) {
         Path target = baseArgs.targetDir();
         LocalBackupSet backup = baseArgs.readAndParseData();
-        logger.info("Verify encryped files of backup set {} at {}", backup.backupSetFile, target);
+        logger.info("Verify encryped files of backup set {} at {}", backup.backupSetFile(), target);
 
         Instant start = Instant.now();
         AtomicBoolean failed = new AtomicBoolean(false);
-        String output = backup.data.crypts().parallelStream()
+        String output = backup.data().crypts().parallelStream()
                 .map(c -> {
                     Xxh3 sum = xxhSum(target.resolve(c.name()));
                     boolean status = c.xxh().equals(sum);
@@ -297,7 +294,7 @@ public final class Restore implements Callable<Integer> {
                         l -> l.substring(nameIx, nameEndIx).trim(), l -> l.substring(md5sumIx, md5sumIx + 32)));
 
         int foundBadChecksum = 0;
-        for (Crypt c : data.data.crypts()) {
+        for (Crypt c : data.data().crypts()) {
             String name = c.name();
             String jottaMd5sum = jottaData.get(name);
             if (jottaMd5sum == null) {
@@ -392,31 +389,4 @@ public final class Restore implements Callable<Integer> {
     private static void println(String msg) {
         System.out.println(msg);
     }
-
-    record JottaFile(String name, Md5 md5sum) {}
-
-    record Crypt(long size, Xxh3 xxh, Md5 md5, String name) {
-        String pretty() {
-            return xxh.hex() + " " + md5.hex() + String.format(" %10d %s", size, name);
-        }
-    }
-
-    record Archive(long size, Xxh3 xxh, String name) {
-        String pretty() {
-            return xxh.hex() + String.format(" %10d %s", size, name);
-        }
-    }
-
-    record File(long size, Xxh3 xxh, String name) {
-        String pretty() {
-            return xxh.hex() + String.format(" %10d %s", size, name);
-        }
-    }
-
-    public record LocalBackupSet(Path backupSetDir, Path backupSetFile, BackupSet data) {}
-
-    public record BackupSet(
-            BackupMetadata backupMetadata, List<Crypt> crypts, List<Archive> archives, List<File> files) {}
 }
-
-// EOI - java parser stops after this line (due to byte 0x1a, end-of-input)
