@@ -22,8 +22,7 @@ import org.junit.jupiter.api.io.TempDir;
  */
 class RestoreScriptReaderTest {
     /** Standard header to use in tests *not* interested in these values. */
-    private static final String HEADER =
-            """
+    private static final String HEADER = """
             # @version: 1.0.0
             # @data_format_version: 2
             # @gpg_key_id: 0123456789012345678901234567890123456789
@@ -38,8 +37,7 @@ class RestoreScriptReaderTest {
 
     @Test
     void invalidInputGivesEmpty() {
-        RestoreScriptData data =
-                sut.parseScript(backupDir, """
+        RestoreScriptData data = sut.parseScript(backupDir, """
                 # not a valid script
                 """);
 
@@ -48,9 +46,7 @@ class RestoreScriptReaderTest {
 
     @Test
     void canReadHeader() {
-        RestoreScriptData data = sut.parseScript(
-                backupDir,
-                """
+        RestoreScriptData data = sut.parseScript(backupDir, """
                 # @name: name-is-defined
                 # @version: 1.2.3
                 # @data_format_version: 1
@@ -69,10 +65,7 @@ class RestoreScriptReaderTest {
 
     @Test
     void canReadV2Data() {
-        RestoreScriptData data = sut.parseScript(
-                backupDir,
-                HEADER
-                        + """
+        RestoreScriptData data = sut.parseScript(backupDir, HEADER + """
                         crypts=(
                         "  124221499,1eb326ca04a97a48,de275e40fe159cce2b5f198cad71b0d9,A-D.crypt"
                         "   69264274,663b0cb7a10aaa62,9d9576cec753d39605e22e9937816448,E-H.crypt"
