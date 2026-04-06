@@ -14,6 +14,9 @@ import java.util.logging.SimpleFormatter;
  * Controls (JUL) logging backend.
  */
 public final class LoggerConfig {
+    /** A flag marking that configuration loading has happened. Prevents main configuration overloading test configuration. */
+    private static boolean configurationLoaded = false;
+
     /** Creates new instance. */
     private LoggerConfig() {
         // empty
@@ -30,11 +33,15 @@ public final class LoggerConfig {
      * @param path resource path of logger configuration
      */
     public static void loadConfig(String path) {
+        if (configurationLoaded) {
+            return;
+        }
         try (InputStream configFile = LoggerConfig.class.getResourceAsStream(path)) {
             LogManager.getLogManager().updateConfiguration(configFile, null);
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to load logging properties", e);
         }
+        configurationLoaded = true;
     }
 
     /**
