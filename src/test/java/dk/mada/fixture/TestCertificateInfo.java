@@ -29,7 +29,7 @@ public final class TestCertificateInfo {
             TEST_GNUPG_HOME.toAbsolutePath().toString();
     /** Key of the test certificate. */
     public static final GpgId TEST_RECIPIEND_KEY_ID =
-            new GpgId(/* KEYID*/ "7B617489EAC37AAA5726A271C364D01C661234D0" /*KEYID */);
+            new GpgId(/* KEYID*/ "39010C6771D4206AC4AE9B6150502EFE52EDAD96" /*KEYID */);
     /** Environment overrides necessary for the GPG process. */
     public static final Map<String, String> TEST_KEY_ENVIRONMENT_OVERRIDES = Map.of("GNUPGHOME", ABS_TEST_GNUPG_HOME);
     /** Gpg information for tests. */
