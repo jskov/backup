@@ -50,16 +50,9 @@ expect_file() {
     fi
 
     local xxh3_output=$(/bin/xxhsum -H3 "$file")
-    # This output changed between versions, needing separate decoding for Fedora and Ubuntu
-    if [[ -f /etc/debian_version ]]; then
-        # Older versions of xxh3 (as used in Ubuntu) outputs checksum at the end
-        # XXH3 (/tmp/a) = 2d06800538d394c2
-        local actual_xxh3=${xxh3_output: -16}
-    else
-        # Newer versions of xxh3 prefix with XXH3_hex16
-        # XXH3_2d06800538d394c2  /tmp/a
-        local actual_xxh3=${xxh3_output:5:16}
-    fi
+    # Newer versions of xxh3 prefix with XXH3_hex16
+    # XXH3_2d06800538d394c2  /tmp/a
+    local actual_xxh3=${xxh3_output:5:16}
     if [[ "$actual_xxh3" != "$xxh3" ]]; then
         fail "\nFile $file has xxh3 '$actual_xxh3', but expected '$xxh3'"
     fi
