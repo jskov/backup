@@ -1,12 +1,12 @@
 [libraries]
 compress            = { module = "org.apache.commons:commons-compress", version = "1.28.0" }
-hash4j              = { module = "com.dynatrace.hash4j:hash4j", version = "0.30.0" }
-jspecify            = { module = "org.jspecify:jspecify", version = "1.0.0" }
+hash4j              = { module = "com.dynatrace.hash4j:hash4j", version = "0.31.0" }
+jspecify            = { module = "org.jspecify:jspecify", version = "1.0.1" }
 picocli             = { module = "info.picocli:picocli", version = "4.7.7" }
-slf4j               = { module = "org.slf4j:slf4j-jdk14", version = "2.0.18" }
+slf4j               = { module = "org.slf4j:slf4j-jdk14", version = "2.0.20" }
 
 assertJ             = { module = "org.assertj:assertj-core", version = "3.27.7" }
-unit                = { module = "org.junit.jupiter:junit-jupiter", version = "6.1.1" }
+unit                = { module = "org.junit.jupiter:junit-jupiter", version = "6.1.3" }
 unitPlatform        = { module = "org.junit.platform:junit-platform-runner", version = "1.14.4" }
 
 [bundles]
