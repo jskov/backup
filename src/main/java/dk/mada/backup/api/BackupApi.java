@@ -43,12 +43,11 @@ public class BackupApi {
      * @throws BackupException or any of its subclasses, on failure
      */
     public Path makeBackup(String backupName, Path sourceDir, Path targetDir) {
-        BackupPolicy policy =
-                switch (outputType) {
-                    case UNKNOWN -> throw new IllegalStateException("Need a valid type");
-                    case NUMBERED -> new NumberedBackupPolicy(backupName, gpgInfo, limits, sourceDir, targetDir);
-                    case NAMED -> new NamedBackupPolicy(backupName, gpgInfo, limits, sourceDir, targetDir);
-                };
+        BackupPolicy policy = switch (outputType) {
+            case UNKNOWN -> throw new IllegalStateException("Need a valid type");
+            case NUMBERED -> new NumberedBackupPolicy(backupName, gpgInfo, limits, sourceDir, targetDir);
+            case NAMED -> new NamedBackupPolicy(backupName, gpgInfo, limits, sourceDir, targetDir);
+        };
 
         return new BackupCreator(policy).create();
     }
