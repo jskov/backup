@@ -2,9 +2,9 @@ plugins {
     id 'eclipse'
     id 'jacoco'
     id 'java'
-    id 'com.gradleup.shadow' version '9.5.1'
+    id 'com.gradleup.shadow' version '9.6.1'
 
-    id 'dk.mada.style' version '1.2.3'
+    id 'dk.mada.style' version '1.2.6'
 }
 
 interface Injected {
@@ -128,6 +128,9 @@ tasks.register('acceptTest', Test) {
     }
 
     testLogging.showStandardStreams = true
+
+    // Maybe work around test problems on GH? 
+    forkEvery 1
 }
 
 tasks.named('check').configure {

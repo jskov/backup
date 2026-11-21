@@ -1,7 +1,7 @@
 This is a revocation certificate for the OpenPGP key:
 
-pub   ed25519 2025-08-13 [SC] [expires: 2026-08-13]
-      7B617489EAC37AAA5726A271C364D01C661234D0
+pub   ed25519 2026-11-21 [SC] [expires: 2027-11-21]
+      39010C6771D4206AC4AE9B6150502EFE52EDAD96
 uid          testKey
 
 A revocation certificate is a kind of "kill switch" to publicly
@@ -21,8 +21,8 @@ before importing and publishing this revocation certificate.
 :-----BEGIN PGP PUBLIC KEY BLOCK-----
 Comment: This is a revocation certificate
 
-iHgEIBYKACAWIQR7YXSJ6sN6qlcmonHDZNAcZhI00AUCaJzZwwIdAAAKCRDDZNAc
-ZhI00EaiAP4gMQUAwj8oqFBxFhnwgKj4ZjkTbLBy2D8tO7vk1VRF/AEAqtqR7vgJ
-CpTapv03wTOwN+FIwybLQPTiU3ioNRIl7w4=
-=nY0Y
+iHgEIBYKACAWIQQ5AQxncdQgasSum2FQUC7+Uu2tlgUCawFTywIdAAAKCRBQUC7+
+Uu2tli+kAP9gvDfrhpGJs6YeQsJYfRZe4RhqYYU2cX3UlUAXHh2/1QD8DQm6/UHZ
+WSk2xi5gXt/Xz9fnfOircgB/4dKDsFNoCwk=
+=OKMy
 -----END PGP PUBLIC KEY BLOCK-----
