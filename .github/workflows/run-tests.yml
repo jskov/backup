@@ -21,6 +21,9 @@ jobs:
   build:
     name: Build, test, and release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - name: Install xxhash
         run: |
@@ -57,7 +60,7 @@ jobs:
         # sonar disabled waiting for something to come off https://community.sonarsource.com/t/error-when-running-sonar-task-with-gradle-9-0-0-rc-1/143857/1
         run: ./gradlew --configuration-cache check javadoc shadow -s -Pversion=${BUILD_LABEL//\//_}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information for sonarqube, if any (permissions above limit to read-only) 
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           BUILD_LABEL: ${{ github.head_ref || github.ref_name }}
 
